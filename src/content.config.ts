@@ -13,6 +13,18 @@ const blog = defineCollection({
 			pubDate: z.coerce.date(),
 			updatedDate: z.coerce.date().optional(),
 			heroImage: image().optional(),
+			// Cross-posting / syndication tracking
+			canonicalUrl: z.string().url().optional(),
+			syndication: z.object({
+				twitter: z.string().url().optional(),
+				linkedin: z.string().url().optional(),
+				devto: z.string().url().optional(),
+				hashnode: z.string().url().optional(),
+				medium: z.string().url().optional(),
+			}).optional(),
+			// Content metadata for social sharing
+			tags: z.array(z.string()).default([]),
+			draft: z.boolean().default(false),
 		}),
 });
 

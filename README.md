@@ -1,3 +1,64 @@
+# Justin's Blog
+
+Personal blog built with Astro, deployed on Cloudflare Pages.
+
+## Quick Start
+
+```bash
+bun install
+bun run dev      # Start dev server at localhost:4321
+bun run build    # Build for production
+bun run preview  # Preview production build
+```
+
+## Writing Posts
+
+Create new posts in `src/content/blog/` as `.md` or `.mdx` files:
+
+```markdown
+---
+title: "My Post Title"
+description: "A brief description for SEO and social sharing"
+pubDate: 2024-01-15
+tags: ["typescript", "web"]
+draft: false
+# Optional: track where you've cross-posted
+syndication:
+  twitter: "https://twitter.com/you/status/123"
+  linkedin: "https://linkedin.com/posts/..."
+---
+
+Your content here...
+```
+
+## Deploying to Cloudflare Pages
+
+1. Push this repo to GitHub
+2. Go to [Cloudflare Pages](https://pages.cloudflare.com)
+3. Connect your GitHub repo
+4. Settings are auto-detected (Framework: Astro, Build: `bun run build`, Output: `dist`)
+5. Update `astro.config.mjs` with your actual domain
+
+## Cross-Posting Strategy (POSSE)
+
+Your RSS feed is at `/rss.xml`. Use it to:
+- Auto-post to Twitter/X via [Zapier](https://zapier.com) or [IFTTT](https://ifttt.com)
+- Syndicate to [Dev.to](https://dev.to) (supports canonical URLs)
+- Syndicate to [Hashnode](https://hashnode.com) (supports canonical URLs)
+- Create LinkedIn articles manually with link back
+
+Always set `canonical_url` on syndicated posts pointing to your site.
+
+## Newsletter Setup
+
+The Newsletter component is a placeholder. To make it work:
+
+1. **Buttondown** (recommended, simple): Replace form action with your Buttondown URL
+2. **ConvertKit**: Use their embed form or API
+3. **Substack**: Link to your Substack subscribe page
+
+---
+
 # Astro Starter Kit: Blog
 
 ```sh

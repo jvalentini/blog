@@ -6,6 +6,11 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://example.com',
+	site: 'https://jvalentini.pages.dev',
 	integrations: [mdx(), sitemap()],
+	output: 'static',
+	build: {
+		// Cloudflare Pages compatible output
+		format: 'directory',
+	},
 });

@@ -1,0 +1,70 @@
+---
+interface Props {
+	title: string;
+	url: string;
+	description?: string;
+}
+
+const { title, url, description = '' } = Astro.props;
+
+const encodedTitle = encodeURIComponent(title);
+const encodedUrl = encodeURIComponent(url);
+const encodedDescription = encodeURIComponent(description);
+
+const shareLinks = {
+	twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+	linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+	facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+	hackernews: `https://news.ycombinator.com/submitlink?u=${encodedUrl}&t=${encodedTitle}`,
+};
+---
+
+<div class="social-share">
+	<span class="share-label">Share:</span>
+	<a href={shareLinks.twitter} target="_blank" rel="noopener noreferrer" aria-label="Share on Twitter/X">
+		𝕏
+	</a>
+	<a href={shareLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn">
+		in
+	</a>
+	<a href={shareLinks.facebook} target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook">
+		f
+	</a>
+	<a href={shareLinks.hackernews} target="_blank" rel="noopener noreferrer" aria-label="Share on Hacker News">
+		Y
+	</a>
+</div>
+
+<style>
+	.social-share {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin: 1.5rem 0;
+	}
+
+	.share-label {
+		font-size: 0.9rem;
+		color: #666;
+	}
+
+	.social-share a {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		background: #e5e5e5;
+		color: #333;
+		text-decoration: none;
+		font-weight: bold;
+		font-size: 0.9rem;
+		transition: all 0.2s;
+	}
+
+	.social-share a:hover {
+		background: var(--accent, #4f46e5);
+		color: white;
+	}
+</style>

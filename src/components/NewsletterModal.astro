@@ -1,0 +1,442 @@
+---
+interface Props {
+	articleTitle?: string;
+}
+
+const { articleTitle } = Astro.props;
+---
+
+<div id="newsletter-modal" class="newsletter-modal-overlay" style="display: none;">
+	<div class="newsletter-modal">
+		<div class="modal-header">
+			<div class="modal-terminal-header">
+				<span class="prompt">$</span>
+				<span class="command">newsletter --subscribe</span>
+				<button class="modal-close" aria-label="Close modal">&times;</button>
+			</div>
+		</div>
+
+		<div class="modal-body">
+			<div class="modal-content">
+				<h3 class="modal-title">Enjoyed the article?</h3>
+				<p class="modal-description">
+					Get notified when I publish new posts about software engineering, AI-assisted development, and modern web technologies.
+				</p>
+
+				<form class="modal-newsletter-form" action="/api/subscribe" method="POST" id="modal-newsletter-form">
+					<div class="modal-input-wrapper">
+						<span class="modal-input-prefix">email:</span>
+						<input
+							type="email"
+							name="email"
+							placeholder="developer@example.com"
+							required
+							aria-label="Email address"
+						/>
+					</div>
+					<button type="submit" class="modal-subscribe-btn">
+						<span class="btn-icon">📧</span>
+						<span class="btn-text">Subscribe</span>
+					</button>
+				</form>
+
+				<p class="modal-note">
+					No spam, unsubscribe anytime. Powered by <a href="https://buttondown.com" target="_blank" rel="noopener">Buttondown</a>
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		const modal = document.getElementById('newsletter-modal') as HTMLElement;
+		const closeBtn = modal?.querySelector('.modal-close') as HTMLElement;
+		const form = document.getElementById('modal-newsletter-form') as HTMLFormElement;
+		const status = document.createElement('p');
+		status.className = 'modal-status';
+		status.setAttribute('aria-live', 'polite');
+
+		let hasShown = false;
+
+		// Close modal function
+		function closeModal() {
+			if (modal) {
+				modal.style.display = 'none';
+				document.body.style.overflow = '';
+			}
+		}
+
+		// Show modal function
+		function showModal() {
+			if (modal && !hasShown) {
+				hasShown = true;
+				modal.style.display = 'flex';
+				document.body.style.overflow = 'hidden';
+
+				// Focus management
+				const firstInput = modal.querySelector('input');
+				if (firstInput) {
+					setTimeout(() => firstInput.focus(), 100);
+				}
+			}
+		}
+
+		// Scroll detection
+		function checkScroll() {
+			if (hasShown) return;
+
+			const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+			const windowHeight = window.innerHeight;
+			const documentHeight = Math.max(
+				document.body.scrollHeight,
+				document.body.offsetHeight,
+				document.documentElement.clientHeight,
+				document.documentElement.scrollHeight,
+				document.documentElement.offsetHeight
+			);
+
+			// Show modal when user is within 300px of bottom
+			if (scrollTop + windowHeight >= documentHeight - 300) {
+				setTimeout(showModal, 1000); // 1 second delay
+			}
+		}
+
+		// Event listeners
+		if (closeBtn) {
+			closeBtn.addEventListener('click', closeModal);
+		}
+
+		// Close on overlay click
+		if (modal) {
+			modal.addEventListener('click', function(e) {
+				if (e.target === modal) {
+					closeModal();
+				}
+			});
+		}
+
+		// Close on escape key
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
+				closeModal();
+			}
+		});
+
+		// Form submission
+		if (form) {
+			form.addEventListener('submit', async function(e) {
+				e.preventDefault();
+
+				const btn = form.querySelector('.modal-subscribe-btn') as HTMLButtonElement | null;
+				const btnText = btn?.querySelector('.btn-text') as HTMLElement;
+
+				// Add status element if not already present
+				if (!form.querySelector('.modal-status')) {
+					form.appendChild(status);
+				}
+
+				const formData = new FormData(form);
+				const email = formData.get('email') as string;
+
+				if (btnText) btnText.textContent = 'Subscribing...';
+				if (btn) btn.disabled = true;
+				status.textContent = '';
+				status.className = 'modal-status';
+
+				try {
+					const res = await fetch('/api/subscribe', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ email: email }),
+					});
+
+					const data: { success?: boolean; message?: string; error?: string } = await res.json();
+
+					if (data.success) {
+						status.textContent = data.message || 'Subscribed!';
+						status.className = 'modal-status success';
+						(form as HTMLFormElement).reset();
+
+						// Auto-close after success
+						setTimeout(closeModal, 2000);
+					} else {
+						status.textContent = data.error || 'Something went wrong';
+						status.className = 'modal-status error';
+					}
+				} catch (err) {
+					status.textContent = 'Network error. Please try again.';
+					status.className = 'modal-status error';
+				} finally {
+					if (btnText) btnText.textContent = 'Subscribe';
+					if (btn) btn.disabled = false;
+				}
+			});
+		}
+
+		// Scroll listener
+		window.addEventListener('scroll', checkScroll, { passive: true });
+	});
+</script>
+
+<style>
+	.newsletter-modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.8);
+		backdrop-filter: blur(4px);
+		z-index: 1000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: var(--space-md);
+	}
+
+	.newsletter-modal {
+		background-color: var(--bg-surface);
+		border: 1px solid var(--border-base);
+		border-radius: 12px;
+		box-shadow:
+			0 0 0 1px var(--border-dim),
+			0 20px 60px rgba(0, 0, 0, 0.5),
+			0 0 80px var(--phosphor-glow);
+		max-width: 500px;
+		width: 100%;
+		position: relative;
+		animation: modal-appear 0.3s ease-out;
+	}
+
+	@keyframes modal-appear {
+		from {
+			opacity: 0;
+			transform: scale(0.9) translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1) translateY(0);
+		}
+	}
+
+	.modal-header {
+		border-bottom: 1px solid var(--border-dim);
+		background-color: var(--phosphor-dim);
+		border-radius: 12px 12px 0 0;
+	}
+
+	.modal-terminal-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--space-sm) var(--space-md);
+		font-size: var(--font-size-sm);
+	}
+
+	.modal-terminal-header .prompt {
+		color: var(--bg-deep);
+	}
+
+	.modal-terminal-header .command {
+		color: var(--text-primary);
+		flex: 1;
+		margin-left: var(--space-sm);
+	}
+
+	.modal-close {
+		background: none;
+		border: none;
+		color: var(--text-secondary);
+		font-size: 20px;
+		cursor: pointer;
+		padding: var(--space-xs);
+		border-radius: 4px;
+		transition: all var(--transition-fast);
+		line-height: 1;
+	}
+
+	.modal-close:hover {
+		background-color: var(--bg-surface);
+		color: var(--text-primary);
+	}
+
+	.modal-body {
+		padding: var(--space-xl);
+	}
+
+	.modal-title {
+		font-size: var(--font-size-xl);
+		color: var(--text-primary);
+		margin: 0 0 var(--space-md) 0;
+		text-align: center;
+		font-weight: 600;
+		text-shadow: var(--glow-sm);
+	}
+
+	.modal-description {
+		color: var(--text-secondary);
+		text-align: center;
+		margin: 0 0 var(--space-xl) 0;
+		line-height: 1.6;
+		font-size: var(--font-size-base);
+	}
+
+	.modal-newsletter-form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-md);
+		margin-bottom: var(--space-lg);
+	}
+
+	.modal-input-wrapper {
+		display: flex;
+		align-items: center;
+		gap: var(--space-sm);
+		padding: var(--space-md);
+		background-color: var(--bg-deep);
+		border: 1px solid var(--border-base);
+		border-radius: 8px;
+		transition: border-color var(--transition-fast);
+	}
+
+	.modal-input-wrapper:focus-within {
+		border-color: var(--phosphor-base);
+		box-shadow: var(--glow-sm);
+	}
+
+	.modal-input-prefix {
+		color: var(--text-muted);
+		font-size: var(--font-size-sm);
+		font-weight: 500;
+	}
+
+	.modal-newsletter-form input {
+		flex: 1;
+		background: transparent;
+		border: none;
+		color: var(--text-primary);
+		font-family: var(--font-mono);
+		font-size: var(--font-size-base);
+		outline: none;
+	}
+
+	.modal-newsletter-form input::placeholder {
+		color: var(--text-muted);
+	}
+
+	.modal-subscribe-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-sm);
+		padding: var(--space-md) var(--space-xl);
+		background-color: var(--phosphor-base);
+		border: 1px solid var(--phosphor-base);
+		border-radius: 8px;
+		color: var(--bg-deep);
+		font-family: var(--font-mono);
+		font-size: var(--font-size-base);
+		font-weight: 600;
+		cursor: pointer;
+		transition: all var(--transition-fast);
+		box-shadow: var(--glow-md);
+	}
+
+	.modal-subscribe-btn:hover:not(:disabled) {
+		background-color: var(--phosphor-bright);
+		border-color: var(--phosphor-bright);
+		box-shadow: var(--glow-lg);
+		transform: translateY(-2px);
+	}
+
+	.modal-subscribe-btn:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		box-shadow: none;
+	}
+
+	.modal-note {
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+		text-align: center;
+		margin: 0;
+	}
+
+	.modal-note a {
+		color: var(--phosphor-base);
+		text-decoration: underline;
+		text-decoration-color: var(--phosphor-dim);
+	}
+
+	.modal-note a:hover {
+		color: var(--phosphor-bright);
+		text-shadow: var(--glow-sm);
+	}
+
+	.modal-status {
+		font-size: var(--font-size-sm);
+		margin-top: var(--space-md);
+		text-align: center;
+		min-height: 1.5em;
+	}
+
+	.modal-status.success {
+		color: var(--phosphor-base);
+	}
+
+	.modal-status.error {
+		color: #ef4444;
+	}
+
+	/* Mobile responsiveness */
+	@media (max-width: 720px) {
+		.newsletter-modal-overlay {
+			padding: var(--space-sm);
+		}
+
+		.newsletter-modal {
+			max-width: 100%;
+		}
+
+		.modal-body {
+			padding: var(--space-lg);
+		}
+
+		.modal-title {
+			font-size: var(--font-size-lg);
+		}
+
+		.modal-description {
+			font-size: var(--font-size-sm);
+		}
+
+		.modal-input-wrapper {
+			padding: var(--space-sm);
+		}
+
+		.modal-newsletter-form input {
+			font-size: var(--font-size-sm);
+		}
+
+		.modal-subscribe-btn {
+			padding: var(--space-md);
+			font-size: var(--font-size-sm);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.modal-body {
+			padding: var(--space-md);
+		}
+
+		.modal-title {
+			font-size: var(--font-size-base);
+		}
+
+		.modal-terminal-header {
+			padding: var(--space-xs) var(--space-sm);
+			font-size: var(--font-size-xs);
+		}
+	}
+</style>

@@ -1,65 +1,358 @@
 ---
-import AboutHeroImage from '../assets/blog-placeholder-about.jpg';
-import { SOCIAL_LINKS } from '../consts';
-import Layout from '../layouts/BlogPost.astro';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { AUTHOR_NAME, SITE_TITLE, SOCIAL_LINKS } from '../consts';
 ---
 
-<Layout
-	title="About Me"
-	description="Software engineer passionate about building tools and exploring AI-assisted development"
-	pubDate={new Date('January 01 2026')}
-	heroImage={AboutHeroImage}
->
-	<p>
-		Hi, I'm Justin Valentini, a software engineer based in New Hampshire. I've been writing code 
-		since 2008 and have a passion for building tools that make developers' lives easier.
-	</p>
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead 
+			title={`About | ${SITE_TITLE}`} 
+			description="Software engineer passionate about building tools and exploring AI-assisted development" 
+		/>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<article class="about-content">
+				<header class="about-header">
+					<div class="terminal-command">
+						<span class="prompt">$</span>
+						<span class="command">cat ~/about.md</span>
+					</div>
+				</header>
 
-	<h2>What I Do</h2>
-	<p>
-		I'm particularly interested in AI-assisted development and modern web technologies. I build 
-		CLI tools, web applications, and automation solutions that help developers work more efficiently. 
-		My recent projects include <a href="https://github.com/jvalentini/worklog" target="_blank">worklog</a>, 
-		a tool for aggregating development activity from AI coding sessions, git commits, and GitHub activity.
-	</p>
+				<section class="bio">
+					<h1>{AUTHOR_NAME}</h1>
+					<p class="tagline">Software Engineer | Tool Builder | AI Explorer</p>
+					<p>
+						Based in New Hampshire. Writing code since 2008. Passionate about building tools 
+						that make developers' lives easier and exploring how AI transforms the way we write software.
+					</p>
+				</section>
 
-	<h2>Technology Stack</h2>
-	<p>
-		I work with a variety of technologies, with a current focus on:
-	</p>
-	<ul>
-		<li><strong>Languages:</strong> TypeScript, JavaScript, Ruby, Python</li>
-		<li><strong>Runtimes & Frameworks:</strong> Bun, Node.js, Astro, Rails</li>
-		<li><strong>Tools & Practices:</strong> Biome, Oxlint, Git, AI coding assistants (Claude, Cursor)</li>
-		<li><strong>Cloud & Infrastructure:</strong> Cloudflare Pages, Docker</li>
-	</ul>
+				<section class="info-block">
+					<h2>Current Focus</h2>
+					<ul class="focus-list">
+						<li><span class="bullet">></span> AI-assisted development workflows</li>
+						<li><span class="bullet">></span> CLI tools for developer productivity</li>
+						<li><span class="bullet">></span> Modern web technologies (Astro, Bun, TypeScript)</li>
+						<li><span class="bullet">></span> Fast feedback loops and strict type safety</li>
+					</ul>
+				</section>
 
-	<h2>Development Philosophy</h2>
-	<p>
-		I believe in fast feedback loops, strict type safety, and leveraging modern tooling to move quickly 
-		without sacrificing quality. AI coding assistants are powerful, but only when paired with robust 
-		linting, formatting, and type checking to catch issues immediately.
-	</p>
+				<section class="info-block">
+					<h2>Stack</h2>
+					<div class="stack-grid">
+						<div class="stack-category">
+							<h3>Languages</h3>
+							<div class="stack-items">
+								<span class="stack-item">TypeScript</span>
+								<span class="stack-item">JavaScript</span>
+								<span class="stack-item">Ruby</span>
+								<span class="stack-item">Python</span>
+							</div>
+						</div>
+						<div class="stack-category">
+							<h3>Runtime & Frameworks</h3>
+							<div class="stack-items">
+								<span class="stack-item">Bun</span>
+								<span class="stack-item">Node.js</span>
+								<span class="stack-item">Astro</span>
+								<span class="stack-item">Rails</span>
+							</div>
+						</div>
+						<div class="stack-category">
+							<h3>Tooling</h3>
+							<div class="stack-items">
+								<span class="stack-item">Biome</span>
+								<span class="stack-item">Oxlint</span>
+								<span class="stack-item">Claude</span>
+								<span class="stack-item">Cursor</span>
+							</div>
+						</div>
+						<div class="stack-category">
+							<h3>Infrastructure</h3>
+							<div class="stack-items">
+								<span class="stack-item">Cloudflare</span>
+								<span class="stack-item">Docker</span>
+								<span class="stack-item">Git</span>
+							</div>
+						</div>
+					</div>
+				</section>
 
-	<h2>Projects & Open Source</h2>
-	<p>
-		You can find my open source work on <a href={SOCIAL_LINKS.github} target="_blank">GitHub</a>, 
-		where I maintain various projects ranging from CLI tools to web applications. I'm particularly 
-		proud of recent work around developer productivity tooling.
-	</p>
+				<section class="info-block">
+					<h2>Philosophy</h2>
+					<blockquote>
+						<p>
+							Fast feedback loops. Strict type safety. Modern tooling. 
+							AI coding assistants are powerful, but only when paired with 
+							robust linting, formatting, and type checking to catch issues immediately.
+						</p>
+					</blockquote>
+				</section>
 
-	<h2>Get in Touch</h2>
-	<p>
-		I'm always interested in connecting with other developers. You can reach me:
-	</p>
-	<ul>
-		<li>LinkedIn: <a href={SOCIAL_LINKS.linkedin} target="_blank">linkedin.com/in/justinvalentini</a></li>
-		<li>GitHub: <a href={SOCIAL_LINKS.github} target="_blank">github.com/jvalentini</a></li>
-		<li>Email: <a href={`mailto:${SOCIAL_LINKS.email}`}>{SOCIAL_LINKS.email}</a></li>
-	</ul>
+				<section class="info-block">
+					<h2>Connect</h2>
+					<div class="connect-links">
+						<a href={SOCIAL_LINKS.github} target="_blank" rel="noopener" class="connect-link">
+							<span class="link-icon">[git]</span>
+							<span class="link-url">github.com/jvalentini</span>
+						</a>
+						<a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener" class="connect-link">
+							<span class="link-icon">[in]</span>
+							<span class="link-url">linkedin.com/in/justinvalentini</span>
+						</a>
+						<a href={`mailto:${SOCIAL_LINKS.email}`} class="connect-link">
+							<span class="link-icon">[@]</span>
+							<span class="link-url">{SOCIAL_LINKS.email}</span>
+						</a>
+					</div>
+				</section>
 
-	<p>
-		Thanks for stopping by! Feel free to browse my <a href="/blog">blog posts</a> where I write 
-		about software engineering, development workflows, and lessons learned from building projects.
-	</p>
-</Layout>
+				<section class="info-block">
+					<h2>Projects</h2>
+					<p>
+						Check out my open source work on <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener">GitHub</a>, 
+						including <a href="https://github.com/jvalentini/worklog" target="_blank" rel="noopener">worklog</a> - 
+						a CLI tool for aggregating development activity from AI coding sessions, git commits, and GitHub activity.
+					</p>
+				</section>
+
+				<footer class="about-footer">
+					<div class="terminal-line">
+						<span class="prompt">$</span>
+						<span class="cursor">_</span>
+					</div>
+				</footer>
+			</article>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	main {
+		max-width: var(--content-width);
+	}
+
+	.about-content {
+		position: relative;
+	}
+
+	.about-header {
+		margin-bottom: var(--space-2xl);
+	}
+
+	.terminal-command {
+		display: flex;
+		gap: var(--space-sm);
+		font-size: var(--font-size-lg);
+	}
+
+	.prompt {
+		color: var(--phosphor-base);
+	}
+
+	.command {
+		color: var(--text-primary);
+	}
+
+	.bio {
+		margin-bottom: var(--space-3xl);
+		padding-bottom: var(--space-2xl);
+		border-bottom: 1px solid var(--border-dim);
+	}
+
+	.bio h1 {
+		font-size: var(--font-size-3xl);
+		margin-bottom: var(--space-sm);
+		text-shadow: var(--glow-md);
+	}
+
+	.tagline {
+		color: var(--amber-base);
+		font-size: var(--font-size-lg);
+		margin-bottom: var(--space-lg);
+	}
+
+	.bio > p:last-child {
+		color: var(--text-secondary);
+		font-size: var(--font-size-lg);
+		line-height: 1.7;
+		margin: 0;
+	}
+
+	.info-block {
+		margin-bottom: var(--space-2xl);
+	}
+
+	.info-block h2 {
+		font-size: var(--font-size-lg);
+		color: var(--phosphor-base);
+		margin-bottom: var(--space-lg);
+	}
+
+	.info-block h2::before {
+		content: '## ';
+		opacity: 0.5;
+	}
+
+	.focus-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.focus-list li {
+		display: flex;
+		gap: var(--space-sm);
+		padding: var(--space-sm) 0;
+		color: var(--text-secondary);
+	}
+
+	.focus-list .bullet {
+		color: var(--phosphor-dim);
+	}
+
+	.stack-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: var(--space-lg);
+	}
+
+	.stack-category h3 {
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+		margin-bottom: var(--space-sm);
+		font-weight: 400;
+	}
+
+	.stack-category h3::before {
+		display: none;
+	}
+
+	.stack-items {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-xs);
+	}
+
+	.stack-item {
+		display: inline-block;
+		padding: var(--space-xs) var(--space-sm);
+		background-color: var(--bg-surface);
+		border: 1px solid var(--border-dim);
+		border-radius: 4px;
+		color: var(--amber-base);
+		font-size: var(--font-size-sm);
+	}
+
+	.info-block blockquote {
+		margin: 0;
+		padding: var(--space-lg);
+		border-left: 3px solid var(--phosphor-base);
+		background-color: var(--bg-surface);
+	}
+
+	.info-block blockquote p {
+		margin: 0;
+		color: var(--text-secondary);
+		font-style: italic;
+	}
+
+	.connect-links {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+	}
+
+	.connect-link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-sm);
+		padding: var(--space-sm) var(--space-md);
+		background-color: var(--bg-surface);
+		border: 1px solid var(--border-dim);
+		border-radius: 4px;
+		color: var(--text-secondary);
+		text-decoration: none;
+		transition: all var(--transition-fast);
+		width: fit-content;
+	}
+
+	.connect-link:hover {
+		border-color: var(--phosphor-dim);
+		background-color: var(--bg-elevated);
+		color: var(--phosphor-base);
+	}
+
+	.link-icon {
+		color: var(--phosphor-dim);
+		font-size: var(--font-size-sm);
+	}
+
+	.connect-link:hover .link-icon {
+		color: var(--phosphor-base);
+	}
+
+	.link-url {
+		font-size: var(--font-size-sm);
+	}
+
+	.info-block > p {
+		color: var(--text-secondary);
+		line-height: 1.7;
+	}
+
+	.info-block > p a {
+		color: var(--phosphor-base);
+		text-decoration: underline;
+		text-decoration-color: var(--phosphor-dim);
+		text-underline-offset: 3px;
+	}
+
+	.info-block > p a:hover {
+		color: var(--phosphor-bright);
+		text-shadow: var(--glow-sm);
+	}
+
+	.about-footer {
+		margin-top: var(--space-3xl);
+		padding-top: var(--space-xl);
+		border-top: 1px solid var(--border-dim);
+	}
+
+	.terminal-line {
+		display: flex;
+		gap: var(--space-sm);
+		font-size: var(--font-size-sm);
+	}
+
+	.cursor {
+		color: var(--phosphor-base);
+		animation: blink 1s step-end infinite;
+	}
+
+	@keyframes blink {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0; }
+	}
+
+	@media (max-width: 720px) {
+		.bio h1 {
+			font-size: var(--font-size-2xl);
+		}
+
+		.tagline {
+			font-size: var(--font-size-base);
+		}
+
+		.stack-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

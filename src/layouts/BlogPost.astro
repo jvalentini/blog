@@ -17,77 +17,293 @@ const postUrl = Astro.url.href;
 <html lang="en">
 	<head>
 		<BaseHead title={title} description={description} />
-		<style>
-			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
-			}
-			.hero-image {
-				width: 100%;
-			}
-			.hero-image img {
-				display: block;
-				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
-			}
-			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
-				color: rgb(var(--gray-dark));
-			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
-			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
-			}
-			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
-			}
-			.last-updated-on {
-				font-style: italic;
-			}
-		</style>
 	</head>
 
 	<body>
 		<Header />
 		<main>
 			<article>
-				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
-				</div>
-				<div class="prose">
-					<div class="title">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{
-								updatedDate && (
-									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
-									</div>
-								)
-							}
-						</div>
-						<h1>{title}</h1>
-						<hr />
+				<header class="post-header">
+					<div class="post-meta">
+						<span class="meta-label">published:</span>
+						<FormattedDate date={pubDate} />
+						{updatedDate && (
+							<>
+								<span class="meta-separator">|</span>
+								<span class="meta-label">updated:</span>
+								<FormattedDate date={updatedDate} />
+							</>
+						)}
 					</div>
-					<SocialShare title={title} url={postUrl} description={description} />
+					
+					<h1>{title}</h1>
+					
+					{tags.length > 0 && (
+						<div class="tags">
+							<span class="meta-label">tags:</span>
+							{tags.map((tag) => (
+								<span class="tag">#{tag}</span>
+							))}
+						</div>
+					)}
+					
+					<div class="terminal-divider">
+						<span>---</span>
+					</div>
+				</header>
+
+				{heroImage && (
+					<div class="hero-image">
+						<Image 
+							width={1020} 
+							height={510} 
+							src={heroImage} 
+							alt="" 
+							loading="eager"
+						/>
+					</div>
+				)}
+
+				<div class="prose">
 					<slot />
-					<hr />
-					<SocialShare title={title} url={postUrl} description={description} />
-					<Newsletter />
 				</div>
+
+				<footer class="post-footer">
+					<div class="terminal-divider">
+						<span>EOF</span>
+					</div>
+					
+					<SocialShare title={title} url={postUrl} description={description} />
+					
+					<Newsletter />
+					
+					<nav class="post-nav">
+						<a href="/blog" class="back-link">
+							<span class="prompt">$</span> cd ~/posts
+						</a>
+					</nav>
+				</footer>
 			</article>
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+	main {
+		max-width: var(--content-width);
+	}
+
+	article {
+		position: relative;
+	}
+
+	.post-header {
+		margin-bottom: var(--space-2xl);
+		padding-bottom: var(--space-lg);
+	}
+
+	.post-meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-sm);
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+		margin-bottom: var(--space-md);
+	}
+
+	.meta-label {
+		color: var(--phosphor-dim);
+	}
+
+	.meta-separator {
+		color: var(--border-base);
+	}
+
+	.post-header h1 {
+		font-size: var(--font-size-3xl);
+		font-weight: 600;
+		line-height: 1.2;
+		margin: 0 0 var(--space-md) 0;
+		color: var(--text-bright);
+		text-shadow: var(--glow-sm);
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-sm);
+		margin-bottom: var(--space-lg);
+	}
+
+	.tag {
+		display: inline-block;
+		padding: var(--space-xs) var(--space-sm);
+		background-color: var(--bg-surface);
+		border: 1px solid var(--border-dim);
+		border-radius: 4px;
+		color: var(--amber-base);
+		font-size: var(--font-size-xs);
+	}
+
+	.terminal-divider {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: var(--space-xl) 0;
+		color: var(--text-muted);
+		font-size: var(--font-size-sm);
+	}
+
+	.terminal-divider span {
+		padding: 0 var(--space-md);
+		background-color: var(--bg-base);
+		position: relative;
+	}
+
+	.terminal-divider::before,
+	.terminal-divider::after {
+		content: '';
+		flex: 1;
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			var(--border-dim) 20%,
+			var(--border-dim) 80%,
+			transparent
+		);
+	}
+
+	.hero-image {
+		margin: 0 calc(-1 * var(--space-md)) var(--space-2xl);
+		border-radius: 8px;
+		overflow: hidden;
+		border: 1px solid var(--border-dim);
+	}
+
+	.hero-image img {
+		display: block;
+		width: 100%;
+		height: auto;
+		border-radius: 0;
+		border: none;
+	}
+
+	.prose {
+		color: var(--text-primary);
+		font-size: var(--font-size-base);
+		line-height: 1.8;
+	}
+
+	.prose :global(h2) {
+		margin-top: var(--space-3xl);
+		margin-bottom: var(--space-lg);
+		padding-top: var(--space-lg);
+		border-top: 1px solid var(--border-dim);
+	}
+
+	.prose :global(h3) {
+		margin-top: var(--space-2xl);
+		margin-bottom: var(--space-md);
+	}
+
+	.prose :global(p) {
+		margin-bottom: var(--space-lg);
+	}
+
+	.prose :global(pre) {
+		margin: var(--space-xl) calc(-1 * var(--space-md));
+		padding: var(--space-lg);
+		border-radius: 0;
+		border-left: 3px solid var(--phosphor-dim);
+		border-right: none;
+		border-top: 1px solid var(--border-dim);
+		border-bottom: 1px solid var(--border-dim);
+	}
+
+	.prose :global(code) {
+		font-size: 0.85em;
+	}
+
+	.prose :global(img) {
+		margin: var(--space-xl) 0;
+		border: 1px solid var(--border-dim);
+		border-radius: 8px;
+	}
+
+	.prose :global(blockquote) {
+		margin: var(--space-xl) 0;
+		padding: var(--space-md) var(--space-lg);
+		border-left: 3px solid var(--phosphor-base);
+		background-color: var(--bg-surface);
+	}
+
+	.prose :global(a) {
+		color: var(--phosphor-base);
+		text-decoration: underline;
+		text-decoration-color: var(--phosphor-dim);
+		text-underline-offset: 3px;
+		transition: all var(--transition-fast);
+	}
+
+	.prose :global(a:hover) {
+		color: var(--phosphor-bright);
+		text-decoration-color: var(--phosphor-base);
+		text-shadow: var(--glow-sm);
+	}
+
+	.post-footer {
+		margin-top: var(--space-3xl);
+		padding-top: var(--space-xl);
+	}
+
+	.post-nav {
+		margin-top: var(--space-2xl);
+		padding-top: var(--space-xl);
+		border-top: 1px solid var(--border-dim);
+	}
+
+	.back-link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-sm);
+		padding: var(--space-sm) var(--space-md);
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
+		text-decoration: none;
+		border: 1px solid var(--border-dim);
+		border-radius: 4px;
+		transition: all var(--transition-fast);
+	}
+
+	.back-link:hover {
+		color: var(--phosphor-base);
+		border-color: var(--phosphor-dim);
+		background-color: var(--bg-surface);
+	}
+
+	.back-link .prompt {
+		color: var(--phosphor-base);
+	}
+
+	@media (max-width: 720px) {
+		.post-header h1 {
+			font-size: var(--font-size-2xl);
+		}
+
+		.hero-image {
+			margin-left: calc(-1 * var(--space-md));
+			margin-right: calc(-1 * var(--space-md));
+			border-radius: 0;
+		}
+
+		.prose :global(pre) {
+			margin-left: calc(-1 * var(--space-md));
+			margin-right: calc(-1 * var(--space-md));
+			padding: var(--space-md);
+		}
+	}
+</style>

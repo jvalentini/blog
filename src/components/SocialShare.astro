@@ -9,62 +9,102 @@ const { title, url, description = '' } = Astro.props;
 
 const encodedTitle = encodeURIComponent(title);
 const encodedUrl = encodeURIComponent(url);
-const encodedDescription = encodeURIComponent(description);
 
 const shareLinks = {
 	twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
 	linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
-	facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
 	hackernews: `https://news.ycombinator.com/submitlink?u=${encodedUrl}&t=${encodedTitle}`,
 };
 ---
 
 <div class="social-share">
-	<span class="share-label">Share:</span>
-	<a href={shareLinks.twitter} target="_blank" rel="noopener noreferrer" aria-label="Share on Twitter/X">
-		𝕏
-	</a>
-	<a href={shareLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn">
-		in
-	</a>
-	<a href={shareLinks.facebook} target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook">
-		f
-	</a>
-	<a href={shareLinks.hackernews} target="_blank" rel="noopener noreferrer" aria-label="Share on Hacker News">
-		Y
-	</a>
+	<span class="share-label">
+		<span class="prompt">$</span> share --to
+	</span>
+	<div class="share-links">
+		<a href={shareLinks.twitter} target="_blank" rel="noopener noreferrer" aria-label="Share on X/Twitter" class="share-link">
+			<span class="link-icon">[x]</span>
+			<span class="link-text">twitter</span>
+		</a>
+		<a href={shareLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn" class="share-link">
+			<span class="link-icon">[in]</span>
+			<span class="link-text">linkedin</span>
+		</a>
+		<a href={shareLinks.hackernews} target="_blank" rel="noopener noreferrer" aria-label="Share on Hacker News" class="share-link">
+			<span class="link-icon">[hn]</span>
+			<span class="link-text">hackernews</span>
+		</a>
+	</div>
 </div>
 
 <style>
 	.social-share {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		margin: 1.5rem 0;
+		flex-wrap: wrap;
+		gap: var(--space-md);
+		margin: var(--space-xl) 0;
+		padding: var(--space-md);
+		background-color: var(--bg-surface);
+		border: 1px solid var(--border-dim);
+		border-radius: 8px;
 	}
 
 	.share-label {
-		font-size: 0.9rem;
-		color: #666;
+		display: flex;
+		gap: var(--space-sm);
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
 	}
 
-	.social-share a {
+	.prompt {
+		color: var(--phosphor-base);
+	}
+
+	.share-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-sm);
+	}
+
+	.share-link {
 		display: inline-flex;
 		align-items: center;
-		justify-content: center;
-		width: 36px;
-		height: 36px;
-		border-radius: 50%;
-		background: #e5e5e5;
-		color: #333;
+		gap: var(--space-xs);
+		padding: var(--space-xs) var(--space-sm);
+		background-color: var(--bg-elevated);
+		border: 1px solid var(--border-dim);
+		border-radius: 4px;
+		color: var(--text-secondary);
 		text-decoration: none;
-		font-weight: bold;
-		font-size: 0.9rem;
-		transition: all 0.2s;
+		font-size: var(--font-size-sm);
+		transition: all var(--transition-fast);
 	}
 
-	.social-share a:hover {
-		background: var(--accent, #4f46e5);
-		color: white;
+	.share-link:hover {
+		border-color: var(--phosphor-dim);
+		color: var(--phosphor-base);
+		box-shadow: var(--glow-sm);
+	}
+
+	.link-icon {
+		color: var(--amber-base);
+		font-size: var(--font-size-xs);
+		opacity: 0.7;
+	}
+
+	.share-link:hover .link-icon {
+		opacity: 1;
+	}
+
+	.link-text {
+		font-size: var(--font-size-xs);
+	}
+
+	@media (max-width: 720px) {
+		.social-share {
+			flex-direction: column;
+			align-items: flex-start;
+		}
 	}
 </style>

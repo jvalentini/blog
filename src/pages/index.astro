@@ -6,9 +6,10 @@ import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import { AUTHOR_NAME, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
+const posts = (await getCollection('blog'))
+	.filter((post) => !post.data.draft)
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 5);
 ---
 
 <!doctype html>
@@ -19,33 +20,73 @@ const posts = (await getCollection('blog')).sort(
 	<body>
 		<Header />
 		<main>
-			<section class="intro">
-				<h1>Hi, I'm {AUTHOR_NAME}</h1>
-				<p>
-					Software engineer with a passion for building tools and exploring AI-assisted development.
-					I write about modern web technologies, development workflows, and lessons learned from
-					building software.
-				</p>
+			<section class="hero">
+				<div class="terminal-window">
+					<div class="terminal-header">
+						<span class="terminal-badge">tmux</span>
+						<span class="terminal-title">0:zsh*</span>
+						<span class="terminal-session">justin@blog</span>
+					</div>
+					<div class="terminal-body">
+						<div class="line">
+							<span class="prompt">$</span>
+							<span class="command">whoami</span>
+						</div>
+						<div class="output name">{AUTHOR_NAME}</div>
+						
+						<div class="line">
+							<span class="prompt">$</span>
+							<span class="command">cat /etc/motd</span>
+						</div>
+						<pre class="output motd">Software engineer exploring AI-assisted development.
+Building tools that make developers' lives easier.
+Writing about modern web tech, workflows, and lessons learned.</pre>
+						
+						<div class="line">
+							<span class="prompt">$</span>
+							<span class="command">ls -la ~/skills</span>
+						</div>
+						<div class="output skills">
+							<span class="skill">TypeScript</span>
+							<span class="skill">Bun</span>
+							<span class="skill">OpenCode</span>
+							<span class="skill">Opus</span>
+							<span class="skill">Codex</span>
+							<span class="skill">Droid</span>
+						</div>
+						
+						<div class="line cursor-line">
+							<span class="prompt">$</span>
+							<span class="cursor">_</span>
+						</div>
+					</div>
+				</div>
 			</section>
 
-			<section class="recent-posts">
-				<h2>Recent Posts</h2>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									<h3>{post.data.title}</h3>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-									<p class="description">{post.data.description}</p>
-								</a>
-							</li>
-						))
-					}
-				</ul>
-				<a href="/blog" class="view-all">View all posts →</a>
+			<section class="posts">
+				<h2>
+					<span class="section-prefix">~/posts $</span> ls -lt | head -5
+				</h2>
+				
+				<div class="post-list">
+					{posts.map((post, index) => (
+						<article class="post-item">
+							<a href={`/blog/${post.id}/`}>
+								<div class="post-meta">
+									<span class="post-index">[{index}]</span>
+									<FormattedDate date={post.data.pubDate} />
+								</div>
+								<h3 class="post-title">{post.data.title}</h3>
+								<p class="post-description">{post.data.description}</p>
+							</a>
+						</article>
+					))}
+				</div>
+				
+				<a href="/blog" class="view-all">
+					<span class="prompt">$</span> cd ~/posts && ls -la
+					<span class="arrow">-></span>
+				</a>
 			</section>
 		</main>
 		<Footer />
@@ -54,84 +95,248 @@ const posts = (await getCollection('blog')).sort(
 
 <style>
 	main {
-		width: 960px;
-		max-width: calc(100% - 2em);
-		margin: auto;
-		padding: 3em 1em;
-	}
-	
-	.intro {
-		margin-bottom: 4em;
-	}
-	
-	.intro h1 {
-		font-size: 2.5em;
-		font-weight: 700;
-		line-height: 1.2;
-		margin-bottom: 0.5em;
-	}
-	
-	.intro p {
-		font-size: 1.2em;
-		line-height: 1.6;
-		color: rgb(var(--gray));
+		max-width: var(--content-wide);
 	}
 
-	.recent-posts h2 {
-		font-size: 2em;
-		font-weight: 700;
-		margin-bottom: 1em;
+	.hero {
+		margin-bottom: var(--space-3xl);
 	}
 
-	.recent-posts ul {
+	.terminal-window {
+		background-color: var(--bg-deep);
+		border: 1px solid var(--border-base);
+		border-radius: 8px;
+		overflow: hidden;
+		box-shadow: 
+			0 0 0 1px var(--border-dim),
+			0 8px 32px rgba(0, 0, 0, 0.5),
+			0 0 80px var(--phosphor-glow);
+	}
+
+	.terminal-header {
+		display: flex;
+		align-items: center;
+		gap: var(--space-md);
+		padding: var(--space-xs) var(--space-md);
+		background-color: var(--phosphor-dim);
+		border-bottom: 1px solid var(--border-dim);
+		font-size: var(--font-size-xs);
+	}
+
+	.terminal-badge {
+		color: var(--bg-deep);
+		background-color: var(--phosphor-base);
+		padding: 1px var(--space-sm);
+		font-weight: 600;
+	}
+
+	.terminal-title {
+		color: var(--text-primary);
+	}
+
+	.terminal-session {
+		margin-left: auto;
+		color: var(--text-muted);
+	}
+
+	.terminal-body {
+		padding: var(--space-lg);
+		font-size: var(--font-size-sm);
+		line-height: 1.8;
+	}
+
+	.line {
+		display: flex;
+		gap: var(--space-sm);
+		margin-bottom: var(--space-xs);
+	}
+
+	.prompt {
+		color: var(--phosphor-base);
+		user-select: none;
+	}
+
+	.command {
+		color: var(--text-primary);
+	}
+
+	.output {
+		color: var(--text-secondary);
+		padding-left: var(--space-lg);
+		margin-bottom: var(--space-md);
+	}
+
+	.output.name {
+		color: var(--phosphor-bright);
+		font-size: var(--font-size-lg);
+		font-weight: 600;
+		text-shadow: var(--glow-sm);
+	}
+
+	.output.motd {
+		font-family: var(--font-mono);
+		margin: 0 0 var(--space-md) 0;
+		padding: var(--space-sm) var(--space-lg);
+		background: none;
+		border: none;
+		border-left: 2px solid var(--phosphor-dim);
+		white-space: pre-wrap;
+	}
+
+	.output.skills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-sm);
+	}
+
+	.skill {
+		display: inline-block;
+		padding: var(--space-xs) var(--space-sm);
+		background-color: var(--bg-elevated);
+		border: 1px solid var(--border-dim);
+		border-radius: 4px;
+		color: var(--amber-base);
+		font-size: var(--font-size-xs);
+	}
+
+	.cursor-line {
+		margin-top: var(--space-md);
+	}
+
+	.cursor {
+		color: var(--phosphor-base);
+		animation: blink 1s step-end infinite;
+	}
+
+	@keyframes blink {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0; }
+	}
+
+	.posts h2 {
+		font-size: var(--font-size-lg);
+		color: var(--text-secondary);
+		margin-bottom: var(--space-xl);
+		font-weight: 400;
+	}
+
+	.posts h2::before {
+		display: none;
+	}
+
+	.section-prefix {
+		color: var(--phosphor-base);
+	}
+
+	.post-list {
 		display: flex;
 		flex-direction: column;
-		gap: 2em;
-		list-style-type: none;
-		padding: 0;
+		gap: var(--space-md);
 	}
 
-	.recent-posts li {
-		transition: transform 0.2s;
+	.post-item {
+		position: relative;
 	}
 
-	.recent-posts li:hover {
-		transform: translateX(4px);
-	}
-
-	.recent-posts a {
+	.post-item a {
 		display: block;
+		padding: var(--space-md) var(--space-lg);
+		background-color: var(--bg-surface);
+		border: 1px solid var(--border-dim);
+		border-radius: 8px;
 		text-decoration: none;
-		color: inherit;
+		transition: all var(--transition-base);
 	}
 
-	.recent-posts h3 {
-		font-size: 1.5em;
-		font-weight: 700;
-		margin-bottom: 0.25em;
-		color: rgb(var(--black));
+	.post-item a:hover {
+		border-color: var(--phosphor-dim);
+		background-color: var(--bg-elevated);
+		transform: translateX(4px);
+		box-shadow: 
+			-4px 0 0 var(--phosphor-base),
+			0 0 20px var(--phosphor-glow);
 	}
 
-	.recent-posts .date {
-		font-size: 0.9em;
-		color: rgb(var(--gray));
-		margin-bottom: 0.5em;
+	.post-meta {
+		display: flex;
+		align-items: center;
+		gap: var(--space-sm);
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+		margin-bottom: var(--space-xs);
 	}
 
-	.recent-posts .description {
-		color: rgb(var(--gray-dark));
-		line-height: 1.6;
+	.post-index {
+		color: var(--phosphor-dim);
+	}
+
+	.post-title {
+		font-size: var(--font-size-lg);
+		font-weight: 500;
+		color: var(--text-primary);
+		margin: 0 0 var(--space-xs) 0;
+		transition: color var(--transition-fast);
+	}
+
+	.post-item a:hover .post-title {
+		color: var(--phosphor-base);
+	}
+
+	.post-description {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		margin: 0;
+		line-height: 1.5;
 	}
 
 	.view-all {
-		display: inline-block;
-		margin-top: 2em;
-		font-weight: 500;
-		color: rgb(var(--accent));
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-sm);
+		margin-top: var(--space-xl);
+		padding: var(--space-sm) var(--space-md);
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
 		text-decoration: none;
+		border: 1px solid var(--border-dim);
+		border-radius: 4px;
+		transition: all var(--transition-fast);
 	}
 
 	.view-all:hover {
-		text-decoration: underline;
+		color: var(--phosphor-base);
+		border-color: var(--phosphor-dim);
+		background-color: var(--bg-surface);
+	}
+
+	.view-all .prompt {
+		color: var(--phosphor-base);
+	}
+
+	.view-all .arrow {
+		color: var(--amber-base);
+	}
+
+	@media (max-width: 720px) {
+		.terminal-body {
+			padding: var(--space-md);
+			font-size: var(--font-size-xs);
+		}
+
+		.output.name {
+			font-size: var(--font-size-base);
+		}
+
+		.output.motd {
+			font-size: var(--font-size-xs);
+		}
+
+		.post-item a {
+			padding: var(--space-md);
+		}
+
+		.post-item a:hover {
+			transform: none;
+		}
 	}
 </style>

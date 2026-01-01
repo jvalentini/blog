@@ -1,5 +1,4 @@
 ---
-import { Image } from 'astro:assets';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
@@ -13,100 +12,230 @@ const posts = await getPublishedPosts();
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			main {
-				width: 960px;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
-			}
-		</style>
+		<BaseHead title={`Posts | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
 	</head>
 	<body>
 		<Header />
 		<main>
-			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
+			<header class="page-header">
+				<div class="terminal-command">
+					<span class="prompt">$</span>
+					<span class="command">find ~/posts -type f -name "*.md" | sort -r</span>
+				</div>
+				<p class="result-count">Found {posts.length} post{posts.length !== 1 ? 's' : ''}</p>
+			</header>
+
+			<section class="posts-grid">
+				{posts.map((post, index) => (
+					<article class="post-card">
+						<a href={`/blog/${post.id}/`}>
+							<div class="post-index">{String(index).padStart(2, '0')}</div>
+							
+							<div class="post-content">
+								<h2 class="post-title">{post.data.title}</h2>
+								
+								<div class="post-meta">
+									<FormattedDate date={post.data.pubDate} />
+									{post.data.tags && post.data.tags.length > 0 && (
+										<div class="post-tags">
+											{post.data.tags.slice(0, 3).map((tag) => (
+												<span class="tag">#{tag}</span>
+											))}
+										</div>
 									)}
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
-							</li>
-						))
-					}
-				</ul>
+								</div>
+								
+								<p class="post-description">{post.data.description}</p>
+							</div>
+							
+							<div class="post-arrow">
+								<span>-></span>
+							</div>
+						</a>
+					</article>
+				))}
 			</section>
+
+			{posts.length === 0 && (
+				<div class="empty-state">
+					<p>No posts found.</p>
+					<p class="hint">Run <code>touch ~/posts/new-post.md</code> to create one.</p>
+				</div>
+			)}
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+	main {
+		max-width: var(--content-wide);
+	}
+
+	.page-header {
+		margin-bottom: var(--space-2xl);
+		padding-bottom: var(--space-lg);
+		border-bottom: 1px solid var(--border-dim);
+	}
+
+	.terminal-command {
+		display: flex;
+		gap: var(--space-sm);
+		font-size: var(--font-size-lg);
+		margin-bottom: var(--space-sm);
+	}
+
+	.prompt {
+		color: var(--phosphor-base);
+	}
+
+	.command {
+		color: var(--text-primary);
+	}
+
+	.result-count {
+		color: var(--text-muted);
+		font-size: var(--font-size-sm);
+		margin: 0;
+	}
+
+	.posts-grid {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-md);
+	}
+
+	.post-card {
+		position: relative;
+	}
+
+	.post-card a {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		align-items: start;
+		gap: var(--space-lg);
+		padding: var(--space-lg);
+		background-color: var(--bg-surface);
+		border: 1px solid var(--border-dim);
+		border-radius: 8px;
+		text-decoration: none;
+		transition: all var(--transition-base);
+	}
+
+	.post-card a:hover {
+		border-color: var(--phosphor-dim);
+		background-color: var(--bg-elevated);
+		box-shadow: 
+			0 0 30px var(--phosphor-glow),
+			inset 0 0 30px var(--phosphor-glow);
+	}
+
+	.post-index {
+		font-size: var(--font-size-2xl);
+		font-weight: 700;
+		color: var(--border-bright);
+		line-height: 1;
+		transition: color var(--transition-fast);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.post-card a:hover .post-index {
+		color: var(--phosphor-base);
+		text-shadow: var(--glow-sm);
+	}
+
+	.post-content {
+		min-width: 0;
+	}
+
+	.post-title {
+		font-size: var(--font-size-xl);
+		font-weight: 500;
+		color: var(--text-primary);
+		margin: 0 0 var(--space-sm) 0;
+		line-height: 1.3;
+		transition: color var(--transition-fast);
+	}
+
+	.post-card a:hover .post-title {
+		color: var(--phosphor-bright);
+	}
+
+	.post-meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-sm);
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+		margin-bottom: var(--space-sm);
+	}
+
+	.post-tags {
+		display: flex;
+		gap: var(--space-xs);
+	}
+
+	.tag {
+		color: var(--amber-base);
+		opacity: 0.7;
+	}
+
+	.post-description {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		margin: 0;
+		line-height: 1.5;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.post-arrow {
+		color: var(--text-muted);
+		font-size: var(--font-size-lg);
+		transition: all var(--transition-fast);
+		align-self: center;
+	}
+
+	.post-card a:hover .post-arrow {
+		color: var(--phosphor-base);
+		transform: translateX(4px);
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: var(--space-3xl);
+		color: var(--text-secondary);
+	}
+
+	.empty-state .hint {
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+	}
+
+	.empty-state code {
+		color: var(--amber-base);
+	}
+
+	@media (max-width: 720px) {
+		.post-card a {
+			grid-template-columns: auto 1fr;
+			gap: var(--space-md);
+			padding: var(--space-md);
+		}
+
+		.post-index {
+			font-size: var(--font-size-lg);
+		}
+
+		.post-arrow {
+			display: none;
+		}
+
+		.post-title {
+			font-size: var(--font-size-lg);
+		}
+	}
+</style>

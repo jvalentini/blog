@@ -5,81 +5,165 @@ interface Props {
 }
 
 const { 
-	title = "Subscribe to my newsletter",
+	title = "Subscribe",
 	description = "Get notified when I publish new posts. No spam, unsubscribe anytime."
 } = Astro.props;
 ---
 
 <section class="newsletter">
-	<h3>{title}</h3>
-	<p>{description}</p>
+	<div class="newsletter-header">
+		<span class="prompt">$</span>
+		<span class="command">mail --subscribe</span>
+	</div>
+	
+	<p class="newsletter-description">{description}</p>
+	
 	<form class="newsletter-form" action="/api/subscribe" method="POST">
-		<input 
-			type="email" 
-			name="email" 
-			placeholder="your@email.com" 
-			required 
-			aria-label="Email address"
-		/>
-		<button type="submit">Subscribe</button>
+		<div class="input-wrapper">
+			<span class="input-prefix">email:</span>
+			<input 
+				type="email" 
+				name="email" 
+				placeholder="you@example.com" 
+				required 
+				aria-label="Email address"
+			/>
+		</div>
+		<button type="submit">
+			<span class="btn-icon">></span>
+			Subscribe
+		</button>
 	</form>
+	
 	<p class="newsletter-note">
-		<!-- Replace with your actual newsletter provider (ConvertKit, Buttondown, etc.) -->
 		Powered by <a href="https://buttondown.email" target="_blank" rel="noopener">Buttondown</a>
 	</p>
 </section>
 
 <style>
 	.newsletter {
-		background: var(--newsletter-bg, #f5f5f5);
+		background-color: var(--bg-surface);
+		border: 1px solid var(--border-dim);
 		border-radius: 8px;
-		padding: 2rem;
-		margin: 2rem 0;
-		text-align: center;
+		padding: var(--space-xl);
+		margin: var(--space-2xl) 0;
 	}
 
-	.newsletter h3 {
-		margin: 0 0 0.5rem;
+	.newsletter-header {
+		display: flex;
+		gap: var(--space-sm);
+		margin-bottom: var(--space-md);
+		font-size: var(--font-size-lg);
 	}
 
-	.newsletter p {
-		color: var(--newsletter-text, #666);
-		margin-bottom: 1rem;
+	.prompt {
+		color: var(--phosphor-base);
+	}
+
+	.command {
+		color: var(--text-primary);
+	}
+
+	.newsletter-description {
+		color: var(--text-secondary);
+		margin-bottom: var(--space-lg);
+		font-size: var(--font-size-sm);
 	}
 
 	.newsletter-form {
 		display: flex;
-		gap: 0.5rem;
-		justify-content: center;
+		gap: var(--space-md);
 		flex-wrap: wrap;
 	}
 
-	.newsletter-form input {
-		padding: 0.75rem 1rem;
-		border: 1px solid #ddd;
+	.input-wrapper {
+		display: flex;
+		align-items: center;
+		gap: var(--space-sm);
+		flex: 1;
+		min-width: 200px;
+		padding: var(--space-sm) var(--space-md);
+		background-color: var(--bg-deep);
+		border: 1px solid var(--border-base);
 		border-radius: 4px;
-		font-size: 1rem;
-		min-width: 250px;
+		transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+	}
+
+	.input-wrapper:focus-within {
+		border-color: var(--phosphor-base);
+		box-shadow: var(--glow-sm);
+	}
+
+	.input-prefix {
+		color: var(--text-muted);
+		font-size: var(--font-size-sm);
+	}
+
+	.newsletter-form input {
+		flex: 1;
+		background: transparent;
+		border: none;
+		color: var(--text-primary);
+		font-family: var(--font-mono);
+		font-size: var(--font-size-sm);
+		outline: none;
+	}
+
+	.newsletter-form input::placeholder {
+		color: var(--text-muted);
 	}
 
 	.newsletter-form button {
-		padding: 0.75rem 1.5rem;
-		background: var(--accent, #4f46e5);
-		color: white;
-		border: none;
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-sm);
+		padding: var(--space-sm) var(--space-lg);
+		background-color: transparent;
+		border: 1px solid var(--phosphor-base);
 		border-radius: 4px;
-		font-size: 1rem;
+		color: var(--phosphor-base);
+		font-family: var(--font-mono);
+		font-size: var(--font-size-sm);
+		font-weight: 500;
 		cursor: pointer;
-		transition: background 0.2s;
+		transition: all var(--transition-fast);
 	}
 
 	.newsletter-form button:hover {
-		background: var(--accent-hover, #4338ca);
+		background-color: var(--phosphor-base);
+		color: var(--bg-base);
+		box-shadow: var(--glow-md);
+	}
+
+	.btn-icon {
+		font-size: var(--font-size-xs);
 	}
 
 	.newsletter-note {
-		font-size: 0.8rem;
-		margin-top: 1rem;
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+		margin-top: var(--space-md);
 		margin-bottom: 0;
+	}
+
+	.newsletter-note a {
+		color: var(--text-secondary);
+		text-decoration: underline;
+		text-decoration-color: var(--border-dim);
+	}
+
+	.newsletter-note a:hover {
+		color: var(--phosphor-base);
+	}
+
+	@media (max-width: 720px) {
+		.newsletter-form {
+			flex-direction: column;
+		}
+
+		.newsletter-form button {
+			width: 100%;
+			justify-content: center;
+		}
 	}
 </style>

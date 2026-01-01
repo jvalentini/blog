@@ -2,11 +2,13 @@
 interface Props {
 	title?: string;
 	description?: string;
+	turnstileSiteKey?: string;
 }
 
 const { 
 	title = "Subscribe",
-	description = "Get notified when I publish new posts. No spam, unsubscribe anytime."
+	description = "Get notified when I publish new posts. No spam, unsubscribe anytime.",
+	turnstileSiteKey = "cdc2571f-f65f-4227-9355-f33d513d3323"
 } = Astro.props;
 ---
 
@@ -18,7 +20,7 @@ const {
 	
 	<p class="newsletter-description">{description}</p>
 	
-	<form class="newsletter-form" action="/api/subscribe" method="POST">
+	<form class="newsletter-form" action="/api/subscribe" method="POST" id="newsletter-form">
 		<div class="input-wrapper">
 			<span class="input-prefix">email:</span>
 			<input 
@@ -29,16 +31,75 @@ const {
 				aria-label="Email address"
 			/>
 		</div>
-		<button type="submit">
+		<div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark" data-size="compact"></div>
+		<button type="submit" id="subscribe-btn">
 			<span class="btn-icon">></span>
-			Subscribe
+			<span class="btn-text">Subscribe</span>
 		</button>
 	</form>
 	
+	<p class="newsletter-status" id="newsletter-status" aria-live="polite"></p>
+	
 	<p class="newsletter-note">
-		Powered by <a href="https://buttondown.email" target="_blank" rel="noopener">Buttondown</a>
+		Powered by <a href="https://buttondown.com" target="_blank" rel="noopener">Buttondown</a>
 	</p>
 </section>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<script is:inline>
+	document.getElementById('newsletter-form')?.addEventListener('submit', async function(e) {
+		e.preventDefault();
+		
+		const form = this;
+		const status = document.getElementById('newsletter-status');
+		const btn = document.getElementById('subscribe-btn');
+		const btnText = btn?.querySelector('.btn-text');
+		
+		const formData = new FormData(form);
+		const email = formData.get('email');
+		const turnstileResponse = formData.get('cf-turnstile-response');
+		
+		if (btnText) btnText.textContent = 'Subscribing...';
+		if (btn) btn.disabled = true;
+		if (status) {
+			status.textContent = '';
+			status.className = 'newsletter-status';
+		}
+
+		try {
+			const res = await fetch('/api/subscribe', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: email, turnstileToken: turnstileResponse }),
+			});
+
+			const data = await res.json();
+			
+			if (data.success) {
+				if (status) {
+					status.textContent = data.message || 'Subscribed!';
+					status.className = 'newsletter-status success';
+				}
+				form.reset();
+				if (window.turnstile) window.turnstile.reset();
+			} else {
+				if (status) {
+					status.textContent = data.error || 'Something went wrong';
+					status.className = 'newsletter-status error';
+				}
+			}
+		} catch (err) {
+			if (status) {
+				status.textContent = 'Network error. Please try again.';
+				status.className = 'newsletter-status error';
+			}
+		} finally {
+			if (btnText) btnText.textContent = 'Subscribe';
+			if (btn) btn.disabled = false;
+		}
+	});
+</script>
 
 <style>
 	.newsletter {
@@ -154,6 +215,30 @@ const {
 
 	.newsletter-note a:hover {
 		color: var(--phosphor-base);
+	}
+
+	.newsletter-status {
+		font-size: var(--font-size-sm);
+		margin-top: var(--space-md);
+		margin-bottom: 0;
+		min-height: 1.5em;
+	}
+
+	.newsletter-status.success {
+		color: var(--phosphor-base);
+	}
+
+	.newsletter-status.error {
+		color: #ef4444;
+	}
+
+	.cf-turnstile {
+		margin: var(--space-sm) 0;
+	}
+
+	.newsletter-form button:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
 	}
 
 	@media (max-width: 720px) {

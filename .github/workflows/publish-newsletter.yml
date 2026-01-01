@@ -51,6 +51,9 @@ jobs:
             if [[ $post_path == *.md ]] || [[ $post_path == *.mdx ]]; then
               echo "Processing: $post_path"
 
+              # Create URL slug from post path
+              POST_SLUG=$(echo "$post_path" | sed 's/\.mdx\?$//')
+
               # Extract frontmatter and content
               node -e "
                 const fs = require('fs');
@@ -71,7 +74,7 @@ jobs:
                   <p>\${parsed.attributes.description || ''}</p>
                   <hr>
                   \${parsed.body.split('\n').slice(0, 10).join('\n')}...
-                  <p><a href='https://jvalentini.pages.dev/blog/\${post_path.replace(/\.mdx?$/, '')}'>Read the full post →</a></p>
+                  <p><a href='https://jvalentini.pages.dev/blog/$POST_SLUG'>Read the full post →</a></p>
                 \`;
 
                 fs.writeFileSync('newsletter-content.html', newsletterHtml);

@@ -28,7 +28,8 @@ echo ""
 response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
     -H "Authorization: Token $BUTTONDOWN_API_KEY" \
     -H "Content-Type: application/json" \
-    "https://api.buttondown.email/v1/subscribers?page=1")
+    -H "X-API-Version: 2025-06-01" \
+    "https://api.buttondown.com/v1/subscribers?page=1")
 
 http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d':' -f2)
 body=$(echo "$response" | sed '/HTTP_STATUS:/d')

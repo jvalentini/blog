@@ -63,6 +63,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
   }
 
+  // Check if Buttondown API key is configured
+  if (!env.BUTTONDOWN_API_KEY) {
+    console.log('BUTTONDOWN_API_KEY not configured');
+    return new Response(JSON.stringify({
+      error: 'Newsletter service not configured. Please contact the site administrator.'
+    }), {
+      status: 503, // Service Unavailable
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   console.log('Making Buttondown API call for email:', email);
 
   const buttondownResponse = await fetch('https://api.buttondown.email/v1/subscribers', {

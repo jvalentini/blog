@@ -85,14 +85,16 @@ jobs:
               SUBJECT=$(cat newsletter-subject.txt)
               BODY=$(cat newsletter-content.html)
 
+              # Create JSON payload using jq to properly escape HTML content
+              jq -n \
+                --arg subject "$SUBJECT" \
+                --arg body "$BODY" \
+                '{subject: $subject, body: $body, email_type: "public"}' > newsletter-payload.json
+
               curl -X POST https://api.buttondown.email/v1/emails \
                 -H "Authorization: Token ${{ secrets.BUTTONDOWN_API_KEY }}" \
                 -H "Content-Type: application/json" \
-                -d "{
-                  \"subject\": \"$SUBJECT\",
-                  \"body\": \"$BODY\",
-                  \"email_type\": \"public\"
-                }"
+                -d @newsletter-payload.json
             fi
           done
 

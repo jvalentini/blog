@@ -43,6 +43,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     });
   }
 
+  // Optional Turnstile verification
   if (env.TURNSTILE_SECRET_KEY && turnstileToken) {
     const clientIP = request.headers.get('CF-Connecting-IP') || '';
     const valid = await verifyTurnstile(turnstileToken, env.TURNSTILE_SECRET_KEY, clientIP);

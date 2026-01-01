@@ -5,38 +5,40 @@ interface Props {
 	turnstileSiteKey?: string;
 }
 
-const { 
-	title = "Subscribe",
-	description = "Get notified when I publish new posts. No spam, unsubscribe anytime.",
-	turnstileSiteKey = "cdc2571f-f65f-4227-9355-f33d513d3323"
+const {
+	title = "Stay Updated",
+	description = "Get notified about new posts on software engineering, AI-assisted development, and modern web technologies. No spam, unsubscribe anytime.",
+	turnstileSiteKey
 } = Astro.props;
 ---
 
 <section class="newsletter">
 	<div class="newsletter-header">
 		<span class="prompt">$</span>
-		<span class="command">mail --subscribe</span>
+		<span class="command">justin.valentini --newsletter</span>
 	</div>
 	
 	<p class="newsletter-description">{description}</p>
 	
-	<form class="newsletter-form" action="/api/subscribe" method="POST" id="newsletter-form">
-		<div class="input-wrapper">
-			<span class="input-prefix">email:</span>
-			<input 
-				type="email" 
-				name="email" 
-				placeholder="you@example.com" 
-				required 
-				aria-label="Email address"
-			/>
-		</div>
-		<div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark" data-size="compact"></div>
-		<button type="submit" id="subscribe-btn">
-			<span class="btn-icon">></span>
-			<span class="btn-text">Subscribe</span>
-		</button>
-	</form>
+ 	<form class="newsletter-form" action="/api/subscribe" method="POST" id="newsletter-form">
+ 		<div class="input-wrapper">
+ 			<span class="input-prefix">email:</span>
+ 			<input
+ 				type="email"
+ 				name="email"
+ 				placeholder="developer@example.com"
+ 				required
+ 				aria-label="Email address"
+ 			/>
+ 		</div>
+ 		{turnstileSiteKey && (
+ 			<div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark" data-size="compact"></div>
+ 		)}
+ 		<button type="submit" id="subscribe-btn">
+ 			<span class="btn-icon">></span>
+ 			<span class="btn-text">Subscribe</span>
+ 		</button>
+ 	</form>
 	
 	<p class="newsletter-status" id="newsletter-status" aria-live="polite"></p>
 	
@@ -45,7 +47,9 @@ const {
 	</p>
 </section>
 
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+{turnstileSiteKey && (
+	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+)}
 
 <script is:inline>
 	document.getElementById('newsletter-form')?.addEventListener('submit', async function(e) {
@@ -58,8 +62,8 @@ const {
 		
 		const formData = new FormData(form);
 		const email = formData.get('email');
-		const turnstileResponse = formData.get('cf-turnstile-response');
-		
+		const turnstileResponse = formData.get('cf-turnstile-response') || null;
+
 		if (btnText) btnText.textContent = 'Subscribing...';
 		if (btn) btn.disabled = true;
 		if (status) {

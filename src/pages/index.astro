@@ -338,5 +338,99 @@ Writing about modern web tech, workflows, and lessons learned.</pre>
 		.post-item a:hover {
 			transform: none;
 		}
+
+		.posts h2 {
+			font-size: var(--font-size-base);
+		}
+
+		.view-all {
+			width: 100%;
+			justify-content: center;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.hero {
+			margin-bottom: var(--space-xl);
+		}
+
+		.terminal-window {
+			border-radius: 4px;
+		}
+
+		.terminal-header {
+			padding: var(--space-xs) var(--space-sm);
+		}
+
+		.terminal-badge {
+			font-size: 10px;
+		}
+
+		.terminal-title,
+		.terminal-session {
+			display: none;
+		}
+
+		.terminal-body {
+			padding: var(--space-sm);
+			font-size: 11px;
+			line-height: 1.6;
+		}
+
+		.line {
+			gap: var(--space-xs);
+		}
+
+		.output {
+			padding-left: var(--space-md);
+			margin-bottom: var(--space-sm);
+		}
+
+		.output.name {
+			font-size: var(--font-size-sm);
+		}
+
+		.output.motd {
+			font-size: 11px;
+			padding: var(--space-xs) var(--space-sm);
+		}
+
+		.output.skills {
+			gap: var(--space-xs);
+		}
+
+		.skill {
+			font-size: 10px;
+			padding: 2px var(--space-xs);
+		}
+
+		.posts h2 {
+			font-size: var(--font-size-sm);
+			word-break: break-word;
+		}
+
+		.section-prefix {
+			display: block;
+			margin-bottom: var(--space-xs);
+		}
+
+		.post-item a {
+			padding: var(--space-sm);
+		}
+
+		.post-meta {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: var(--space-xs);
+		}
+
+		.post-title {
+			font-size: var(--font-size-base);
+		}
+
+		.post-description {
+			font-size: var(--font-size-xs);
+			-webkit-line-clamp: 3;
+		}
 	}
 </style>

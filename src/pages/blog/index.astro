@@ -237,5 +237,58 @@ const posts = await getPublishedPosts();
 		.post-title {
 			font-size: var(--font-size-lg);
 		}
+
+		.terminal-command {
+			font-size: var(--font-size-base);
+			flex-wrap: wrap;
+		}
+
+		.command {
+			word-break: break-all;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.page-header {
+			margin-bottom: var(--space-lg);
+			padding-bottom: var(--space-md);
+		}
+
+		.terminal-command {
+			font-size: var(--font-size-sm);
+		}
+
+		.post-card a {
+			grid-template-columns: 1fr;
+			gap: var(--space-sm);
+			padding: var(--space-sm);
+		}
+
+		.post-index {
+			font-size: var(--font-size-base);
+			color: var(--phosphor-dim);
+		}
+
+		.post-title {
+			font-size: var(--font-size-base);
+		}
+
+		.post-meta {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 2px;
+		}
+
+		.post-tags {
+			flex-wrap: wrap;
+		}
+
+		.post-description {
+			font-size: var(--font-size-xs);
+		}
+
+		.empty-state {
+			padding: var(--space-xl);
+		}
 	}
 </style>

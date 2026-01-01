@@ -1,6 +1,6 @@
 interface Env {
   BLOG_KV: KVNamespace;
-  ANALYTICS: AnalyticsEngineDataset;
+  ANALYTICS_ENGINE: AnalyticsEngineDataset;
 }
 
 interface CFProperties {
@@ -51,9 +51,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   newResponse.headers.set('X-Visitor-LocalTime', localTime);
   newResponse.headers.set('X-AB-Bucket', abBucket);
 
-  if (env.ANALYTICS) {
+  if (env.ANALYTICS_ENGINE) {
     const url = new URL(request.url);
-    env.ANALYTICS.writeDataPoint({
+    env.ANALYTICS_ENGINE.writeDataPoint({
       blobs: [url.pathname, country, abBucket, request.headers.get('Referer') || ''],
       doubles: [1],
       indexes: [timezone],

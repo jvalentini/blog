@@ -82,7 +82,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       'Authorization': `Token ${env.BUTTONDOWN_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ email, tags: ['website'] }),
+    body: JSON.stringify({
+      email_address: email,
+      tags: ['website'],
+      type: 'regular' // Skip double opt-in for website signups
+    }),
   });
 
   console.log('Buttondown response status:', buttondownResponse.status);

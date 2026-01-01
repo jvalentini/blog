@@ -15,7 +15,7 @@ const {
 <section class="newsletter">
 	<div class="newsletter-header">
 		<span class="prompt">$</span>
-		<span class="command">justin.valentini --newsletter</span>
+		<span class="command">newsletter --justin.valentini</span>
 	</div>
 	
 	<p class="newsletter-description">{description}</p>
@@ -31,9 +31,10 @@ const {
  				aria-label="Email address"
  			/>
  		</div>
- 		{turnstileSiteKey && (
- 			<div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark" data-size="compact"></div>
- 		)}
+		{turnstileSiteKey && (
+			<!-- Optional spam protection - separate from Buttondown newsletter service -->
+			<div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark" data-size="compact"></div>
+		)}
  		<button type="submit" id="subscribe-btn">
  			<span class="btn-icon">></span>
  			<span class="btn-text">Subscribe</span>

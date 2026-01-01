@@ -6,6 +6,7 @@ import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import Newsletter from '../components/Newsletter.astro';
+import NewsletterModal from '../components/NewsletterModal.astro';
 import SocialShare from '../components/SocialShare.astro';
 
 type Props = CollectionEntry<'blog'>['data'];
@@ -86,8 +87,9 @@ const postUrl = Astro.url.href;
 			</article>
 		</main>
 		<Footer />
-	</body>
-</html>
+		<NewsletterModal articleTitle={title} />
+		</body>
+	</html>
 
 <style>
 	main {

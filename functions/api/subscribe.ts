@@ -22,6 +22,10 @@ async function verifyTurnstile(token: string, secret: string, ip: string): Promi
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
+  // Debug logging
+  console.log('Subscribe API called');
+  console.log('BUTTONDOWN_API_KEY present:', !!env.BUTTONDOWN_API_KEY);
+
   const contentType = request.headers.get('Content-Type') || '';
   let email: string | null = null;
   let turnstileToken: string | null = null;
@@ -30,20 +34,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const body = await request.json() as { email?: string; turnstileToken?: string };
     email = body.email || null;
     turnstileToken = body.turnstileToken || null;
+    console.log('JSON request - email:', email, 'turnstile:', !!turnstileToken);
   } else {
     const formData = await request.formData();
     email = formData.get('email') as string | null;
     turnstileToken = formData.get('cf-turnstile-response') as string | null;
+    console.log('Form request - email:', email, 'turnstile:', !!turnstileToken);
   }
 
   if (!email || !email.includes('@')) {
+    console.log('Invalid email:', email);
     return new Response(JSON.stringify({ error: 'Valid email required' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  // Optional Turnstile verification
+  // Optional spam protection via Turnstile (Cloudflare CAPTCHA)
+  // This is SEPARATE from Buttondown - it only prevents bots before sending to Buttondown
   if (env.TURNSTILE_SECRET_KEY && turnstileToken) {
     const clientIP = request.headers.get('CF-Connecting-IP') || '';
     const valid = await verifyTurnstile(turnstileToken, env.TURNSTILE_SECRET_KEY, clientIP);
@@ -55,6 +63,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
   }
 
+  console.log('Making Buttondown API call for email:', email);
+
   const buttondownResponse = await fetch('https://api.buttondown.email/v1/subscribers', {
     method: 'POST',
     headers: {
@@ -63,6 +73,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     },
     body: JSON.stringify({ email, tags: ['website'] }),
   });
+
+  console.log('Buttondown response status:', buttondownResponse.status);
 
   if (buttondownResponse.ok) {
     const isFormSubmit = contentType.includes('form');
@@ -77,6 +89,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const errorData = await buttondownResponse.json() as ButtondownResponse;
   const errorMessage = errorData.error?.join(', ') || 'Subscription failed';
+
+  console.log('Buttondown error:', errorMessage);
+  console.log('Buttondown error data:', JSON.stringify(errorData));
 
   if (errorMessage.includes('already subscribed')) {
     return new Response(JSON.stringify({ success: true, message: 'Already subscribed!' }), {

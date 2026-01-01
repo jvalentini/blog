@@ -1,0 +1,99 @@
+name: Publish Newsletter
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/content/blog/**'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for new posts
+        id: check-posts
+        run: |
+          # Get the latest commit
+          LATEST_COMMIT=$(git rev-parse HEAD)
+
+          # Check if any blog posts were added/modified in this push
+          NEW_POSTS=$(git diff --name-only HEAD~1 | grep '^src/content/blog/' | wc -l)
+
+          if [ "$NEW_POSTS" -gt 0 ]; then
+            echo "new_posts=true" >> $GITHUB_OUTPUT
+
+            # Get the list of new/changed posts
+            POSTS=$(git diff --name-only HEAD~1 | grep '^src/content/blog/' | sed 's|src/content/blog/||')
+            echo "posts<<EOF" >> $GITHUB_OUTPUT
+            echo "$POSTS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "new_posts=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate newsletter content
+        if: steps.check-posts.outputs.new_posts == 'true'
+        run: |
+          # Process each new post
+          for post_path in ${{ steps.check-posts.outputs.posts }}; do
+            if [[ $post_path == *.md ]] || [[ $post_path == *.mdx ]]; then
+              echo "Processing: $post_path"
+
+              # Extract frontmatter and content
+              node -e "
+                const fs = require('fs');
+                const fm = require('front-matter');
+                const content = fs.readFileSync('src/content/blog/$post_path', 'utf8');
+                const parsed = fm(content);
+
+                // Skip draft posts
+                if (parsed.attributes.draft === true) {
+                  console.log('Skipping draft post: $post_path');
+                  process.exit(0);
+                }
+
+                // Generate newsletter HTML
+                const newsletterHtml = \`
+                  <h1>\${parsed.attributes.title}</h1>
+                  <p><em>Published: \${new Date(parsed.attributes.pubDate).toLocaleDateString()}</em></p>
+                  <p>\${parsed.attributes.description || ''}</p>
+                  <hr>
+                  \${parsed.body.split('\n').slice(0, 10).join('\n')}...
+                  <p><a href='https://jvalentini.pages.dev/blog/\${post_path.replace(/\.mdx?$/, '')}'>Read the full post →</a></p>
+                \`;
+
+                fs.writeFileSync('newsletter-content.html', newsletterHtml);
+                fs.writeFileSync('newsletter-subject.txt', parsed.attributes.title);
+              "
+
+              # Send via Buttondown API
+              SUBJECT=$(cat newsletter-subject.txt)
+              BODY=$(cat newsletter-content.html)
+
+              curl -X POST https://api.buttondown.email/v1/emails \
+                -H "Authorization: Token ${{ secrets.BUTTONDOWN_API_KEY }}" \
+                -H "Content-Type: application/json" \
+                -d "{
+                  \"subject\": \"$SUBJECT\",
+                  \"body\": \"$BODY\",
+                  \"email_type\": \"public\"
+                }"
+            fi
+          done
+
+      - name: Notify success
+        if: steps.check-posts.outputs.new_posts == 'true'
+        run: echo "Newsletter(s) sent successfully!"

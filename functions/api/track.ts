@@ -1,6 +1,6 @@
 interface Env {
   DB: D1Database;
-  ANALYTICS: AnalyticsEngineDataset;
+  ANALYTICS_ENGINE: AnalyticsEngineDataset;
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -14,8 +14,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const country = cf?.country || 'XX';
   const timezone = cf?.timezone || 'UTC';
 
-  if (env.ANALYTICS) {
-    env.ANALYTICS.writeDataPoint({
+  if (env.ANALYTICS_ENGINE) {
+    env.ANALYTICS_ENGINE.writeDataPoint({
       blobs: [path, event, country, request.headers.get('Referer') || ''],
       doubles: [1],
       indexes: [timezone],

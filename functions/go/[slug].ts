@@ -1,6 +1,6 @@
 interface Env {
   BLOG_KV: KVNamespace;
-  ANALYTICS: AnalyticsEngineDataset;
+  ANALYTICS_ENGINE: AnalyticsEngineDataset;
 }
 
 interface LinkData {
@@ -42,9 +42,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     return new Response('Link not found', { status: 404 });
   }
 
-  if (env.ANALYTICS) {
+  if (env.ANALYTICS_ENGINE) {
     const cf = request.cf as { country?: string } | undefined;
-    env.ANALYTICS.writeDataPoint({
+    env.ANALYTICS_ENGINE.writeDataPoint({
       blobs: [`/go/${slug}`, targetUrl, cf?.country || 'XX'],
       doubles: [1],
       indexes: ['shortlink'],

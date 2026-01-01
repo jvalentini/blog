@@ -7,6 +7,9 @@ interface ButtondownResponse {
   id?: string;
   email?: string;
   error?: string[];
+  code?: string;
+  detail?: string;
+  metadata?: unknown;
 }
 
 async function verifyTurnstile(token: string, secret: string, ip: string): Promise<boolean> {
@@ -29,6 +32,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const contentType = request.headers.get('Content-Type') || '';
   let email: string | null = null;
   let turnstileToken: string | null = null;
+
+  const clientIPHeader = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || '';
+  const clientIP = clientIPHeader.split(',')[0]?.trim() || '';
+  const referrerUrl = request.headers.get('Referer') || '';
 
   if (contentType.includes('application/json')) {
     const body = await request.json() as { email?: string; turnstileToken?: string };
@@ -53,7 +60,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   // Optional spam protection via Turnstile (Cloudflare CAPTCHA)
   // This is SEPARATE from Buttondown - it only prevents bots before sending to Buttondown
   if (env.TURNSTILE_SECRET_KEY && turnstileToken) {
-    const clientIP = request.headers.get('CF-Connecting-IP') || '';
     const valid = await verifyTurnstile(turnstileToken, env.TURNSTILE_SECRET_KEY, clientIP);
     if (!valid) {
       return new Response(JSON.stringify({ error: 'Bot verification failed' }), {
@@ -76,16 +82,20 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   console.log('Making Buttondown API call for email:', email);
 
-  const buttondownResponse = await fetch('https://api.buttondown.email/v1/subscribers', {
+  const buttondownResponse = await fetch('https://api.buttondown.com/v1/subscribers', {
     method: 'POST',
     headers: {
       'Authorization': `Token ${env.BUTTONDOWN_API_KEY}`,
       'Content-Type': 'application/json',
+      'X-API-Version': '2025-06-01',
+      'X-Buttondown-Collision-Behavior': 'add',
     },
     body: JSON.stringify({
       email_address: email,
       tags: ['website'],
-      type: 'regular' // Skip double opt-in for website signups
+      type: 'regular', // Skip double opt-in for website signups
+      ip_address: clientIP || undefined,
+      referrer_url: referrerUrl || undefined,
     }),
   });
 
@@ -102,21 +112,36 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     });
   }
 
-  const errorData = await buttondownResponse.json() as ButtondownResponse;
-  const errorMessage = errorData.error?.join(', ') || 'Subscription failed';
+  const errorResponseClone = buttondownResponse.clone();
+  let errorCode: string | undefined;
+  let errorMessage = 'Subscription failed';
 
-  console.log('Buttondown error:', errorMessage);
-  console.log('Buttondown error data:', JSON.stringify(errorData));
+  try {
+    const errorData = await errorResponseClone.json() as ButtondownResponse;
+    console.log('Buttondown error data:', JSON.stringify(errorData));
 
-  if (errorMessage.includes('already subscribed')) {
+    if (typeof errorData.code === 'string') errorCode = errorData.code;
+    if (typeof errorData.detail === 'string') errorMessage = errorData.detail;
+
+    if (!errorCode && Array.isArray(errorData.error)) {
+      errorMessage = errorData.error.join(', ');
+    }
+  } catch (err) {
+    const errorText = await buttondownResponse.text().catch(() => '');
+    console.log('Buttondown error (non-JSON):', errorText || '(empty body)');
+  }
+
+  console.log('Buttondown error:', errorCode || '(no code)', errorMessage);
+
+  if (errorCode === 'subscriber_already_exists' || errorCode === 'email_already_exists') {
     return new Response(JSON.stringify({ success: true, message: 'Already subscribed!' }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  return new Response(JSON.stringify({ error: errorMessage }), {
-    status: 400,
+  return new Response(JSON.stringify({ error: errorMessage, code: errorCode }), {
+    status: buttondownResponse.status,
     headers: { 'Content-Type': 'application/json' },
   });
 };

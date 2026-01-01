@@ -1,0 +1,66 @@
+---
+interface Props {
+	date: Date;
+	format?: 'relative' | 'full' | 'time';
+}
+
+const { date, format = 'relative' } = Astro.props;
+const isoDate = date.toISOString();
+---
+
+<time datetime={isoDate} class="local-time" data-format={format}>
+	{date.toLocaleDateString('en-US', { 
+		year: 'numeric', 
+		month: 'short', 
+		day: 'numeric' 
+	})}
+</time>
+
+<script is:inline>
+	document.querySelectorAll('.local-time').forEach(function(el) {
+		const date = new Date(el.getAttribute('datetime'));
+		const format = el.getAttribute('data-format') || 'relative';
+		const now = new Date();
+		
+		if (format === 'relative') {
+			const diffMs = now.getTime() - date.getTime();
+			const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+			const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+			const diffMins = Math.floor(diffMs / (1000 * 60));
+			
+			let text;
+			if (diffMins < 1) {
+				text = 'just now';
+			} else if (diffMins < 60) {
+				text = diffMins + 'm ago';
+			} else if (diffHours < 24) {
+				text = diffHours + 'h ago';
+			} else if (diffDays < 7) {
+				text = diffDays + 'd ago';
+			} else if (diffDays < 30) {
+				text = Math.floor(diffDays / 7) + 'w ago';
+			} else if (diffDays < 365) {
+				text = Math.floor(diffDays / 30) + 'mo ago';
+			} else {
+				text = Math.floor(diffDays / 365) + 'y ago';
+			}
+			
+			el.textContent = text;
+			el.setAttribute('title', date.toLocaleString());
+		} else if (format === 'full') {
+			el.textContent = date.toLocaleString(undefined, {
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric',
+				hour: 'numeric',
+				minute: '2-digit',
+				timeZoneName: 'short'
+			});
+		} else if (format === 'time') {
+			el.textContent = date.toLocaleTimeString(undefined, {
+				hour: 'numeric',
+				minute: '2-digit'
+			});
+		}
+	});
+</script>

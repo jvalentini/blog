@@ -1,0 +1,23 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: interest-cohort=()
+  X-XSS-Protection: 0
+  Cross-Origin-Opener-Policy: same-origin
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+  Link: </fonts/atkinson-regular.woff>; rel=preload; as=font; type=font/woff; crossorigin
+
+/*.html
+  Link: </fonts/atkinson-regular.woff>; rel=preload; as=font; type=font/woff; crossorigin, </fonts/atkinson-bold.woff>; rel=preload; as=font; type=font/woff; crossorigin
+
+/blog/*
+  Link: </fonts/atkinson-regular.woff>; rel=preload; as=font; type=font/woff; crossorigin, </fonts/atkinson-bold.woff>; rel=preload; as=font; type=font/woff; crossorigin
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

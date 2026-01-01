@@ -1,3 +1,27 @@
 # Cloudflare Pages configuration
 name = "blog"
 pages_build_output_dir = "./dist"
+compatibility_date = "2024-12-01"
+
+# KV Namespace for link shortener and caching
+[[kv_namespaces]]
+binding = "BLOG_KV"
+id = "71f83ecd40d7410ab8ec23bec488f7ed"
+
+# D1 Database for view counts and analytics
+[[d1_databases]]
+binding = "DB"
+database_name = "blog-db"
+database_id = "8b425ccf-b267-4665-97d1-86e75ff1e77b"
+
+# Analytics Engine for custom analytics
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "blog_analytics"
+
+# Environment variables (secrets set via `wrangler secret put` or CF dashboard)
+# BUTTONDOWN_API_KEY - Newsletter API key
+# TURNSTILE_SECRET_KEY - Turnstile verification key (optional)
+
+[vars]
+SITE_URL = "https://jvalentini.pages.dev"

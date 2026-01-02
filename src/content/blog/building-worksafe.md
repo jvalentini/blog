@@ -382,7 +382,9 @@ When you're building something visual with AI, use it for scaffolding and struct
 
 ## Try It
 
-WorkSafe is a static Vue app you can run locally:
+**WorkSafe is live at [worksafe.pages.dev](https://worksafe.pages.dev)!** Experience the full TPS Report Compliance System with voice input and Office Space theming—no installation required.
+
+For local development or to explore the code, WorkSafe is a static Vue app you can run locally:
 
 ```bash
 git clone https://github.com/jvalentini/worksafe

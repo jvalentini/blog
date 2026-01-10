@@ -2,6 +2,7 @@
 title: 'TabGen: Automatic Tab Completion for the Tools I Actually Use'
 description: 'TabGen scans my PATH, parses --help and man pages, and generates Bash/Zsh completions so I don’t have to hand-roll tab completion for every new CLI.'
 pubDate: 'Jan 04 2026'
+heroImage: 'https://raw.githubusercontent.com/jvalentini/tabgen/master/banner.png'
 ---
 
 ## The Problem

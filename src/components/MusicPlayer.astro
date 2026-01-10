@@ -1,7 +1,6 @@
 ---
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { getCollection } from 'astro:content';
 
 // Get all music files from the music folder
 const musicDir = new URL('../assets/music', import.meta.url);
@@ -28,6 +27,16 @@ try {
   console.error('Failed to read music directory:', err);
 }
 
+// Helper function to generate URL-friendly slugs
+function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/[\s_-]+/g, '-') // Replace spaces, underscores, and hyphens with single hyphen
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+}
+
 // Sort by newest first
 const tracks = musicFiles
   .sort((a, b) => b.mtime - a.mtime)
@@ -41,6 +50,7 @@ const tracks = musicFiles
     return {
       id: `track-${idx}`,
       title: cleanName,
+      slug: generateSlug(cleanName),
       file: f.name,
       src: f.path
     };
@@ -166,7 +176,65 @@ const tracks = musicFiles
   let currentIndex = 0;
   let shuffleEnabled = false;
   let repeatMode = 0; // 0: no repeat, 1: repeat all, 2: repeat one
-  let originalQueue = [...allTracks];
+  let originalQueue = [...allTracks]; // Always newest to oldest, never changes
+  let currentTrackIdInOriginal = null; // Track ID in originalQueue when shuffling
+
+  // localStorage keys
+  const STORAGE_KEY_SHUFFLE = 'musicplayer_shuffle';
+  const STORAGE_KEY_REPEAT = 'musicplayer_repeat';
+  const STORAGE_KEY_QUEUE = 'musicplayer_queue';
+
+  // Save state to localStorage
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY_SHUFFLE, JSON.stringify(shuffleEnabled));
+    localStorage.setItem(STORAGE_KEY_REPEAT, JSON.stringify(repeatMode));
+    localStorage.setItem(STORAGE_KEY_QUEUE, JSON.stringify({
+      queue: allTracks,
+      originalQueue: originalQueue,
+      currentIndex: currentIndex
+    }));
+  }
+
+  // Load state from localStorage
+  function loadState() {
+    const savedShuffle = localStorage.getItem(STORAGE_KEY_SHUFFLE);
+    const savedRepeat = localStorage.getItem(STORAGE_KEY_REPEAT);
+    const savedQueue = localStorage.getItem(STORAGE_KEY_QUEUE);
+
+    if (savedShuffle !== null) {
+      shuffleEnabled = JSON.parse(savedShuffle);
+      btnShuffle.classList.toggle('active', shuffleEnabled);
+    }
+
+    if (savedRepeat !== null) {
+      repeatMode = JSON.parse(savedRepeat);
+      btnRepeat.classList.toggle('active', repeatMode > 0);
+      if (repeatMode === 2) {
+        btnRepeat.textContent = '🔂';
+      }
+    }
+
+    if (savedQueue !== null) {
+      try {
+        const queueData = JSON.parse(savedQueue);
+        allTracks = queueData.queue;
+        originalQueue = queueData.originalQueue || [...allTracks];
+        currentIndex = queueData.currentIndex || 0;
+        
+        // Restore currentTrackIdInOriginal if shuffling
+        if (shuffleEnabled && allTracks.length > 0) {
+          if (currentIndex < allTracks.length) {
+            currentTrackIdInOriginal = allTracks[currentIndex]?.id || null;
+          } else if (allTracks.length > 0) {
+            currentTrackIdInOriginal = allTracks[0]?.id || null;
+            currentIndex = 0;
+          }
+        }
+      } catch (e) {
+        console.error('Failed to restore queue:', e);
+      }
+    }
+  }
 
   function formatTime(seconds) {
     if (!isFinite(seconds)) return '0:00';
@@ -175,12 +243,63 @@ const tracks = musicFiles
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
+  // Update URL with song slug
+  function updateURL(track) {
+    if (!track || !track.slug) return;
+    const newURL = `/waves/${track.slug}`;
+    if (window.location.pathname !== newURL) {
+      window.history.pushState({ trackSlug: track.slug }, '', newURL);
+    }
+  }
+
+  // Load track by slug
+  function loadTrackBySlug(slug) {
+    // First check in allTracks
+    let trackIndex = allTracks.findIndex(t => t.slug === slug);
+    if (trackIndex !== -1) {
+      loadTrack(trackIndex);
+      return true;
+    }
+    
+    // If not found, check in originalQueue (for shuffle mode)
+    const originalIndex = originalQueue.findIndex(t => t.slug === slug);
+    if (originalIndex !== -1) {
+      const track = originalQueue[originalIndex];
+      if (shuffleEnabled) {
+        currentTrackIdInOriginal = track.id;
+        audio.src = track.src;
+        currentTrackTitle.textContent = track.title;
+        updateQueueDisplay();
+        updateURL(track);
+        return true;
+      } else {
+        // Find in allTracks by ID
+        trackIndex = allTracks.findIndex(t => t.id === track.id);
+        if (trackIndex !== -1) {
+          loadTrack(trackIndex);
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+
   function loadTrack(index) {
     if (allTracks.length === 0) return;
     currentIndex = Math.max(0, Math.min(index, allTracks.length - 1));
     const track = allTracks[currentIndex];
     audio.src = track.src;
     currentTrackTitle.textContent = track.title;
+    
+    // Track current song in originalQueue when shuffling
+    if (shuffleEnabled && track) {
+      currentTrackIdInOriginal = track.id;
+    }
+    
+    // Update URL
+    updateURL(track);
+    
     updateQueueDisplay();
   }
 
@@ -198,20 +317,98 @@ const tracks = musicFiles
 
   function playNext() {
     if (allTracks.length === 0) return;
-    currentIndex = (currentIndex + 1) % allTracks.length;
-    loadTrack(currentIndex);
+    
+    if (shuffleEnabled) {
+      // Shuffle mode: pick random next song from originalQueue
+      const availableTracks = originalQueue.filter(t => t.id !== currentTrackIdInOriginal);
+      if (availableTracks.length === 0) {
+        // All songs played, pick any random song
+        const randomTrack = originalQueue[Math.floor(Math.random() * originalQueue.length)];
+        currentTrackIdInOriginal = randomTrack.id;
+        const trackIndex = originalQueue.findIndex(t => t.id === randomTrack.id);
+        audio.src = originalQueue[trackIndex].src;
+        currentTrackTitle.textContent = originalQueue[trackIndex].title;
+        updateURL(randomTrack); // Update URL
+        updateQueueDisplay();
+        playTrack();
+        saveState();
+        return;
+      }
+      const nextTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
+      currentTrackIdInOriginal = nextTrack.id;
+      const trackIndex = originalQueue.findIndex(t => t.id === nextTrack.id);
+      audio.src = originalQueue[trackIndex].src;
+      currentTrackTitle.textContent = originalQueue[trackIndex].title;
+      updateURL(nextTrack); // Update URL
+      updateQueueDisplay();
+      playTrack();
+      saveState();
+      return;
+    }
+    
+    if (repeatMode === 1) {
+      // Repeat all: ring buffer - move current to end
+      const currentTrack = allTracks[currentIndex];
+      allTracks.splice(currentIndex, 1);
+      allTracks.push(currentTrack);
+      currentIndex = 0; // Next song is now at index 0
+      loadTrack(0);
+      playTrack();
+      saveState();
+      return;
+    }
+    
+    // No shuffle, no repeat: queue behavior - remove from front
+    allTracks.shift();
+    if (allTracks.length === 0) {
+      // Queue is empty
+      audio.pause();
+      pauseTrack();
+      // Update URL back to /waves
+      if (window.location.pathname.startsWith('/waves/')) {
+        window.history.pushState({}, '', '/waves');
+      }
+      updateQueueDisplay();
+      saveState();
+      return;
+    }
+    currentIndex = 0; // Next song is now at index 0
+    loadTrack(0);
     playTrack();
+    saveState();
   }
 
   function playPrevious() {
     if (allTracks.length === 0) return;
     if (audio.currentTime > 3) {
       audio.currentTime = 0;
-    } else {
-      currentIndex = (currentIndex - 1 + allTracks.length) % allTracks.length;
-      loadTrack(currentIndex);
+      saveState();
+      return;
     }
-    playTrack();
+    
+    if (shuffleEnabled) {
+      // Shuffle mode: pick random previous song (or just restart current)
+      audio.currentTime = 0;
+      saveState();
+      return;
+    }
+    
+    if (repeatMode === 1) {
+      // Repeat all: move last song to front
+      const lastTrack = allTracks.pop();
+      if (lastTrack) {
+        allTracks.unshift(lastTrack);
+        currentIndex = 0;
+        loadTrack(0);
+        playTrack();
+        saveState();
+      }
+      return;
+    }
+    
+    // No shuffle, no repeat: can't go back in queue
+    audio.currentTime = 0;
+    saveState();
   }
 
   function toggleShuffle() {
@@ -219,19 +416,55 @@ const tracks = musicFiles
     btnShuffle.classList.toggle('active', shuffleEnabled);
     
     if (shuffleEnabled) {
-      originalQueue = [...allTracks];
-      // Fisher-Yates shuffle
-      for (let i = allTracks.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [allTracks[i], allTracks[j]] = [allTracks[j], allTracks[i]];
+      // Entering shuffle: restore originalQueue order, track current song
+      const currentTrack = allTracks[currentIndex];
+      allTracks = [...originalQueue];
+      if (currentTrack) {
+        currentTrackIdInOriginal = currentTrack.id;
+        const trackIndex = originalQueue.findIndex(t => t.id === currentTrack.id);
+        if (trackIndex !== -1) {
+          audio.src = originalQueue[trackIndex].src;
+          currentTrackTitle.textContent = originalQueue[trackIndex].title;
+        }
+      } else if (allTracks.length > 0) {
+        // No current track, pick first one
+        currentTrackIdInOriginal = allTracks[0].id;
+        audio.src = allTracks[0].src;
+        currentTrackTitle.textContent = allTracks[0].title;
       }
-      currentIndex = 0;
-      loadTrack(0);
+      updateQueueDisplay();
     } else {
-      allTracks = originalQueue;
-      currentIndex = allTracks.findIndex(t => t.id === allTracks[currentIndex]?.id) || 0;
+      // Exiting shuffle: restore queue behavior based on repeat mode
+      if (repeatMode === 1) {
+        // Ring buffer mode: keep current order
+        const currentTrackId = currentTrackIdInOriginal || allTracks[currentIndex]?.id;
+        if (currentTrackId) {
+          const trackIndex = originalQueue.findIndex(t => t.id === currentTrackId);
+          if (trackIndex !== -1) {
+            // Rebuild ring buffer starting from current track
+            allTracks = [
+              ...originalQueue.slice(trackIndex),
+              ...originalQueue.slice(0, trackIndex)
+            ];
+            currentIndex = 0;
+          }
+        }
+      } else {
+        // Queue mode: show remaining songs
+        const currentTrackId = currentTrackIdInOriginal || allTracks[currentIndex]?.id;
+        if (currentTrackId) {
+          const trackIndex = originalQueue.findIndex(t => t.id === currentTrackId);
+          if (trackIndex !== -1) {
+            // Show remaining songs (from current onwards)
+            allTracks = originalQueue.slice(trackIndex);
+            currentIndex = 0;
+          }
+        }
+      }
+      currentTrackIdInOriginal = null;
       loadTrack(currentIndex);
     }
+    saveState();
   }
 
   function toggleRepeat() {
@@ -242,33 +475,72 @@ const tracks = musicFiles
     } else {
       btnRepeat.innerHTML = '<span class="btn-icon">🔁</span>';
     }
+    saveState();
   }
 
   function updateQueueDisplay() {
     queueList.innerHTML = '';
-    queueCount.textContent = `${allTracks.length} track${allTracks.length !== 1 ? 's' : ''}`;
     
-    allTracks.forEach((track, idx) => {
+    let displayTracks = [];
+    let activeIndex = -1;
+    
+    if (shuffleEnabled) {
+      // Shuffle mode: show originalQueue order, highlight current
+      displayTracks = [...originalQueue];
+      if (currentTrackIdInOriginal) {
+        activeIndex = originalQueue.findIndex(t => t.id === currentTrackIdInOriginal);
+      }
+      queueCount.textContent = `${originalQueue.length} track${originalQueue.length !== 1 ? 's' : ''}`;
+    } else {
+      // Normal or repeat mode: show allTracks
+      displayTracks = [...allTracks];
+      activeIndex = currentIndex;
+      queueCount.textContent = `${allTracks.length} track${allTracks.length !== 1 ? 's' : ''}`;
+    }
+    
+    displayTracks.forEach((track, idx) => {
+      const isActive = idx === activeIndex;
       const item = document.createElement('div');
-      item.className = `queue-item ${idx === currentIndex ? 'active' : ''}`;
+      item.className = `queue-item ${isActive ? 'active' : ''}`;
+      item.style.display = 'flex';
+      item.style.alignItems = 'center';
+      item.style.gap = '0.75rem';
       item.innerHTML = `
-        <div class="queue-item-info">
-          <span class="queue-item-number">${idx + 1}</span>
-          <span class="queue-item-title">${track.title}</span>
-        </div>
-        <div class="queue-item-play">
-          <button class="queue-play-btn" data-index="${idx}" title="Play this track">
-            ▶
-          </button>
-        </div>
+        <span class="queue-item-number">${idx + 1}</span>
+        <span class="queue-item-title">${track.title}</span>
       `;
       queueList.appendChild(item);
       
-      const playBtn = item.querySelector('.queue-play-btn');
-      playBtn.addEventListener('click', () => {
-        currentIndex = idx;
-        loadTrack(idx);
-        playTrack();
+      const titleElement = item.querySelector('.queue-item-title');
+      
+      // Make title clickable to play the song
+      titleElement.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent triggering the item click
+        if (shuffleEnabled) {
+          // In shuffle mode, just set the current track ID
+          currentTrackIdInOriginal = track.id;
+          audio.src = track.src;
+          currentTrackTitle.textContent = track.title;
+          updateURL(track); // Update URL
+          updateQueueDisplay();
+          playTrack();
+          saveState();
+        } else {
+          currentIndex = idx;
+          loadTrack(idx);
+          playTrack();
+          saveState();
+        }
+      });
+      
+      // Make entire queue item clickable to update URL (preview/share)
+      item.addEventListener('click', (e) => {
+        // Don't trigger if clicking the title (it has its own handler)
+        if (e.target === titleElement || titleElement.contains(e.target)) {
+          return;
+        }
+        // Clicking elsewhere on the item just updates URL (preview/share)
+        updateURL(track);
       });
     });
   }
@@ -335,8 +607,25 @@ const tracks = musicFiles
     });
   });
 
+  // Handle browser back/forward navigation
+  window.addEventListener('popstate', (e) => {
+    const path = window.location.pathname;
+    const slugMatch = path.match(/^\/waves\/(.+)$/);
+    
+    if (slugMatch) {
+      const slug = slugMatch[1];
+      loadTrackBySlug(slug);
+    } else if (path === '/waves' || path === '/waves/') {
+      // Back to waves page, load first track
+      if (allTracks.length > 0) {
+        loadTrack(0);
+      }
+    }
+  });
+
   // Initialize
   audio.volume = 0.7;
+  loadState();
   updateQueueDisplay();
   
   // Initialize volume blocks (70%)
@@ -388,9 +677,25 @@ const tracks = musicFiles
     isDraggingVolume = false;
   });
   
-  // Auto-load the first (most recent) track
-  if (allTracks.length > 0) {
-    loadTrack(0);
+  // Check URL on page load
+  const path = window.location.pathname;
+  const slugMatch = path.match(/^\/waves\/(.+)$/);
+  
+  if (slugMatch) {
+    // URL has a slug, try to load that track
+    const slug = slugMatch[1];
+    const loaded = loadTrackBySlug(slug);
+    if (!loaded) {
+      // Slug not found, load first track and update URL
+      if (allTracks.length > 0) {
+        loadTrack(0);
+      }
+    }
+  } else {
+    // No slug in URL, auto-load the first (most recent) track
+    if (allTracks.length > 0) {
+      loadTrack(0);
+    }
   }
 </script>
 
@@ -905,21 +1210,18 @@ const tracks = musicFiles
   .queue-list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
     max-height: 400px;
     overflow-y: auto;
   }
 
   .queue-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.85rem;
+    padding: 0.75rem;
     background: rgba(51, 255, 51, 0.03);
-    border: 1px solid rgba(51, 255, 51, 0.15);
+    border: 1px solid rgba(51, 255, 51, 0.12);
     border-radius: 6px;
-    transition: all 0.2s ease;
     cursor: pointer;
+    transition: all 0.2s ease;
     animation: fadeInQueue 0.4s ease-out backwards;
   }
 
@@ -931,98 +1233,99 @@ const tracks = musicFiles
   @keyframes fadeInQueue {
     from {
       opacity: 0;
-      transform: translateX(-10px);
+      transform: translateY(-8px);
     }
     to {
       opacity: 1;
-      transform: translateX(0);
+      transform: translateY(0);
     }
   }
 
   .queue-item:hover {
     background: rgba(51, 255, 51, 0.08);
-    border-color: rgba(51, 255, 51, 0.3);
+    border-color: rgba(51, 255, 51, 0.25);
     box-shadow: 0 0 20px rgba(51, 255, 51, 0.1);
-    transform: translateX(4px);
   }
 
   .queue-item.active {
-    background: linear-gradient(
-      135deg,
-      rgba(51, 255, 51, 0.12) 0%,
-      rgba(51, 255, 51, 0.05) 100%
-    );
-    border-color: rgba(51, 255, 51, 0.4);
+    background: rgba(51, 255, 51, 0.12);
+    border-color: rgba(51, 255, 51, 0.3);
     box-shadow: 
-      0 0 30px rgba(51, 255, 51, 0.15),
-      inset 0 0 10px rgba(51, 255, 51, 0.05);
+      0 0 25px rgba(51, 255, 51, 0.12),
+      0 0 40px rgba(51, 255, 51, 0.2),
+      0 0 60px rgba(51, 255, 51, 0.15);
+    animation: glowPulse 2s ease-in-out infinite;
   }
 
-  .queue-item-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  @keyframes glowPulse {
+    0%, 100% {
+      box-shadow: 
+        0 0 25px rgba(51, 255, 51, 0.12),
+        0 0 40px rgba(51, 255, 51, 0.2),
+        0 0 60px rgba(51, 255, 51, 0.15);
+    }
+    50% {
+      box-shadow: 
+        0 0 30px rgba(51, 255, 51, 0.18),
+        0 0 50px rgba(51, 255, 51, 0.25),
+        0 0 80px rgba(51, 255, 51, 0.2);
+    }
   }
 
   .queue-item-number {
-    font-size: 0.65rem;
-    color: var(--phosphor-dim);
-    font-weight: 500;
-    padding: 0.25rem 0.4rem;
-    background: var(--border-base);
-    border-radius: 2px;
-    min-width: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: rgba(51, 255, 51, 0.5);
+    min-width: 24px;
     text-align: center;
     flex-shrink: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
   }
 
   .queue-item.active .queue-item-number {
-    background: rgba(51, 255, 51, 0.15);
-    color: var(--phosphor-dim);
-    border: 1px solid var(--phosphor-dim);
+    color: var(--phosphor-bright);
   }
 
   .queue-item-title {
-    font-size: 0.875rem;
-    color: var(--text-primary);
+    flex: 1;
+    min-width: 0;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.75);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .queue-item:hover .queue-item-title {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .queue-item-title:hover {
+    color: var(--phosphor-bright) !important;
+    text-shadow: 
+      0 0 10px rgba(51, 255, 51, 0.6),
+      0 0 20px rgba(51, 255, 51, 0.4),
+      0 0 30px rgba(51, 255, 51, 0.2);
+    transform: translateX(2px);
   }
 
   .queue-item.active .queue-item-title {
     color: var(--phosphor-bright);
     font-weight: 600;
-    text-shadow: 0 0 10px rgba(51, 255, 51, 0.3);
-  }
-
-  .queue-item-play {
-    display: none;
-  }
-
-  .queue-item:hover .queue-item-play {
-    display: block;
-  }
-
-  .queue-play-btn {
-    background: transparent;
-    border: none;
-    color: var(--phosphor-base);
-    cursor: pointer;
-    font-size: 0.875rem;
+    background: linear-gradient(
+      135deg,
+      rgba(51, 255, 51, 0.15),
+      rgba(51, 255, 51, 0.08)
+    );
     padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    transition: all 0.15s ease;
+    margin: -0.25rem -0.5rem;
+    border-radius: 3px;
+    text-shadow: 0 0 12px rgba(51, 255, 51, 0.5);
+    box-shadow: inset 0 0 15px rgba(51, 255, 51, 0.1);
   }
 
-  .queue-play-btn:hover {
-    background: var(--border-base);
-  }
 
   /* Scrollbar styling */
   .queue-list::-webkit-scrollbar {

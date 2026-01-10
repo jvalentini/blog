@@ -2,6 +2,7 @@
 title: 'Building Speak Strong: Eliminating Weak Language from Your Communication'
 description: 'How I built a CLI tool that transforms hesitant, hedging language into confident, direct communication—helping you sound as capable as you actually are.'
 pubDate: 'Jan 08 2026'
+heroImage: 'https://raw.githubusercontent.com/jvalentini/speak-strong/main/2026-01-08-11-08-speak-strong-banner.png'
 ---
 
 ## The Problem

@@ -1,6 +1,4 @@
 ---
-import { getImage } from 'astro:assets';
-
 interface Props {
   src: string;
   title: string;
@@ -10,127 +8,511 @@ interface Props {
 const { src, title, artist } = Astro.props;
 ---
 
-<div class="audio-player-wrapper">
-  <div class="audio-player">
-    <div class="player-header">
-      <div class="track-info">
-        <h3 class="track-title">{title}</h3>
-        <p class="track-artist">{artist}</p>
+<div class="audio-terminal">
+  <div class="terminal-header">
+    <span class="terminal-title">▶ audio-player</span>
+  </div>
+
+  <div class="terminal-body">
+    <!-- Track metadata -->
+    <div class="track-display">
+      <div class="track-line">
+        <span class="prompt">$</span>
+        <span class="command">now_playing</span>
+        <span class="arg">--title</span>
+        <span class="string">"{title}"</span>
+      </div>
+      <div class="track-line">
+        <span class="prompt">$</span>
+        <span class="command">artist</span>
+        <span class="arg">--name</span>
+        <span class="string">"{artist}"</span>
       </div>
     </div>
-    
-    <audio controls class="audio-controls" preload="metadata">
+
+    <!-- Audio element -->
+    <audio 
+      id="audio-element"
+      preload="metadata"
+      style="display: none;"
+    >
       <source src={src} type="audio/mpeg" />
-      Your browser does not support the audio element.
     </audio>
-    
-    <div class="player-footer">
-      <p class="footer-text">Press play to start the diss track</p>
+
+    <!-- Player controls -->
+    <div class="controls-section">
+      <!-- Top row: Play button and time display -->
+      <div class="playback-row">
+        <button class="btn-play" id="play-toggle" aria-label="Play/Pause" title="Play/Pause">
+          <span class="play-symbol">▶</span>
+          <span class="pause-symbol" style="display: none;">⏸</span>
+        </button>
+        <div class="time-info">
+          <span class="time-display" id="current-time">0:00</span>
+          <span class="time-separator">/</span>
+          <span class="time-display" id="duration-time">0:00</span>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progress-section">
+        <input 
+          type="range" 
+          id="progress-slider"
+          class="progress-slider"
+          min="0"
+          max="100"
+          value="0"
+          aria-label="Track progress"
+        />
+      </div>
+
+      <!-- Volume control -->
+      <div class="volume-section">
+        <label class="volume-label" for="volume-slider">vol:</label>
+        <input
+          type="range"
+          id="volume-slider"
+          class="volume-slider"
+          min="0"
+          max="100"
+          value="70"
+          aria-label="Volume"
+        />
+        <span class="volume-percent" id="volume-percent">70%</span>
+      </div>
     </div>
+
+    <!-- Status line -->
+    <div class="status-line">
+      <span class="status-indicator"></span>
+      <span class="status-text">ready</span>
+    </div>
+  </div>
+
+  <div class="terminal-footer">
+    <span class="footer-text">press play to start</span>
   </div>
 </div>
 
+<script>
+  const audio = document.getElementById('audio-element') as HTMLAudioElement;
+  const playBtn = document.getElementById('play-toggle') as HTMLButtonElement;
+  const progressSlider = document.getElementById('progress-slider') as HTMLInputElement;
+  const volumeSlider = document.getElementById('volume-slider') as HTMLInputElement;
+  const currentTimeEl = document.getElementById('current-time') as HTMLElement;
+  const durationTimeEl = document.getElementById('duration-time') as HTMLElement;
+  const volumePercentEl = document.getElementById('volume-percent') as HTMLElement;
+  const statusText = document.querySelector('.status-text') as HTMLElement;
+  const terminal = document.querySelector('.audio-terminal') as HTMLElement;
+  const playSymbol = playBtn.querySelector('.play-symbol') as HTMLElement;
+  const pauseSymbol = playBtn.querySelector('.pause-symbol') as HTMLElement;
+
+  function formatTime(seconds: number): string {
+    if (!isFinite(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  // Play/Pause toggle
+  playBtn.addEventListener('click', () => {
+    if (audio.paused) {
+      audio.play();
+      playSymbol.style.display = 'none';
+      pauseSymbol.style.display = 'inline';
+      statusText.textContent = 'playing';
+      terminal.classList.add('playing');
+    } else {
+      audio.pause();
+      playSymbol.style.display = 'inline';
+      pauseSymbol.style.display = 'none';
+      statusText.textContent = 'paused';
+      terminal.classList.remove('playing');
+    }
+  });
+
+  // Update time and progress
+  audio.addEventListener('timeupdate', () => {
+    if (audio.duration) {
+      const percent = (audio.currentTime / audio.duration) * 100;
+      progressSlider.value = percent.toString();
+      currentTimeEl.textContent = formatTime(audio.currentTime);
+    }
+  });
+
+  // Load metadata to get duration
+  audio.addEventListener('loadedmetadata', () => {
+    durationTimeEl.textContent = formatTime(audio.duration);
+  });
+
+  // Seek
+  progressSlider.addEventListener('change', () => {
+    if (audio.duration) {
+      audio.currentTime = (parseFloat(progressSlider.value) / 100) * audio.duration;
+    }
+  });
+
+  // Volume control
+  volumeSlider.addEventListener('input', () => {
+    const vol = parseFloat(volumeSlider.value);
+    audio.volume = vol / 100;
+    volumePercentEl.textContent = Math.round(vol) + '%';
+  });
+
+  // Reset on end
+  audio.addEventListener('ended', () => {
+    playSymbol.style.display = 'inline';
+    pauseSymbol.style.display = 'none';
+    statusText.textContent = 'finished';
+    terminal.classList.remove('playing');
+  });
+
+  // Initialize volume
+  audio.volume = 0.7;
+</script>
+
 <style>
-  .audio-player-wrapper {
+  .audio-terminal {
     margin: 2rem 0;
-    perspective: 1000px;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-elevated);
+    border: 2px solid var(--border-base);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(51, 255, 51, 0.05);
   }
 
-  .audio-player {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border: 2px solid #ff6b35;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 8px 32px rgba(255, 107, 53, 0.15);
-    backdrop-filter: blur(10px);
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  .audio-terminal.playing {
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(51, 255, 51, 0.05),
+      0 0 30px rgba(51, 255, 51, 0.15);
+    border-color: var(--phosphor-base);
   }
 
-  .audio-player:hover {
-    box-shadow: 0 12px 48px rgba(255, 107, 53, 0.25);
-    transform: translateY(-2px);
-    border-color: #ff8c42;
+  /* Terminal Header */
+  .terminal-header {
+    padding: 0.75rem 1rem;
+    background: linear-gradient(to bottom, var(--border-bright), var(--border-base));
+    border-bottom: 1px solid var(--border-base);
   }
 
-  .player-header {
+  .terminal-title {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* Terminal Body */
+  .terminal-body {
+    padding: 1.5rem;
+    background: #2a2a35;
+    color: var(--text-primary);
+    position: relative;
+  }
+
+  /* Track Display */
+  .track-display {
     margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
   }
 
-  .track-info {
+  .track-line {
+    margin: 0.5rem 0;
+  }
+
+  .prompt {
+    color: var(--phosphor-bright);
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+
+  .command {
+    color: var(--phosphor-base);
+    font-weight: 600;
+  }
+
+  .arg {
+    color: var(--text-secondary);
+    margin: 0 0.25rem;
+  }
+
+  .string {
+    color: #88dd77;
+  }
+
+  /* Controls Section */
+  .controls-section {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1rem;
   }
 
-  .track-title {
-    font-size: 1.5rem;
+  /* Playback row with button and time */
+  .playback-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: flex-start;
+  }
+
+  .btn-play {
+    width: 48px;
+    height: 48px;
+    border: 2px solid var(--phosphor-base);
+    background: var(--phosphor-dim);
+    color: var(--phosphor-base);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    font-size: 22px;
     font-weight: 700;
-    color: #ff6b35;
-    margin: 0;
+    box-shadow: 0 0 20px rgba(51, 255, 51, 0.1);
+    flex-shrink: 0;
+  }
+
+  .btn-play:hover {
+    box-shadow: 0 0 30px rgba(51, 255, 51, 0.3);
+    border-color: var(--phosphor-bright);
+  }
+
+  .btn-play:active {
+    transform: scale(0.95);
+  }
+
+  .play-symbol,
+  .pause-symbol {
+    display: inline;
+  }
+
+  /* Time info display */
+  .time-info {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .time-display {
+    color: var(--phosphor-base);
+    min-width: 35px;
+    text-align: right;
+  }
+
+  .time-separator {
+    color: var(--text-secondary);
+    opacity: 0.6;
+  }
+
+  /* Progress Section */
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .progress-slider {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-base);
+    border: 1px solid var(--border-base);
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .progress-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--phosphor-base);
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(51, 255, 51, 0.4);
+    transition: all 0.15s ease;
+  }
+
+  .progress-slider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 20px rgba(51, 255, 51, 0.6);
+    transform: scaleY(1.5);
+  }
+
+  .progress-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--phosphor-base);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(51, 255, 51, 0.4);
+    transition: all 0.15s ease;
+  }
+
+  .progress-slider::-moz-range-thumb:hover {
+    box-shadow: 0 0 20px rgba(51, 255, 51, 0.6);
+    transform: scaleY(1.5);
+  }
+
+  /* Volume Section */
+  .volume-section {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .volume-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .volume-slider {
+    flex: 1;
+    max-width: 150px;
+    height: 3px;
+    border-radius: 1.5px;
+    background: var(--border-base);
+    border: 1px solid var(--border-base);
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--phosphor-base);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(51, 255, 51, 0.3);
+  }
+
+  .volume-slider::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--phosphor-base);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(51, 255, 51, 0.3);
+  }
+
+  .volume-percent {
+    min-width: 35px;
+    text-align: right;
+    color: var(--phosphor-base);
+    font-weight: 600;
+  }
+
+  /* Status Line */
+  .status-line {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-base);
+    font-size: 0.75rem;
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    font-weight: 600;
+    color: var(--text-secondary);
   }
 
-  .track-artist {
-    font-size: 0.95rem;
-    color: #b8b8b8;
-    margin: 0;
-    font-weight: 500;
-    text-transform: capitalize;
+  .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--phosphor-base);
+    box-shadow: 0 0 8px rgba(51, 255, 51, 0.5);
+    animation: pulse-status 1.5s ease-in-out infinite;
   }
 
-  .audio-controls {
-    width: 100%;
-    height: 50px;
-    margin: 1.5rem 0;
-    cursor: pointer;
-    border-radius: 8px;
-    background: linear-gradient(to right, #0a0a0a, #1a1a1a);
-    border: 1px solid #444;
-    padding: 8px;
-    box-sizing: border-box;
-    accent-color: #ff6b35;
-    font-family: inherit;
+  @keyframes pulse-status {
+    0%, 100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
   }
 
-  .audio-controls::-webkit-media-controls-panel {
-    background-color: #1a1a1a;
+  .audio-terminal.playing .status-indicator {
+    animation: pulse-status-active 0.8s ease-in-out infinite;
   }
 
-  .audio-controls::-webkit-media-controls-play-button {
-    background-color: #ff6b35;
-    border-radius: 4px;
+  @keyframes pulse-status-active {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
   }
 
-  .audio-controls::-moz-range-thumb {
-    background-color: #ff6b35;
-    border: none;
+  .status-text {
+    color: var(--text-secondary);
   }
 
-  .player-footer {
+  /* Terminal Footer */
+  .terminal-footer {
+    padding: 0.75rem 1rem;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-base);
     text-align: center;
-    border-top: 1px solid #444;
-    padding-top: 1rem;
   }
 
   .footer-text {
-    font-size: 0.85rem;
-    color: #888;
-    margin: 0;
-    font-style: italic;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    letter-spacing: 0.5px;
   }
 
+  /* Responsive */
   @media (max-width: 640px) {
-    .audio-player {
-      padding: 1.5rem;
+    .audio-terminal {
+      margin: 1.5rem 0;
     }
 
-    .track-title {
-      font-size: 1.25rem;
+    .terminal-body {
+      padding: 1rem;
     }
 
-    .audio-controls {
-      height: 44px;
+    .btn-play {
+      width: 56px;
+      height: 56px;
+      font-size: 24px;
+    }
+
+    .track-line {
+      font-size: 0.75rem;
+    }
+
+    .volume-section {
+      flex-wrap: wrap;
+    }
+
+    .volume-slider {
+      max-width: 100%;
     }
   }
 </style>

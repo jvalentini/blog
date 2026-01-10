@@ -1,0 +1,136 @@
+---
+import { getImage } from 'astro:assets';
+
+interface Props {
+  src: string;
+  title: string;
+  artist: string;
+}
+
+const { src, title, artist } = Astro.props;
+---
+
+<div class="audio-player-wrapper">
+  <div class="audio-player">
+    <div class="player-header">
+      <div class="track-info">
+        <h3 class="track-title">{title}</h3>
+        <p class="track-artist">{artist}</p>
+      </div>
+    </div>
+    
+    <audio controls class="audio-controls" preload="metadata">
+      <source src={src} type="audio/mpeg" />
+      Your browser does not support the audio element.
+    </audio>
+    
+    <div class="player-footer">
+      <p class="footer-text">Press play to start the diss track</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .audio-player-wrapper {
+    margin: 2rem 0;
+    perspective: 1000px;
+  }
+
+  .audio-player {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 2px solid #ff6b35;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(255, 107, 53, 0.15);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .audio-player:hover {
+    box-shadow: 0 12px 48px rgba(255, 107, 53, 0.25);
+    transform: translateY(-2px);
+    border-color: #ff8c42;
+  }
+
+  .player-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .track-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .track-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ff6b35;
+    margin: 0;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .track-artist {
+    font-size: 0.95rem;
+    color: #b8b8b8;
+    margin: 0;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  .audio-controls {
+    width: 100%;
+    height: 50px;
+    margin: 1.5rem 0;
+    cursor: pointer;
+    border-radius: 8px;
+    background: linear-gradient(to right, #0a0a0a, #1a1a1a);
+    border: 1px solid #444;
+    padding: 8px;
+    box-sizing: border-box;
+    accent-color: #ff6b35;
+    font-family: inherit;
+  }
+
+  .audio-controls::-webkit-media-controls-panel {
+    background-color: #1a1a1a;
+  }
+
+  .audio-controls::-webkit-media-controls-play-button {
+    background-color: #ff6b35;
+    border-radius: 4px;
+  }
+
+  .audio-controls::-moz-range-thumb {
+    background-color: #ff6b35;
+    border: none;
+  }
+
+  .player-footer {
+    text-align: center;
+    border-top: 1px solid #444;
+    padding-top: 1rem;
+  }
+
+  .footer-text {
+    font-size: 0.85rem;
+    color: #888;
+    margin: 0;
+    font-style: italic;
+  }
+
+  @media (max-width: 640px) {
+    .audio-player {
+      padding: 1.5rem;
+    }
+
+    .track-title {
+      font-size: 1.25rem;
+    }
+
+    .audio-controls {
+      height: 44px;
+    }
+  }
+</style>

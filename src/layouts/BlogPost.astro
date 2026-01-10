@@ -53,7 +53,11 @@ const postUrl = Astro.url.href;
 					</div>
 				</header>
 
-				{heroImage && (
+				{heroImage && typeof heroImage === 'string' ? (
+					<div class="hero-image">
+						<img src={heroImage} alt="" loading="eager" />
+					</div>
+				) : heroImage && (
 					<div class="hero-image">
 						<Image 
 							width={1020} 

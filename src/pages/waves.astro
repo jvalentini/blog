@@ -1,0 +1,183 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import MusicPlayer from '../components/MusicPlayer.astro';
+import { SITE_TITLE } from '../consts';
+
+const pageTitle = 'waves';
+const pageDescription = 'A collection of original tracks and creative experiments.';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`${pageTitle} | ${SITE_TITLE}`} description={pageDescription} />
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+		<style>
+			:root {
+				--glow-intense: 0 0 30px rgba(51, 255, 51, 0.3);
+				--font-mono: 'Space Mono', monospace;
+				--font-sans: 'Inter', sans-serif;
+				--accent-bright: #33ff33;
+				--accent-dim: rgba(51, 255, 51, 0.4);
+				--accent-subtle: rgba(51, 255, 51, 0.15);
+			}
+
+			html {
+				scroll-behavior: smooth;
+			}
+
+			body {
+				font-family: var(--font-sans);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="hero-banner">
+				<img src="/waves-hero.png" alt="Waves" class="banner-image" />
+				<div class="banner-overlay">
+					<h1 class="banner-title">waves</h1>
+					<p class="banner-subtitle">Original tracks and creative experiments</p>
+				</div>
+			</div>
+
+			<section class="player-section">
+				<MusicPlayer />
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	main {
+		max-width: var(--content-wide);
+	}
+
+	.hero-banner {
+		position: relative;
+		height: 320px;
+		margin-bottom: 4rem;
+		border-radius: 12px;
+		overflow: hidden;
+		box-shadow: 
+			0 20px 60px rgba(0, 0, 0, 0.6),
+			0 0 100px var(--accent-subtle);
+		animation: fadeInDown 0.8s ease-out;
+	}
+
+	.banner-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		filter: brightness(0.85) contrast(1.1);
+	}
+
+	.banner-overlay {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		padding: 2.5rem;
+		background: linear-gradient(
+			135deg,
+			rgba(0, 0, 0, 0.5) 0%,
+			rgba(0, 0, 0, 0.7) 100%
+		);
+	}
+
+	.banner-title {
+		font-size: 3.5rem;
+		font-weight: 700;
+		color: var(--accent-bright);
+		margin: 0 0 0.75rem 0;
+		text-shadow: 
+			0 4px 20px rgba(51, 255, 51, 0.2),
+			0 0 40px rgba(51, 255, 51, 0.1);
+		font-family: var(--font-mono);
+		letter-spacing: -1px;
+	}
+
+	.banner-subtitle {
+		font-size: 1.1rem;
+		color: rgba(255, 255, 255, 0.7);
+		margin: 0;
+		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+		font-weight: 300;
+		letter-spacing: 0.5px;
+	}
+
+	.player-section {
+		margin-bottom: 4rem;
+		animation: fadeInUp 0.8s ease-out 0.2s both;
+	}
+
+	@keyframes fadeInDown {
+		from {
+			opacity: 0;
+			transform: translateY(-20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes fadeInUp {
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.hero-banner {
+			height: 240px;
+			margin-bottom: 3rem;
+		}
+
+		.banner-overlay {
+			padding: 1.75rem;
+		}
+
+		.banner-title {
+			font-size: 2.25rem;
+			letter-spacing: 0;
+		}
+
+		.banner-subtitle {
+			font-size: 0.95rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.hero-banner {
+			height: 180px;
+			margin-bottom: 2rem;
+			border-radius: 8px;
+		}
+
+		.banner-overlay {
+			padding: 1.25rem;
+		}
+
+		.banner-title {
+			font-size: 1.75rem;
+		}
+
+		.banner-subtitle {
+			font-size: 0.85rem;
+		}
+	}
+</style>

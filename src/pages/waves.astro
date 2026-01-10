@@ -8,86 +8,15 @@ const pageDescription = 'A collection of original tracks and creative experiment
 ---
 
 <BaseLayout title={`${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image="/waves-hero.png" wide>
-	<div class="hero-banner">
-		<img src="/waves-hero.png" alt="Waves" class="banner-image" />
-		<div class="banner-overlay">
-			<h1 class="banner-title">waves</h1>
-			<p class="banner-subtitle">Original tracks and creative experiments</p>
-		</div>
-	</div>
-
 	<section class="player-section">
 		<MusicPlayer />
 	</section>
 </BaseLayout>
 
 <style>
-	.hero-banner {
-		position: relative;
-		height: 320px;
-		margin-bottom: var(--space-3xl);
-		border-radius: 8px;
-		overflow: hidden;
-		box-shadow: 
-			0 20px 60px rgba(0, 0, 0, 0.6),
-			0 0 100px var(--phosphor-glow);
-		animation: fadeInDown 0.8s ease-out;
-	}
-
-	.banner-image {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		display: block;
-		filter: brightness(0.85) contrast(1.1);
-	}
-
-	.banner-overlay {
-		position: absolute;
-		inset: 0;
-		display: flex;
-		flex-direction: column;
-		justify-content: flex-end;
-		padding: var(--space-2xl);
-		background: linear-gradient(
-			135deg,
-			rgba(0, 0, 0, 0.5) 0%,
-			rgba(0, 0, 0, 0.7) 100%
-		);
-	}
-
-	.banner-title {
-		font-size: var(--font-size-4xl);
-		font-weight: 700;
-		color: var(--phosphor-base);
-		margin: 0 0 var(--space-sm) 0;
-		text-shadow: var(--glow-lg);
-		letter-spacing: -1px;
-	}
-
-	.banner-subtitle {
-		font-size: var(--font-size-lg);
-		color: var(--text-secondary);
-		margin: 0;
-		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-		font-weight: 400;
-		letter-spacing: 0.5px;
-	}
-
 	.player-section {
 		margin-bottom: var(--space-3xl);
-		animation: fadeInUp 0.8s ease-out 0.2s both;
-	}
-
-	@keyframes fadeInDown {
-		from {
-			opacity: 0;
-			transform: translateY(-20px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
+		animation: fadeInUp 0.8s ease-out both;
 	}
 
 	@keyframes fadeInUp {
@@ -98,46 +27,6 @@ const pageDescription = 'A collection of original tracks and creative experiment
 		to {
 			opacity: 1;
 			transform: translateY(0);
-		}
-	}
-
-	@media (max-width: 720px) {
-		.hero-banner {
-			height: 240px;
-			margin-bottom: var(--space-2xl);
-		}
-
-		.banner-overlay {
-			padding: var(--space-lg);
-		}
-
-		.banner-title {
-			font-size: var(--font-size-2xl);
-			letter-spacing: 0;
-		}
-
-		.banner-subtitle {
-			font-size: var(--font-size-base);
-		}
-	}
-
-	@media (max-width: 480px) {
-		.hero-banner {
-			height: 180px;
-			margin-bottom: var(--space-xl);
-			border-radius: 4px;
-		}
-
-		.banner-overlay {
-			padding: var(--space-md);
-		}
-
-		.banner-title {
-			font-size: var(--font-size-xl);
-		}
-
-		.banner-subtitle {
-			font-size: var(--font-size-sm);
 		}
 	}
 </style>

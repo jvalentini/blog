@@ -5,21 +5,31 @@ import Footer from '../components/Footer.astro';
 import { SITE_TITLE } from '../consts';
 import type { ImageMetadata } from 'astro';
 
+interface PlayerCardProps {
+	embedUrl: string;
+	streamUrl: string;
+	slug: string;
+	width?: number;
+	height?: number;
+}
+
 interface Props {
 	title: string;
 	description: string;
 	image?: ImageMetadata | string;
 	/** Use wider content area (900px vs 720px) */
 	wide?: boolean;
+	/** Optional: enables Twitter Player Card for audio embeds */
+	playerCard?: PlayerCardProps;
 }
 
-const { title, description, image, wide = false } = Astro.props;
+const { title, description, image, wide = false, playerCard } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} image={image} />
+		<BaseHead title={title} description={description} image={image} playerCard={playerCard} />
 	</head>
 	<body>
 		<Header />

@@ -2,153 +2,59 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MusicPlayer from '../../components/MusicPlayer.astro';
 import { SITE_TITLE } from '../../consts';
-import { promises as fs } from 'fs';
-import * as path from 'path';
+import tracksData from '../../data/tracks.json';
 
-// Generate static paths for all songs
+interface Song {
+  id: string;
+  title: string;
+  lyrics: string;
+  versions: Record<string, string>;
+}
+
+interface TracksConfig {
+  songs: Song[];
+  genres: string[];
+  defaultGenre: string;
+}
+
 export async function getStaticPaths() {
-  // Helper function to generate URL-friendly slugs (same as in MusicPlayer)
-  function generateSlug(text: string): string {
-    return text
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '') // Remove special characters
-      .replace(/[\s_-]+/g, '-') // Replace spaces, underscores, and hyphens with single hyphen
-      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
-  }
-
-  // Get all music files to generate static paths
-  const musicDir = new URL('../../assets/music', import.meta.url);
-  let musicFiles: Array<{name: string; mtime: number; path: string}> = [];
-
-  try {
-    const files = await fs.readdir(musicDir);
-
-    // Filter for audio files and get their stats
-    musicFiles = await Promise.all(
-      files
-        .filter(f => f.match(/\.(mp3|wav)$/i))
-        .map(async (file) => {
-          const filePath = path.join(musicDir.pathname, file);
-          const stats = await fs.stat(filePath);
-          return {
-            name: file,
-            mtime: stats.mtimeMs,
-            path: `/assets/music/${file}`
-          };
-        })
-    );
-  } catch (err) {
-    console.error('Failed to read music directory:', err);
-    return []; // Return empty array if we can't read the directory
-  }
-
-  const tracks = musicFiles
-    .sort((a, b) => b.mtime - a.mtime)
-    .map((f) => {
-      const cleanName = f.name
-        .replace(/\.(mp3|wav)$/i, '')
-        .replace(/\(\d+\)/g, '')
-        .trim();
-      
-      return {
-        slug: generateSlug(cleanName),
-        title: cleanName
-      };
-    });
-
-  return tracks.map((track) => ({
-    params: { slug: track.slug },
-    props: { trackTitle: track.title }
+  const config = tracksData as TracksConfig;
+  
+  return config.songs.map((song) => ({
+    params: { slug: song.id },
+    props: { 
+      trackTitle: song.title,
+      trackSlug: song.id,
+      // Use the default genre's filename for the embed
+      filename: song.versions[config.defaultGenre] || Object.values(song.versions)[0]
+    }
   }));
 }
 
-const { trackTitle } = Astro.props;
+const { trackTitle, trackSlug, filename } = Astro.props;
 const pageTitle = 'waves';
 const pageDescription = `Listen to ${trackTitle} - A collection of original tracks and creative experiments.`;
+
+const siteUrl = Astro.site?.origin ?? 'https://jvalentini.pages.dev';
+const playerCard = {
+  embedUrl: `${siteUrl}/embed/${trackSlug}`,
+  streamUrl: `${siteUrl}/assets/music/${filename}`,
+  slug: trackSlug,
+  width: 480,
+  height: 200
+};
 ---
 
-<BaseLayout title={`${trackTitle} | ${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image="/waves-hero.png" wide>
-	<div class="hero-banner">
-		<img src="/waves-hero.png" alt="Waves" class="banner-image" />
-		<div class="banner-overlay">
-			<h1 class="banner-title">waves</h1>
-			<p class="banner-subtitle">Original tracks and creative experiments</p>
-		</div>
-	</div>
-
+<BaseLayout title={`${trackTitle} | ${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image="/waves-hero.png" wide playerCard={playerCard}>
 	<section class="player-section">
 		<MusicPlayer />
 	</section>
 </BaseLayout>
 
 <style>
-	.hero-banner {
-		position: relative;
-		height: 320px;
-		margin-bottom: var(--space-3xl);
-		border-radius: 8px;
-		overflow: hidden;
-		box-shadow: 
-			0 20px 60px rgba(0, 0, 0, 0.6),
-			0 0 100px var(--phosphor-glow);
-		animation: fadeInDown 0.8s ease-out;
-	}
-
-	.banner-image {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		display: block;
-		filter: brightness(0.85) contrast(1.1);
-	}
-
-	.banner-overlay {
-		position: absolute;
-		inset: 0;
-		display: flex;
-		flex-direction: column;
-		justify-content: flex-end;
-		padding: var(--space-2xl);
-		background: linear-gradient(
-			135deg,
-			rgba(0, 0, 0, 0.5) 0%,
-			rgba(0, 0, 0, 0.7) 100%
-		);
-	}
-
-	.banner-title {
-		font-size: var(--font-size-4xl);
-		font-weight: 700;
-		color: var(--phosphor-base);
-		margin: 0 0 var(--space-sm) 0;
-		text-shadow: var(--glow-lg);
-		letter-spacing: -1px;
-	}
-
-	.banner-subtitle {
-		font-size: var(--font-size-lg);
-		color: var(--text-secondary);
-		margin: 0;
-		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-		font-weight: 400;
-		letter-spacing: 0.5px;
-	}
-
 	.player-section {
 		margin-bottom: var(--space-3xl);
 		animation: fadeInUp 0.8s ease-out 0.2s both;
-	}
-
-	@keyframes fadeInDown {
-		from {
-			opacity: 0;
-			transform: translateY(-20px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
 	}
 
 	@keyframes fadeInUp {
@@ -159,46 +65,6 @@ const pageDescription = `Listen to ${trackTitle} - A collection of original trac
 		to {
 			opacity: 1;
 			transform: translateY(0);
-		}
-	}
-
-	@media (max-width: 720px) {
-		.hero-banner {
-			height: 240px;
-			margin-bottom: var(--space-2xl);
-		}
-
-		.banner-overlay {
-			padding: var(--space-lg);
-		}
-
-		.banner-title {
-			font-size: var(--font-size-2xl);
-			letter-spacing: 0;
-		}
-
-		.banner-subtitle {
-			font-size: var(--font-size-base);
-		}
-	}
-
-	@media (max-width: 480px) {
-		.hero-banner {
-			height: 180px;
-			margin-bottom: var(--space-xl);
-			border-radius: 4px;
-		}
-
-		.banner-overlay {
-			padding: var(--space-md);
-		}
-
-		.banner-title {
-			font-size: var(--font-size-xl);
-		}
-
-		.banner-subtitle {
-			font-size: var(--font-size-sm);
 		}
 	}
 </style>

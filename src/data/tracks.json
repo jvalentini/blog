@@ -1,0 +1,32 @@
+{
+  "songs": [
+    {
+      "id": "slop-slinger",
+      "title": "Slop Slinger",
+      "lyrics": "slop-slinger.md",
+      "versions": {
+        "hip-hop": "slop-slinger.mp3",
+        "country": "slop-slinger-country.mp3"
+      }
+    },
+    {
+      "id": "lose-yourself",
+      "title": "Lose Yourself (In the Context Window)",
+      "lyrics": "lose-yourself-in-the-context-window.md",
+      "versions": {
+        "hip-hop": "lose-yourself-in-the-context-window.mp3",
+        "country": "lose-yourself-country.mp3"
+      }
+    },
+    {
+      "id": "without-me",
+      "title": "Without Me",
+      "lyrics": "without-me.md",
+      "versions": {
+        "hip-hop": "without-me.mp3"
+      }
+    }
+  ],
+  "genres": ["hip-hop", "country"],
+  "defaultGenre": "hip-hop"
+}

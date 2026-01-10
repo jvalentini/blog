@@ -1,9 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
-import Header from '../components/Header.astro';
 import Newsletter from '../components/Newsletter.astro';
 import { AUTHOR_NAME, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 
@@ -13,96 +11,82 @@ const posts = (await getCollection('blog'))
 	.slice(0, 5);
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<section class="hero">
-				<div class="terminal-window">
-					<div class="terminal-header">
-						<span class="terminal-badge">tmux</span>
-						<span class="terminal-title">0:zsh*</span>
-						<span class="terminal-session">justin.valentini@blog</span>
-					</div>
-					<div class="terminal-body">
-						<div class="line">
-							<span class="prompt">$</span>
-							<span class="command">whoami</span>
-						</div>
-						<div class="output name">{AUTHOR_NAME}</div>
-						
-						<div class="line">
-							<span class="prompt">$</span>
-							<span class="command">cat /etc/motd</span>
-						</div>
-						<pre class="output motd">Software engineer exploring AI-assisted development.
+<BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION} wide>
+	<section class="hero">
+		<div class="terminal-window">
+			<div class="terminal-header">
+				<span class="terminal-badge">tmux</span>
+				<span class="terminal-title">0:zsh*</span>
+				<span class="terminal-session">justin.valentini@blog</span>
+			</div>
+			<div class="terminal-body">
+				<div class="line">
+					<span class="prompt">$</span>
+					<span class="command">whoami</span>
+				</div>
+				<div class="output name">{AUTHOR_NAME}</div>
+				
+				<div class="line">
+					<span class="prompt">$</span>
+					<span class="command">cat /etc/motd</span>
+				</div>
+				<pre class="output motd">Software engineer exploring AI-assisted development.
 Building tools that make developers' lives easier.
 Writing about modern web tech, workflows, and lessons learned.</pre>
-						
-						<div class="line">
-							<span class="prompt">$</span>
-							<span class="command">ls -la ~/skills</span>
-						</div>
-						<div class="output skills">
-							<span class="skill">TypeScript</span>
-							<span class="skill">Bun</span>
-							<span class="skill">OpenCode</span>
-							<span class="skill">Opus</span>
-							<span class="skill">Codex</span>
-							<span class="skill">Droid</span>
-						</div>
-						
-						<div class="line cursor-line">
-							<span class="prompt">$</span>
-							<span class="cursor">_</span>
-						</div>
-					</div>
-				</div>
-			</section>
-
-			<section class="posts">
-				<h2>
-					<span class="section-prefix">~/posts $</span> ls -lt | head -5
-				</h2>
 				
-				<div class="post-list">
-					{posts.map((post, index) => (
-						<article class="post-item">
-							<a href={`/blog/${post.id}/`}>
-								<div class="post-meta">
-									<span class="post-index">[{index}]</span>
-									<FormattedDate date={post.data.pubDate} />
-								</div>
-								<h3 class="post-title">{post.data.title}</h3>
-								<p class="post-description">{post.data.description}</p>
-							</a>
-						</article>
-					))}
+				<div class="line">
+					<span class="prompt">$</span>
+					<span class="command">ls -la ~/skills</span>
+				</div>
+				<div class="output skills">
+					<span class="skill">TypeScript</span>
+					<span class="skill">Bun</span>
+					<span class="skill">OpenCode</span>
+					<span class="skill">Opus</span>
+					<span class="skill">Codex</span>
+					<span class="skill">Droid</span>
 				</div>
 				
-				<a href="/blog" class="view-all">
-					<span class="prompt">$</span> cd ~/posts && ls -la
-					<span class="arrow">-></span>
-				</a>
-			</section>
+				<div class="line cursor-line">
+					<span class="prompt">$</span>
+					<span class="cursor">_</span>
+				</div>
+			</div>
+		</div>
+	</section>
 
-			<section class="newsletter-section">
-				<Newsletter />
-			</section>
-		</main>
-		<Footer />
-	</body>
-</html>
+	<section class="posts">
+		<h2>
+			<span class="section-prefix">~/posts $</span> ls -lt | head -5
+		</h2>
+		
+		<div class="post-list">
+			{posts.map((post, index) => (
+				<article class="post-item">
+					<a href={`/blog/${post.id}/`}>
+						<div class="post-meta">
+							<span class="post-index">[{index}]</span>
+							<FormattedDate date={post.data.pubDate} />
+						</div>
+						<h3 class="post-title">{post.data.title}</h3>
+						<p class="post-description">{post.data.description}</p>
+					</a>
+				</article>
+			))}
+		</div>
+		
+		<a href="/blog" class="view-all">
+			<span class="prompt">$</span> cd ~/posts && ls -la
+			<span class="arrow">-></span>
+		</a>
+	</section>
+
+	<section class="newsletter-section">
+		<Newsletter />
+	</section>
+</BaseLayout>
 
 <style>
-	main {
-		max-width: var(--content-wide);
-	}
-
 	.hero {
 		margin-bottom: var(--space-3xl);
 	}

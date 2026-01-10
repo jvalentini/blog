@@ -1,144 +1,128 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 import { AUTHOR_NAME, SITE_TITLE, SOCIAL_LINKS } from '../consts';
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead 
-			title={`About | ${SITE_TITLE}`} 
-			description="Software engineer passionate about building tools and exploring AI-assisted development" 
-		/>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<article class="about-content">
-				<header class="about-header">
-					<div class="terminal-command">
-						<span class="prompt">$</span>
-						<span class="command">cat ~/about.md</span>
+<BaseLayout 
+	title={`About | ${SITE_TITLE}`} 
+	description="Software engineer passionate about building tools and exploring AI-assisted development"
+>
+	<article class="about-content">
+		<header class="about-header">
+			<div class="terminal-command">
+				<span class="prompt">$</span>
+				<span class="command">cat ~/about.md</span>
+			</div>
+		</header>
+
+		<section class="bio">
+			<h1>{AUTHOR_NAME}</h1>
+			<p class="tagline">Software Engineer | Tool Builder | AI Explorer</p>
+			<p>
+				Based in New Hampshire. Writing code since 2008. Passionate about building tools 
+				that make developers' lives easier and exploring how AI transforms the way we write software.
+			</p>
+		</section>
+
+		<section class="info-block">
+			<h2>Current Focus</h2>
+			<ul class="focus-list">
+				<li><span class="bullet">></span> AI-assisted development workflows</li>
+				<li><span class="bullet">></span> CLI tools for developer productivity</li>
+				<li><span class="bullet">></span> Modern web technologies (Astro, Bun, TypeScript)</li>
+				<li><span class="bullet">></span> Fast feedback loops and strict type safety</li>
+			</ul>
+		</section>
+
+		<section class="info-block">
+			<h2>Stack</h2>
+			<div class="stack-grid">
+				<div class="stack-category">
+					<h3>Languages</h3>
+					<div class="stack-items">
+						<span class="stack-item">TypeScript</span>
+						<span class="stack-item">JavaScript</span>
+						<span class="stack-item">Ruby</span>
+						<span class="stack-item">Python</span>
 					</div>
-				</header>
-
-				<section class="bio">
-					<h1>{AUTHOR_NAME}</h1>
-					<p class="tagline">Software Engineer | Tool Builder | AI Explorer</p>
-					<p>
-						Based in New Hampshire. Writing code since 2008. Passionate about building tools 
-						that make developers' lives easier and exploring how AI transforms the way we write software.
-					</p>
-				</section>
-
-				<section class="info-block">
-					<h2>Current Focus</h2>
-					<ul class="focus-list">
-						<li><span class="bullet">></span> AI-assisted development workflows</li>
-						<li><span class="bullet">></span> CLI tools for developer productivity</li>
-						<li><span class="bullet">></span> Modern web technologies (Astro, Bun, TypeScript)</li>
-						<li><span class="bullet">></span> Fast feedback loops and strict type safety</li>
-					</ul>
-				</section>
-
-				<section class="info-block">
-					<h2>Stack</h2>
-					<div class="stack-grid">
-						<div class="stack-category">
-							<h3>Languages</h3>
-							<div class="stack-items">
-								<span class="stack-item">TypeScript</span>
-								<span class="stack-item">JavaScript</span>
-								<span class="stack-item">Ruby</span>
-								<span class="stack-item">Python</span>
-							</div>
-						</div>
-						<div class="stack-category">
-							<h3>Runtime & Frameworks</h3>
-							<div class="stack-items">
-								<span class="stack-item">Bun</span>
-								<span class="stack-item">Node.js</span>
-								<span class="stack-item">Astro</span>
-								<span class="stack-item">Rails</span>
-							</div>
-						</div>
-						<div class="stack-category">
-							<h3>Tooling</h3>
-							<div class="stack-items">
-								<span class="stack-item">Biome</span>
-								<span class="stack-item">Oxlint</span>
-								<span class="stack-item">Claude</span>
-								<span class="stack-item">Cursor</span>
-							</div>
-						</div>
-						<div class="stack-category">
-							<h3>Infrastructure</h3>
-							<div class="stack-items">
-								<span class="stack-item">Cloudflare</span>
-								<span class="stack-item">Docker</span>
-								<span class="stack-item">Git</span>
-							</div>
-						</div>
+				</div>
+				<div class="stack-category">
+					<h3>Runtime & Frameworks</h3>
+					<div class="stack-items">
+						<span class="stack-item">Bun</span>
+						<span class="stack-item">Node.js</span>
+						<span class="stack-item">Astro</span>
+						<span class="stack-item">Rails</span>
 					</div>
-				</section>
-
-				<section class="info-block">
-					<h2>Philosophy</h2>
-					<blockquote>
-						<p>
-							Fast feedback loops. Strict type safety. Modern tooling. 
-							AI coding assistants are powerful, but only when paired with 
-							robust linting, formatting, and type checking to catch issues immediately.
-						</p>
-					</blockquote>
-				</section>
-
-				<section class="info-block">
-					<h2>Connect</h2>
-					<div class="connect-links">
-						<a href={SOCIAL_LINKS.github} target="_blank" rel="noopener" class="connect-link">
-							<span class="link-icon">[git]</span>
-							<span class="link-url">github.com/jvalentini</span>
-						</a>
-						<a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener" class="connect-link">
-							<span class="link-icon">[in]</span>
-							<span class="link-url">linkedin.com/in/justinvalentini</span>
-						</a>
-						<a href={`mailto:${SOCIAL_LINKS.email}`} class="connect-link">
-							<span class="link-icon">[@]</span>
-							<span class="link-url">{SOCIAL_LINKS.email}</span>
-						</a>
+				</div>
+				<div class="stack-category">
+					<h3>Tooling</h3>
+					<div class="stack-items">
+						<span class="stack-item">Biome</span>
+						<span class="stack-item">Oxlint</span>
+						<span class="stack-item">Claude</span>
+						<span class="stack-item">Cursor</span>
 					</div>
-				</section>
-
-				<section class="info-block">
-					<h2>Projects</h2>
-					<p>
-						Check out my open source work on <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener">GitHub</a>, 
-						including <a href="https://github.com/jvalentini/worklog" target="_blank" rel="noopener">worklog</a> - 
-						a CLI tool for aggregating development activity from AI coding sessions, git commits, and GitHub activity.
-					</p>
-				</section>
-
-				<footer class="about-footer">
-					<div class="terminal-line">
-						<span class="prompt">$</span>
-						<span class="cursor">_</span>
+				</div>
+				<div class="stack-category">
+					<h3>Infrastructure</h3>
+					<div class="stack-items">
+						<span class="stack-item">Cloudflare</span>
+						<span class="stack-item">Docker</span>
+						<span class="stack-item">Git</span>
 					</div>
-				</footer>
-			</article>
-		</main>
-		<Footer />
-	</body>
-</html>
+				</div>
+			</div>
+		</section>
+
+		<section class="info-block">
+			<h2>Philosophy</h2>
+			<blockquote>
+				<p>
+					Fast feedback loops. Strict type safety. Modern tooling. 
+					AI coding assistants are powerful, but only when paired with 
+					robust linting, formatting, and type checking to catch issues immediately.
+				</p>
+			</blockquote>
+		</section>
+
+		<section class="info-block">
+			<h2>Connect</h2>
+			<div class="connect-links">
+				<a href={SOCIAL_LINKS.github} target="_blank" rel="noopener" class="connect-link">
+					<span class="link-icon">[git]</span>
+					<span class="link-url">github.com/jvalentini</span>
+				</a>
+				<a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener" class="connect-link">
+					<span class="link-icon">[in]</span>
+					<span class="link-url">linkedin.com/in/justinvalentini</span>
+				</a>
+				<a href={`mailto:${SOCIAL_LINKS.email}`} class="connect-link">
+					<span class="link-icon">[@]</span>
+					<span class="link-url">{SOCIAL_LINKS.email}</span>
+				</a>
+			</div>
+		</section>
+
+		<section class="info-block">
+			<h2>Projects</h2>
+			<p>
+				Check out my open source work on <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener">GitHub</a>, 
+				including <a href="https://github.com/jvalentini/worklog" target="_blank" rel="noopener">worklog</a> - 
+				a CLI tool for aggregating development activity from AI coding sessions, git commits, and GitHub activity.
+			</p>
+		</section>
+
+		<footer class="about-footer">
+			<div class="terminal-line">
+				<span class="prompt">$</span>
+				<span class="cursor">_</span>
+			</div>
+		</footer>
+	</article>
+</BaseLayout>
 
 <style>
-	main {
-		max-width: var(--content-width);
-	}
-
 	.about-content {
 		position: relative;
 	}

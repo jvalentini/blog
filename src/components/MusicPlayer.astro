@@ -1213,7 +1213,8 @@ const tracks = musicFiles
     overflow-y: auto;
   }
 
-  .queue-item {
+  /* Queue items are created dynamically via JS, so use :global() */
+  :global(.queue-item) {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -1226,10 +1227,10 @@ const tracks = musicFiles
     animation: fadeInQueue 0.4s ease-out backwards;
   }
 
-  .queue-item:nth-child(1) { animation-delay: 0.05s; }
-  .queue-item:nth-child(2) { animation-delay: 0.1s; }
-  .queue-item:nth-child(3) { animation-delay: 0.15s; }
-  .queue-item:nth-child(n+4) { animation-delay: 0.2s; }
+  :global(.queue-item:nth-child(1)) { animation-delay: 0.05s; }
+  :global(.queue-item:nth-child(2)) { animation-delay: 0.1s; }
+  :global(.queue-item:nth-child(3)) { animation-delay: 0.15s; }
+  :global(.queue-item:nth-child(n+4)) { animation-delay: 0.2s; }
 
   @keyframes fadeInQueue {
     from {
@@ -1242,38 +1243,17 @@ const tracks = musicFiles
     }
   }
 
-  .queue-item:hover {
+  :global(.queue-item:hover) {
     background: rgba(51, 255, 51, 0.08);
     border-color: rgba(51, 255, 51, 0.25);
-    box-shadow: 0 0 20px rgba(51, 255, 51, 0.1);
   }
 
-  .queue-item.active {
+  :global(.queue-item.active) {
     background: rgba(51, 255, 51, 0.12);
     border-color: rgba(51, 255, 51, 0.3);
-    box-shadow: 
-      0 0 25px rgba(51, 255, 51, 0.12),
-      0 0 40px rgba(51, 255, 51, 0.2),
-      0 0 60px rgba(51, 255, 51, 0.15);
-    animation: glowPulse 2s ease-in-out infinite;
   }
 
-  @keyframes glowPulse {
-    0%, 100% {
-      box-shadow: 
-        0 0 25px rgba(51, 255, 51, 0.12),
-        0 0 40px rgba(51, 255, 51, 0.2),
-        0 0 60px rgba(51, 255, 51, 0.15);
-    }
-    50% {
-      box-shadow: 
-        0 0 30px rgba(51, 255, 51, 0.18),
-        0 0 50px rgba(51, 255, 51, 0.25),
-        0 0 80px rgba(51, 255, 51, 0.2);
-    }
-  }
-
-  .queue-item-number {
+  :global(.queue-item-number) {
     font-size: 0.7rem;
     font-weight: 700;
     color: rgba(51, 255, 51, 0.5);
@@ -1282,12 +1262,14 @@ const tracks = musicFiles
     flex-shrink: 0;
   }
 
-  .queue-item.active .queue-item-number {
+  :global(.queue-item.active .queue-item-number) {
     color: var(--phosphor-bright);
   }
 
-  /* Increased specificity to override global styles */
-  .music-player .queue-item-title {
+  /* Queue item title - clickable to play song
+     Note: Using :global() because queue items are created dynamically via JS
+     and don't receive Astro's scoped style attributes */
+  :global(.music-player .queue-item-title) {
     flex: 1;
     min-width: 0;
     font-size: 0.9rem;
@@ -1295,40 +1277,19 @@ const tracks = musicFiles
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    transition: all 0.2s ease;
+    transition: color 0.15s ease, text-shadow 0.15s ease;
     cursor: pointer;
-    position: relative;
   }
 
-  .music-player .queue-item:hover .queue-item-title {
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .music-player .queue-item-title:hover {
+  :global(.music-player .queue-item-title:hover) {
     color: var(--phosphor-bright);
     cursor: pointer;
-    text-shadow: 
-      0 0 15px rgba(51, 255, 51, 0.8),
-      0 0 30px rgba(51, 255, 51, 0.6),
-      0 0 45px rgba(51, 255, 51, 0.4),
-      0 0 60px rgba(51, 255, 51, 0.2);
-    transform: translateX(2px);
-    filter: drop-shadow(0 0 8px rgba(51, 255, 51, 0.6));
+    text-shadow: 0 0 10px rgba(51, 255, 51, 0.6);
   }
 
-  .music-player .queue-item.active .queue-item-title {
+  :global(.music-player .queue-item.active .queue-item-title) {
     color: var(--phosphor-bright);
     font-weight: 600;
-    background: linear-gradient(
-      135deg,
-      rgba(51, 255, 51, 0.15),
-      rgba(51, 255, 51, 0.08)
-    );
-    padding: 0.25rem 0.5rem;
-    margin: -0.25rem -0.5rem;
-    border-radius: 3px;
-    text-shadow: 0 0 12px rgba(51, 255, 51, 0.5);
-    box-shadow: inset 0 0 15px rgba(51, 255, 51, 0.1);
   }
 
 

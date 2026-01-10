@@ -502,9 +502,7 @@ const tracks = musicFiles
       const isActive = idx === activeIndex;
       const item = document.createElement('div');
       item.className = `queue-item ${isActive ? 'active' : ''}`;
-      item.style.display = 'flex';
-      item.style.alignItems = 'center';
-      item.style.gap = '0.75rem';
+
       item.innerHTML = `
         <span class="queue-item-number">${idx + 1}</span>
         <span class="queue-item-title">${track.title}</span>
@@ -1216,6 +1214,9 @@ const tracks = musicFiles
   }
 
   .queue-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     padding: 0.75rem;
     background: rgba(51, 255, 51, 0.03);
     border: 1px solid rgba(51, 255, 51, 0.12);
@@ -1285,7 +1286,8 @@ const tracks = musicFiles
     color: var(--phosphor-bright);
   }
 
-  .queue-item-title {
+  /* Increased specificity to override global styles */
+  .music-player .queue-item-title {
     flex: 1;
     min-width: 0;
     font-size: 0.9rem;
@@ -1298,20 +1300,23 @@ const tracks = musicFiles
     position: relative;
   }
 
-  .queue-item:hover .queue-item-title {
+  .music-player .queue-item:hover .queue-item-title {
     color: rgba(255, 255, 255, 0.9);
   }
 
-  .queue-item-title:hover {
-    color: var(--phosphor-bright) !important;
+  .music-player .queue-item-title:hover {
+    color: var(--phosphor-bright);
+    cursor: pointer;
     text-shadow: 
-      0 0 10px rgba(51, 255, 51, 0.6),
-      0 0 20px rgba(51, 255, 51, 0.4),
-      0 0 30px rgba(51, 255, 51, 0.2);
+      0 0 15px rgba(51, 255, 51, 0.8),
+      0 0 30px rgba(51, 255, 51, 0.6),
+      0 0 45px rgba(51, 255, 51, 0.4),
+      0 0 60px rgba(51, 255, 51, 0.2);
     transform: translateX(2px);
+    filter: drop-shadow(0 0 8px rgba(51, 255, 51, 0.6));
   }
 
-  .queue-item.active .queue-item-title {
+  .music-player .queue-item.active .queue-item-title {
     color: var(--phosphor-bright);
     font-weight: 600;
     background: linear-gradient(

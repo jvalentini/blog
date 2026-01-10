@@ -1,65 +1,54 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE_TITLE } from '../consts';
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={`Thanks! - ${SITE_TITLE}`} description="You're subscribed to the newsletter" />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<article>
-				<div class="thanks-container">
-					<span class="thanks-icon">&#10003;</span>
-					<h1>You're subscribed!</h1>
-					<p>Thanks for subscribing to my newsletter. You'll receive updates when I publish new posts.</p>
-					<a href="/" class="back-link">&larr; Back to home</a>
-				</div>
-			</article>
-		</main>
-		<Footer />
-		<style>
-			.thanks-container {
-				text-align: center;
-				padding: var(--space-2xl) var(--space-lg);
-				max-width: 500px;
-				margin: 0 auto;
-			}
+<BaseLayout title={`Thanks! - ${SITE_TITLE}`} description="You're subscribed to the newsletter">
+	<article>
+		<div class="thanks-container">
+			<span class="thanks-icon">&#10003;</span>
+			<h1>You're subscribed!</h1>
+			<p>Thanks for subscribing to my newsletter. You'll receive updates when I publish new posts.</p>
+			<a href="/" class="back-link">&larr; Back to home</a>
+		</div>
+	</article>
+</BaseLayout>
 
-			.thanks-icon {
-				display: inline-block;
-				width: 64px;
-				height: 64px;
-				line-height: 64px;
-				font-size: 32px;
-				border-radius: 50%;
-				background-color: var(--phosphor-base);
-				color: var(--bg-base);
-				margin-bottom: var(--space-lg);
-			}
+<style>
+	.thanks-container {
+		text-align: center;
+		padding: var(--space-2xl) var(--space-lg);
+		max-width: 500px;
+		margin: 0 auto;
+	}
 
-			h1 {
-				margin-bottom: var(--space-md);
-			}
+	.thanks-icon {
+		display: inline-block;
+		width: 64px;
+		height: 64px;
+		line-height: 64px;
+		font-size: 32px;
+		border-radius: 50%;
+		background-color: var(--phosphor-base);
+		color: var(--bg-base);
+		margin-bottom: var(--space-lg);
+	}
 
-			p {
-				color: var(--text-secondary);
-				margin-bottom: var(--space-xl);
-			}
+	h1 {
+		margin-bottom: var(--space-md);
+	}
 
-			.back-link {
-				color: var(--phosphor-base);
-				text-decoration: none;
-			}
+	p {
+		color: var(--text-secondary);
+		margin-bottom: var(--space-xl);
+	}
 
-			.back-link:hover {
-				text-decoration: underline;
-			}
-		</style>
-	</body>
-</html>
+	.back-link {
+		color: var(--phosphor-base);
+		text-decoration: none;
+	}
+
+	.back-link:hover {
+		text-decoration: underline;
+	}
+</style>

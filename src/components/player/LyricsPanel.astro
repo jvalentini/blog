@@ -30,7 +30,7 @@
     top: 0;
     bottom: 0;
     width: 3px;
-    background: rgba(51, 255, 51, 0.1);
+    background: var(--genre-dim, rgba(51, 255, 51, 0.1));
     border-radius: 2px;
     z-index: 2;
   }
@@ -39,12 +39,12 @@
     width: 100%;
     background: linear-gradient(
       180deg,
-      var(--phosphor-base) 0%,
-      var(--amber-base, #ffb000) 100%
+      var(--genre-base, var(--phosphor-base)) 0%,
+      var(--genre-bright, var(--phosphor-bright)) 100%
     );
     border-radius: 2px;
     transition: height 0.3s ease-out;
-    box-shadow: 0 0 8px rgba(51, 255, 51, 0.4);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 40%, transparent);
   }
 
   .lyrics-container {
@@ -119,7 +119,7 @@
 
   .lyrics-panel :global(.lyrics-line.lyrics-header),
   .lyrics-container :global(h3.lyrics-header) {
-    color: var(--amber-bright, #ffcc00);
+    color: var(--genre-bright, var(--phosphor-bright));
     font-weight: 700;
     text-transform: uppercase;
     font-size: 0.65rem;
@@ -132,7 +132,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    text-shadow: 0 0 12px rgba(255, 176, 0, 0.5);
+    text-shadow: 0 0 12px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 50%, transparent);
     opacity: 1 !important;
   }
 
@@ -143,11 +143,11 @@
     height: 1px;
     background: linear-gradient(
       90deg,
-      rgba(255, 176, 0, 0.5) 0%,
-      rgba(51, 255, 51, 0.15) 60%,
+      color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 50%, transparent) 0%,
+      color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 15%, transparent) 60%,
       transparent 100%
     );
-    box-shadow: 0 0 6px rgba(255, 176, 0, 0.25);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 25%, transparent);
   }
 
   .lyrics-container :global(h3.lyrics-header:first-child) {
@@ -164,16 +164,16 @@
   .lyrics-panel :global(.lyrics-line.active) {
     color: #ffffff;
     font-weight: 500;
-    border-left-color: var(--phosphor-base, #33ff33);
+    border-left-color: var(--genre-base, var(--phosphor-base));
     background: linear-gradient(
       90deg,
-      rgba(51, 255, 51, 0.12) 0%,
-      rgba(51, 255, 51, 0.04) 50%,
+      color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 12%, transparent) 0%,
+      color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 4%, transparent) 50%,
       transparent 100%
     );
     text-shadow: 
-      0 0 20px rgba(51, 255, 51, 0.6),
-      0 0 40px rgba(51, 255, 51, 0.3);
+      0 0 20px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 60%, transparent),
+      0 0 40px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 30%, transparent);
     transform: translateX(4px);
     opacity: 1;
     animation: lyricGlow 2s ease-in-out infinite;
@@ -181,23 +181,23 @@
 
   /* Active header styling */
   .lyrics-panel :global(.lyrics-header.active) {
-    color: var(--phosphor-bright, #66ff66) !important;
+    color: var(--genre-bright, var(--phosphor-bright)) !important;
     text-shadow: 
-      0 0 15px rgba(51, 255, 51, 0.7),
-      0 0 30px rgba(51, 255, 51, 0.4) !important;
+      0 0 15px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 70%, transparent),
+      0 0 30px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 40%, transparent) !important;
   }
 
   /* Glow animation for active line */
   @keyframes lyricGlow {
     0%, 100% {
       text-shadow: 
-        0 0 20px rgba(51, 255, 51, 0.6),
-        0 0 40px rgba(51, 255, 51, 0.3);
+        0 0 20px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 60%, transparent),
+        0 0 40px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 30%, transparent);
     }
     50% {
       text-shadow: 
-        0 0 25px rgba(51, 255, 51, 0.8),
-        0 0 50px rgba(51, 255, 51, 0.4);
+        0 0 25px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 80%, transparent),
+        0 0 50px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 40%, transparent);
     }
   }
 

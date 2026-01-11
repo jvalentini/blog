@@ -8,14 +8,16 @@
 				"country": "country/slop-slinger-country.md",
 				"rock": "rock/slop-slinger-rock.md",
 				"weird": "weird/slop-slinger-weird.md",
-				"pop": "pop/slop-slinger-pop.md"
+				"pop": "pop/slop-slinger-pop.md",
+				"bluegrass": "slop-slinger.md"
 			},
 			"versions": {
 				"hip-hop": "hip-hop/slop-slinger-hip-hop.mp3",
 				"country": "country/slop-slinger-country.mp3",
 				"rock": "rock/slop-slinger-rock.mp3",
 				"weird": "weird/slop-slinger-weird.mp3",
-				"pop": "pop/slop-slinger-pop.mp3"
+				"pop": "pop/slop-slinger-pop.mp3",
+				"bluegrass": "bluegrass/slop-slinger-bluegrass.mp3"
 			}
 		},
 		{
@@ -26,14 +28,16 @@
 				"country": "country/lose-yourself-country.md",
 				"rock": "rock/lose-yourself-rock.md",
 				"weird": "weird/lose-yourself-weird.md",
-				"pop": "pop/lose-yourself-pop.md"
+				"pop": "pop/lose-yourself-pop.md",
+				"bluegrass": "lose-yourself.md"
 			},
 			"versions": {
 				"hip-hop": "hip-hop/lose-yourself-hip-hop.mp3",
 				"country": "country/lose-yourself-country.mp3",
 				"rock": "rock/lose-yourself-rock.mp3",
 				"weird": "weird/lose-yourself-weird.mp3",
-				"pop": "pop/lose-yourself-pop.mp3"
+				"pop": "pop/lose-yourself-pop.mp3",
+				"bluegrass": "bluegrass/lose-yourself-bluegrass.mp3"
 			}
 		},
 		{
@@ -44,17 +48,19 @@
 				"country": "country/without-me-country.md",
 				"rock": "rock/without-me-rock.md",
 				"weird": "weird/without-me-weird.md",
-				"pop": "pop/without-me-pop.md"
+				"pop": "pop/without-me-pop.md",
+				"bluegrass": "without-me.md"
 			},
 			"versions": {
 				"hip-hop": "hip-hop/without-me-hip-hop.mp3",
 				"country": "country/without-me-country.mp3",
 				"rock": "rock/without-me-rock.mp3",
 				"weird": "weird/without-me-weird.mp3",
-				"pop": "pop/without-me-pop.mp3"
+				"pop": "pop/without-me-pop.mp3",
+				"bluegrass": "bluegrass/without-me-bluegrass.mp3"
 			}
 		}
 	],
-	"genres": ["hip-hop", "country", "rock", "weird", "pop"],
+	"genres": ["hip-hop", "country", "rock", "weird", "pop", "bluegrass"],
 	"defaultGenre": "hip-hop"
 }

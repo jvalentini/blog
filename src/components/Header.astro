@@ -8,9 +8,9 @@ const pathDisplay = segments.length > 0 ? segments.join('/') : 'home';
 
 <header>
 	<nav>
-		<div class="terminal-prompt">
+		<a href="/" class="terminal-prompt">
 			<span class="user">justin.valentini</span><span class="at">@</span><span class="host">blog</span><span class="colon">:</span><span class="path">~/{pathDisplay}</span><span class="dollar">$</span>
-		</div>
+		</a>
 		
 		<button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
 			<span class="hamburger-line"></span>
@@ -94,6 +94,12 @@ const pathDisplay = segments.length > 0 ? segments.join('/') : 'home';
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		text-decoration: none;
+		transition: opacity var(--transition-fast);
+	}
+
+	.terminal-prompt:hover {
+		opacity: 0.8;
 	}
 
 	.user { color: var(--phosphor-base); }

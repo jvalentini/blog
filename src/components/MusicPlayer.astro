@@ -163,17 +163,55 @@ const clientTracks = tracks.map(t => ({
   <!-- Queue Section -->
   <div class="queue-section">
     <div class="queue-header">
-      <h3 class="queue-title">Queue</h3>
+      <h3 class="queue-title" id="queue-title">Queue</h3>
       <div class="queue-header-right">
         <div class="genre-selector">
-          <label for="genre-select" class="genre-label">Genre:</label>
-          <select id="genre-select" class="genre-select">
-            {genres.map(genre => (
-              <option value={genre} selected={genre === defaultGenre}>
-                {genre.charAt(0).toUpperCase() + genre.slice(1)}
-              </option>
-            ))}
-          </select>
+          <!-- Genre Icon - changes based on selection -->
+          <div class="genre-icon" id="genre-icon">
+            <!-- Hip-hop: Terminal Microphone (green phosphor) -->
+            <svg class="genre-icon-mic" id="genre-icon-mic" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Microphone head (mesh grid pattern) -->
+              <rect x="10" y="4" width="12" height="16" rx="6" stroke="currentColor" stroke-width="2" fill="none"/>
+              <!-- Terminal-style horizontal scan lines -->
+              <line x1="12" y1="8" x2="20" y2="8" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+              <line x1="12" y1="11" x2="20" y2="11" stroke="currentColor" stroke-width="1" opacity="0.8"/>
+              <line x1="12" y1="14" x2="20" y2="14" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+              <line x1="12" y1="17" x2="20" y2="17" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+              <!-- Stand -->
+              <line x1="16" y1="20" x2="16" y2="26" stroke="currentColor" stroke-width="2"/>
+              <!-- Base -->
+              <line x1="10" y1="26" x2="22" y2="26" stroke="currentColor" stroke-width="2"/>
+              <!-- Signal waves (terminal pulses) -->
+              <path d="M6 10 Q4 12 6 14" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/>
+              <path d="M26 10 Q28 12 26 14" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/>
+            </svg>
+            <!-- Country: Cowboy Hat - cattleman style -->
+            <svg class="genre-icon-lasso" id="genre-icon-lasso" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+              <!-- Wide brim - curves UP on sides, flat/down in middle -->
+              <path d="M0 24 Q3 26 6 23 L10 23 L22 23 L26 23 Q29 26 32 24 L32 26 Q29 24 26 25 L6 25 Q3 24 0 26 Z" fill="currentColor"/>
+              <!-- Tall crown with cattleman crease - two rounded peaks with center dip -->
+              <path d="M10 23 L10 15 L10 11 Q11 8 13 9 L13 11 Q14 13 16 13 Q18 13 19 11 L19 9 Q21 8 22 11 L22 15 L22 23 Z" fill="currentColor"/>
+              <!-- Center dip crease detail -->
+              <path d="M13 11 Q16 15 19 11" stroke="currentColor" stroke-width="1" fill="none" opacity="0.35"/>
+              <!-- Left peak highlight -->
+              <path d="M11 10 Q12 8 13 9" stroke="currentColor" stroke-width="0.5" fill="none" opacity="0.25"/>
+              <!-- Right peak highlight -->
+              <path d="M21 10 Q20 8 19 9" stroke="currentColor" stroke-width="0.5" fill="none" opacity="0.25"/>
+              <!-- Hat band -->
+              <rect x="10" y="20" width="12" height="3" fill="currentColor" opacity="0.4"/>
+              <!-- Band buckle -->
+              <rect x="14" y="20" width="4" height="3" fill="currentColor" opacity="0.6"/>
+            </svg>
+          </div>
+          <!-- Genre Toggle Buttons -->
+          <div class="genre-toggle" id="genre-toggle">
+            <button class="genre-btn active" id="genre-btn-hip-hop" data-genre="hip-hop">
+              <span class="genre-btn-text">Hip-Hop</span>
+            </button>
+            <button class="genre-btn" id="genre-btn-country" data-genre="country">
+              <span class="genre-btn-text">Country</span>
+            </button>
+          </div>
         </div>
         <span class="queue-count">{tracks.length} track{tracks.length !== 1 ? 's' : ''}</span>
       </div>
@@ -218,7 +256,12 @@ const clientTracks = tracks.map(t => ({
   const pauseIcon = btnPlay ? btnPlay.querySelector('.pause-icon') : null;
   const queueItems = document.querySelectorAll('.queue-item');
   const lyricsContent = document.getElementById('lyrics-content');
-  const genreSelect = document.getElementById('genre-select');
+  const genreToggle = document.getElementById('genre-toggle');
+  const genreBtnHipHop = document.getElementById('genre-btn-hip-hop');
+  const genreBtnCountry = document.getElementById('genre-btn-country');
+  const genreIconMic = document.getElementById('genre-icon-mic');
+  const genreIconLasso = document.getElementById('genre-icon-lasso');
+  const queueTitle = document.getElementById('queue-title');
 
   let currentIndex = -1;
   let currentGenre = typeof defaultGenre !== 'undefined' ? defaultGenre : 'hip-hop';
@@ -368,12 +411,53 @@ const clientTracks = tracks.map(t => ({
     loadTrack(prevIndex, true);
   }
 
-  // Genre selector change
-  if (genreSelect) {
-    genreSelect.addEventListener('change', function() {
-      switchGenre(genreSelect.value);
+  // Genre toggle button handlers
+  function updateGenreUI(genre) {
+    // Update button active states
+    if (genreBtnHipHop && genreBtnCountry) {
+      genreBtnHipHop.classList.toggle('active', genre === 'hip-hop');
+      genreBtnCountry.classList.toggle('active', genre === 'country');
+    }
+    // Update icons
+    if (genreIconMic && genreIconLasso) {
+      if (genre === 'hip-hop') {
+        genreIconMic.style.display = 'block';
+        genreIconLasso.style.display = 'none';
+      } else {
+        genreIconMic.style.display = 'none';
+        genreIconLasso.style.display = 'block';
+      }
+    }
+    // Update queue title color
+    if (queueTitle) {
+      if (genre === 'country') {
+        queueTitle.classList.add('country-theme');
+      } else {
+        queueTitle.classList.remove('country-theme');
+      }
+    }
+  }
+
+  if (genreBtnHipHop) {
+    genreBtnHipHop.addEventListener('click', function() {
+      if (currentGenre !== 'hip-hop') {
+        switchGenre('hip-hop');
+        updateGenreUI('hip-hop');
+      }
     });
   }
+
+  if (genreBtnCountry) {
+    genreBtnCountry.addEventListener('click', function() {
+      if (currentGenre !== 'country') {
+        switchGenre('country');
+        updateGenreUI('country');
+      }
+    });
+  }
+
+  // Initialize genre UI on load
+  updateGenreUI(currentGenre);
 
   queueItems.forEach(function(item, idx) {
     const titleEl = item.querySelector('.queue-item-title');
@@ -776,8 +860,15 @@ const clientTracks = tracks.map(t => ({
   .queue-title {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--amber-base);
+    color: var(--phosphor-base);
     margin: 0;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+    text-shadow: 0 0 8px rgba(51, 255, 51, 0.3);
+  }
+
+  .queue-title.country-theme {
+    color: #e8b84a;
+    text-shadow: 0 0 8px rgba(212, 160, 58, 0.4);
   }
 
   .queue-header-right {
@@ -789,72 +880,146 @@ const clientTracks = tracks.map(t => ({
   .genre-selector {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 
-  .genre-label {
-    font-size: 0.65rem;
-    color: var(--phosphor-dim);
+  /* Genre Icon Container */
+  .genre-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .genre-icon svg {
+    width: 28px;
+    height: 28px;
+    transition: all 0.3s ease;
+  }
+
+  /* Hip-hop microphone - green terminal glow */
+  .genre-icon-mic {
+    color: var(--phosphor-base, #33ff33);
+    filter: drop-shadow(0 0 4px rgba(51, 255, 51, 0.6))
+            drop-shadow(0 0 8px rgba(51, 255, 51, 0.3));
+    animation: mic-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes mic-pulse {
+    0%, 100% { 
+      filter: drop-shadow(0 0 4px rgba(51, 255, 51, 0.6))
+              drop-shadow(0 0 8px rgba(51, 255, 51, 0.3));
+    }
+    50% { 
+      filter: drop-shadow(0 0 6px rgba(51, 255, 51, 0.8))
+              drop-shadow(0 0 12px rgba(51, 255, 51, 0.5));
+    }
+  }
+
+  /* Country cowboy hat - amber Oregon Trail style */
+  .genre-icon-lasso {
+    color: #d4a03a;
+    filter: drop-shadow(0 0 3px rgba(212, 160, 58, 0.5))
+            drop-shadow(0 0 6px rgba(212, 160, 58, 0.25));
+    animation: hat-tip 4s ease-in-out infinite;
+  }
+
+  @keyframes hat-tip {
+    0%, 100% { 
+      transform: rotate(0deg) translateY(0);
+      filter: drop-shadow(0 0 3px rgba(212, 160, 58, 0.5))
+              drop-shadow(0 0 6px rgba(212, 160, 58, 0.25));
+    }
+    50% { 
+      transform: rotate(-3deg) translateY(-1px);
+      filter: drop-shadow(0 0 5px rgba(212, 160, 58, 0.7))
+              drop-shadow(0 0 10px rgba(212, 160, 58, 0.4));
+    }
+  }
+
+  /* Genre Toggle Buttons */
+  .genre-toggle {
+    display: flex;
+    background: var(--bg-deep, #0a0c0e);
+    border: 1px solid var(--border-dim, rgba(51, 255, 51, 0.15));
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .genre-btn {
+    position: relative;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-family: var(--font-mono, monospace);
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .genre-label::after {
-    content: '>';
-    margin-left: 0.35rem;
-    color: var(--phosphor-base);
-    opacity: 0.6;
-  }
-
-  .genre-select {
-    background: var(--bg-deep);
-    border: 1px solid var(--border-dim);
-    border-left: 3px solid var(--phosphor-dim);
-    color: var(--text-primary);
-    padding: 0.5rem 2rem 0.5rem 0.75rem;
-    border-radius: 0 4px 4px 0;
-    font-size: 0.8rem;
-    font-family: var(--font-mono);
+    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.15s ease;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2333ff33' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.5rem center;
-    min-width: 120px;
+    transition: all 0.2s ease;
+    z-index: 1;
   }
 
-  .genre-select:hover {
-    border-color: var(--border-base);
-    border-left-color: var(--phosphor-base);
-    color: var(--phosphor-bright);
-    background-color: var(--bg-surface);
+  .genre-btn:first-child {
+    border-right: 1px solid var(--border-dim, rgba(51, 255, 51, 0.15));
   }
 
-  .genre-select:focus {
-    outline: none;
-    border-color: var(--phosphor-dim);
-    border-left-color: var(--phosphor-base);
-    box-shadow: 0 0 0 1px var(--phosphor-dim);
-    color: var(--phosphor-bright);
+  .genre-btn:hover:not(.active) {
+    color: var(--text-primary, rgba(255, 255, 255, 0.85));
+    background: rgba(255, 255, 255, 0.03);
   }
 
-  .genre-select option {
-    background: var(--bg-deep);
-    color: var(--text-primary);
-    padding: 0.75rem;
-    border-bottom: 1px solid var(--border-dim);
+  /* Hip-hop active state - green phosphor */
+  .genre-btn[data-genre="hip-hop"].active {
+    color: var(--phosphor-bright, #66ff66);
+    background: rgba(51, 255, 51, 0.12);
+    text-shadow: 0 0 8px rgba(51, 255, 51, 0.5);
+    box-shadow: inset 0 0 12px rgba(51, 255, 51, 0.1);
   }
 
-  .genre-select option:checked {
-    background: var(--bg-surface);
-    color: var(--phosphor-base);
+  /* Country active state - amber glow */
+  .genre-btn[data-genre="country"].active {
+    color: #e8b84a;
+    background: rgba(212, 160, 58, 0.12);
+    text-shadow: 0 0 8px rgba(212, 160, 58, 0.5);
+    box-shadow: inset 0 0 12px rgba(212, 160, 58, 0.1);
+  }
+
+  .genre-btn-text {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Active indicator bar */
+  .genre-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .genre-btn[data-genre="hip-hop"].active::after {
+    background: linear-gradient(90deg, transparent, var(--phosphor-base, #33ff33), transparent);
+    box-shadow: 0 0 8px rgba(51, 255, 51, 0.6);
+  }
+
+  .genre-btn[data-genre="country"].active::after {
+    background: linear-gradient(90deg, transparent, #d4a03a, transparent);
+    box-shadow: 0 0 8px rgba(212, 160, 58, 0.6);
   }
 
   .queue-count {
     font-size: 0.75rem;
-    color: var(--phosphor-dim);
+    color: var(--text-secondary, rgba(255, 255, 255, 0.6));
     text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   .queue-list {
@@ -920,16 +1085,27 @@ const clientTracks = tracks.map(t => ({
     color: rgba(51, 255, 51, 0.5);
     min-width: 24px;
     text-align: center;
+    transition: color 0.15s ease;
   }
 
+  /* Hip-hop: active number is amber (complementary) */
   .queue-item.active .queue-item-number {
-    color: var(--phosphor-bright);
+    color: #e8b84a;
+  }
+
+  /* Country: non-active number is amber, active is green */
+  .queue-list.country-theme .queue-item-number {
+    color: rgba(212, 160, 58, 0.5);
+  }
+
+  .queue-list.country-theme .queue-item.active .queue-item-number {
+    color: var(--phosphor-bright, #66ff66);
   }
 
   .queue-item-title {
     flex: 1;
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(51, 255, 51, 0.7);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -938,13 +1114,31 @@ const clientTracks = tracks.map(t => ({
   }
 
   .queue-item-title:hover {
-    color: var(--phosphor-bright);
+    color: var(--phosphor-bright, #66ff66);
     text-shadow: 0 0 10px rgba(51, 255, 51, 0.6);
   }
 
+  /* Hip-hop: active title is amber (complementary) */
   .queue-item.active .queue-item-title {
-    color: var(--phosphor-bright);
+    color: #e8b84a;
     font-weight: 600;
+    text-shadow: 0 0 10px rgba(212, 160, 58, 0.5);
+  }
+
+  /* Country theme: non-active titles are amber */
+  .queue-list.country-theme .queue-item-title {
+    color: rgba(212, 160, 58, 0.7);
+  }
+
+  .queue-list.country-theme .queue-item-title:hover {
+    color: #e8b84a;
+    text-shadow: 0 0 10px rgba(212, 160, 58, 0.6);
+  }
+
+  /* Country: active title is green (complementary) */
+  .queue-list.country-theme .queue-item.active .queue-item-title {
+    color: var(--phosphor-bright, #66ff66);
+    text-shadow: 0 0 10px rgba(51, 255, 51, 0.5);
   }
 
   .queue-item-genre-badge {

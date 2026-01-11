@@ -278,7 +278,7 @@ TypeScript strict mode caught issues where AI-generated code assumed all rules w
 
 ## Why Not AI for Replacement?
 
-I could have sent text to GPT-4 for context-aware rewriting, like I did with [WorkSafe](/blog/building-worksafe). I deliberately chose not to for Speak Strong. Here's why:
+I could have sent text to GPT-4 for context-aware rewriting, like I did with [WorkSafe](/blog/worksafe). I deliberately chose not to for Speak Strong. Here's why:
 
 1. **Privacy**: Weak language patterns appear in sensitive communications. I don't want my performance review draft hitting OpenAI's servers.
 

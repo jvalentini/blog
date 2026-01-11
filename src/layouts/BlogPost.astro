@@ -8,6 +8,7 @@ import Header from '../components/Header.astro';
 import Newsletter from '../components/Newsletter.astro';
 import NewsletterModal from '../components/NewsletterModal.astro';
 import SocialShare from '../components/SocialShare.astro';
+import Terminal from '../components/Terminal.astro';
 
 type Props = CollectionEntry<'blog'>['data'];
 
@@ -92,6 +93,7 @@ const postUrl = Astro.url.href;
 		</main>
 		<Footer />
 		<NewsletterModal articleTitle={title} />
+		<Terminal />
 		</body>
 	</html>
 

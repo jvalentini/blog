@@ -4,7 +4,7 @@ import tracksData from '../../data/tracks.json';
 interface Song {
 	id: string;
 	title: string;
-	lyrics: string;
+	lyrics: Record<string, string>;
 	versions: Record<string, string>;
 }
 
@@ -21,15 +21,15 @@ export async function getStaticPaths() {
 		params: { slug: song.id },
 		props: {
 			trackTitle: song.title,
-			// Use the default genre's filename
-			filename: song.versions[config.defaultGenre] || Object.values(song.versions)[0],
+			trackId: song.id,
+			versions: song.versions,
+			genres: config.genres,
+			defaultGenre: config.defaultGenre,
 		},
 	}));
 }
 
-const { trackTitle, filename } = Astro.props;
-// filename already includes genre path (e.g., "hip-hop/song.mp3")
-const audioSrc = `/assets/music/${filename}`;
+const { trackTitle, trackId, versions, genres, defaultGenre } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -157,6 +157,37 @@ const audioSrc = `/assets/music/${filename}`;
       box-shadow: 0 0 8px rgba(51, 255, 51, 0.5);
     }
 
+    .genre-controls {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .genre-btn {
+      padding: 6px 12px;
+      font-size: 11px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-transform: capitalize;
+    }
+
+    .genre-btn:hover {
+      border-color: var(--phosphor);
+      color: var(--text);
+    }
+
+    .genre-btn.active {
+      background: var(--phosphor-dim);
+      border-color: var(--phosphor);
+      color: var(--phosphor);
+      box-shadow: 0 0 10px rgba(51, 255, 51, 0.2);
+    }
+
     .branding {
       margin-top: 12px;
       text-align: center;
@@ -199,6 +230,8 @@ const audioSrc = `/assets/music/${filename}`;
       <span class="time" id="duration">0:00</span>
     </div>
 
+    <div class="genre-controls" id="genreControls"></div>
+
     <div class="branding">
       <a href={`https://jvalentini.pages.dev/waves/${Astro.params.slug}`} target="_blank" rel="noopener">
         Listen on jvalentini.pages.dev
@@ -206,11 +239,9 @@ const audioSrc = `/assets/music/${filename}`;
     </div>
   </div>
 
-  <audio id="audio" preload="metadata">
-    <source src={audioSrc} type="audio/mpeg" />
-  </audio>
+  <audio id="audio" preload="metadata"></audio>
 
-  <script is:inline>
+  <script is:inline define:vars={{ versions, defaultGenre, trackId }}>
     const audio = document.getElementById('audio');
     const playBtn = document.getElementById('playBtn');
     const playIcon = document.getElementById('playIcon');
@@ -219,6 +250,11 @@ const audioSrc = `/assets/music/${filename}`;
     const progressFill = document.getElementById('progressFill');
     const currentTimeEl = document.getElementById('currentTime');
     const durationEl = document.getElementById('duration');
+    const genreControls = document.getElementById('genreControls');
+
+    let currentGenre = defaultGenre;
+    let wasPlaying = false;
+    let currentTime = 0;
 
     function formatTime(sec) {
       if (!isFinite(sec)) return '0:00';
@@ -226,6 +262,44 @@ const audioSrc = `/assets/music/${filename}`;
       const s = Math.floor(sec % 60);
       return m + ':' + s.toString().padStart(2, '0');
     }
+
+    function loadGenre(genre) {
+      wasPlaying = !audio.paused;
+      currentTime = audio.currentTime || 0;
+      currentGenre = genre;
+      
+      audio.src = `/assets/music/${versions[genre]}`;
+      audio.load();
+      
+      document.querySelectorAll('.genre-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.genre === genre);
+      });
+    }
+
+    audio.addEventListener('loadedmetadata', () => {
+      durationEl.textContent = formatTime(audio.duration);
+      if (currentTime > 0 && currentTime < audio.duration) {
+        audio.currentTime = currentTime;
+      }
+      if (wasPlaying) {
+        audio.play();
+        playIcon.innerHTML = '&#10074;&#10074;';
+        player.classList.add('playing');
+      }
+    });
+
+    // Initialize genre buttons
+    Object.keys(versions).forEach(genre => {
+      const btn = document.createElement('button');
+      btn.className = 'genre-btn' + (genre === currentGenre ? ' active' : '');
+      btn.textContent = genre;
+      btn.dataset.genre = genre;
+      btn.addEventListener('click', () => loadGenre(genre));
+      genreControls.appendChild(btn);
+    });
+
+    // Load initial audio
+    loadGenre(currentGenre);
 
     playBtn.addEventListener('click', () => {
       if (audio.paused) {
@@ -237,10 +311,6 @@ const audioSrc = `/assets/music/${filename}`;
         playIcon.innerHTML = '&#9654;';
         player.classList.remove('playing');
       }
-    });
-
-    audio.addEventListener('loadedmetadata', () => {
-      durationEl.textContent = formatTime(audio.duration);
     });
 
     audio.addEventListener('timeupdate', () => {
@@ -259,6 +329,16 @@ const audioSrc = `/assets/music/${filename}`;
       const rect = progressBar.getBoundingClientRect();
       const pct = (e.clientX - rect.left) / rect.width;
       audio.currentTime = pct * audio.duration;
+    });
+
+    // Keyboard shortcut for genre switching
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'g' || e.key === 'G') {
+        const genres = Object.keys(versions);
+        const currentIndex = genres.indexOf(currentGenre);
+        const nextIndex = (currentIndex + 1) % genres.length;
+        loadGenre(genres[nextIndex]);
+      }
     });
   </script>
 </body>

@@ -46,9 +46,9 @@
   }
 
   .control-btn {
-    background: rgba(51, 255, 51, 0.08);
-    border: 1px solid rgba(51, 255, 51, 0.25);
-    color: var(--phosphor-base);
+    background: var(--genre-dim, rgba(51, 255, 51, 0.08));
+    border: 1px solid color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 25%, transparent);
+    color: var(--genre-base, var(--phosphor-base));
     padding: 0.75rem;
     border-radius: 8px;
     cursor: pointer;
@@ -57,15 +57,15 @@
   }
 
   .control-btn:hover {
-    border-color: rgba(51, 255, 51, 0.5);
-    background: rgba(51, 255, 51, 0.15);
+    border-color: color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 50%, transparent);
+    background: color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 15%, transparent);
   }
 
   .control-btn.active {
-    background: rgba(51, 255, 51, 0.2);
-    border-color: rgba(51, 255, 51, 0.5);
-    color: var(--phosphor-bright, #66ff66);
-    box-shadow: 0 0 12px rgba(51, 255, 51, 0.3);
+    background: color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 20%, transparent);
+    border-color: color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 50%, transparent);
+    color: var(--genre-bright, var(--phosphor-bright));
+    box-shadow: 0 0 12px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 30%, transparent);
   }
 
   .control-btn svg {

@@ -1,0 +1,280 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import { getPublishedPosts } from '../../utils/posts';
+
+export async function getStaticPaths() {
+	const posts = await getPublishedPosts();
+	
+	const tagMap = new Map<string, typeof posts>();
+	
+	for (const post of posts) {
+		const tags = post.data.tags || [];
+		for (const tag of tags) {
+			if (!tagMap.has(tag)) {
+				tagMap.set(tag, []);
+			}
+			tagMap.get(tag)!.push(post);
+		}
+	}
+	
+	return Array.from(tagMap.entries()).map(([tag, tagPosts]) => ({
+		params: { tag },
+		props: { tag, posts: tagPosts },
+	}));
+}
+
+const { tag, posts } = Astro.props;
+const title = `Posts tagged "${tag}"`;
+const description = `All blog posts about ${tag}`;
+---
+
+<BaseLayout title={title} description={description}>
+	<div class="tag-page">
+		<header class="page-header">
+			<div class="tag-label">
+				<span class="prompt">$</span>
+				<span class="command">grep</span>
+				<span class="args">--tag="{tag}"</span>
+			</div>
+			<h1>#{tag}</h1>
+			<p class="post-count">{posts.length} {posts.length === 1 ? 'post' : 'posts'}</p>
+		</header>
+
+		<ul class="posts-list">
+			{posts.map((post) => (
+				<li class="post-item">
+					<a href={`/blog/${post.id}/`} class="post-link">
+						<div class="post-info">
+							<h2 class="post-title">{post.data.title}</h2>
+							<p class="post-description">{post.data.description}</p>
+							<div class="post-meta">
+								<FormattedDate date={post.data.pubDate} />
+								{post.data.tags && post.data.tags.length > 1 && (
+									<span class="other-tags">
+										{post.data.tags
+											.filter(t => t !== tag)
+											.map((t) => (
+												<a href={`/tags/${t}/`} class="tag">#{t}</a>
+											))}
+									</span>
+								)}
+							</div>
+						</div>
+						<span class="arrow">→</span>
+					</a>
+				</li>
+			))}
+		</ul>
+
+		<nav class="tag-nav">
+			<a href="/blog" class="back-link">
+				<span class="prompt">$</span> cd ~/posts
+			</a>
+		</nav>
+	</div>
+</BaseLayout>
+
+<style>
+	.tag-page {
+		padding: var(--space-xl) 0;
+	}
+
+	.page-header {
+		margin-bottom: var(--space-3xl);
+		padding-bottom: var(--space-xl);
+		border-bottom: 1px solid var(--border-dim);
+	}
+
+	.tag-label {
+		display: flex;
+		align-items: center;
+		gap: var(--space-sm);
+		font-family: var(--font-mono);
+		font-size: var(--font-size-sm);
+		margin-bottom: var(--space-md);
+		color: var(--text-muted);
+	}
+
+	.prompt {
+		color: var(--phosphor-base);
+		font-weight: 600;
+	}
+
+	.command {
+		color: var(--amber-base);
+	}
+
+	.args {
+		color: var(--text-secondary);
+	}
+
+	.page-header h1 {
+		font-size: var(--font-size-3xl);
+		font-weight: 600;
+		margin: 0 0 var(--space-sm) 0;
+		color: var(--amber-base);
+		text-shadow: var(--glow-sm);
+	}
+
+	.post-count {
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+		margin: 0;
+	}
+
+	.posts-list {
+		list-style: none;
+		padding: 0;
+		margin: 0 0 var(--space-3xl) 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-xl);
+	}
+
+	.post-item {
+		padding-bottom: var(--space-xl);
+		border-bottom: 1px solid var(--border-dim);
+	}
+
+	.post-item:last-child {
+		border-bottom: none;
+	}
+
+	.post-link {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--space-md);
+		text-decoration: none;
+		color: inherit;
+		transition: all var(--transition-fast);
+		padding: var(--space-md);
+		margin: calc(-1 * var(--space-md));
+		border-radius: 4px;
+	}
+
+	.post-link:hover {
+		background-color: var(--bg-surface);
+	}
+
+	.post-link:hover .post-title {
+		color: var(--phosphor-base);
+		text-shadow: var(--glow-sm);
+	}
+
+	.post-link:hover .arrow {
+		transform: translateX(4px);
+		color: var(--phosphor-base);
+	}
+
+	.post-info {
+		flex: 1;
+	}
+
+	.post-title {
+		font-size: var(--font-size-xl);
+		font-weight: 600;
+		margin: 0 0 var(--space-sm) 0;
+		color: var(--text-bright);
+		transition: all var(--transition-fast);
+	}
+
+	.post-description {
+		font-size: var(--font-size-base);
+		color: var(--text-secondary);
+		margin: 0 0 var(--space-md) 0;
+		line-height: 1.6;
+	}
+
+	.post-meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-sm);
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+	}
+
+	.other-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-xs);
+	}
+
+	.tag {
+		padding: 2px var(--space-xs);
+		background-color: var(--bg-deep);
+		border: 1px solid var(--border-dim);
+		border-radius: 3px;
+		color: var(--amber-base);
+		font-size: var(--font-size-xs);
+		text-decoration: none;
+		transition: all var(--transition-fast);
+	}
+
+	.tag:hover {
+		border-color: var(--amber-base);
+		background-color: var(--bg-surface);
+	}
+
+	.arrow {
+		flex-shrink: 0;
+		font-size: var(--font-size-2xl);
+		color: var(--text-muted);
+		transition: all var(--transition-fast);
+	}
+
+	.tag-nav {
+		margin-top: var(--space-3xl);
+		padding-top: var(--space-xl);
+		border-top: 1px solid var(--border-dim);
+	}
+
+	.back-link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-sm);
+		padding: var(--space-sm) var(--space-md);
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
+		font-family: var(--font-mono);
+		text-decoration: none;
+		border: 1px solid var(--border-dim);
+		border-radius: 4px;
+		transition: all var(--transition-fast);
+	}
+
+	.back-link:hover {
+		color: var(--phosphor-base);
+		border-color: var(--phosphor-dim);
+		background-color: var(--bg-surface);
+	}
+
+	.back-link .prompt {
+		color: var(--phosphor-base);
+	}
+
+	@media (max-width: 720px) {
+		.page-header h1 {
+			font-size: var(--font-size-2xl);
+		}
+
+		.post-title {
+			font-size: var(--font-size-lg);
+		}
+
+		.post-description {
+			font-size: var(--font-size-sm);
+		}
+
+		.arrow {
+			display: none;
+		}
+
+		.back-link {
+			width: 100%;
+			justify-content: center;
+		}
+	}
+</style>

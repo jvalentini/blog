@@ -7,7 +7,7 @@ import tracksData from '../data/tracks.json';
 interface Song {
   id: string;
   title: string;
-  lyrics: string;
+  lyrics: Record<string, string>;
   versions: Record<string, string>;
 }
 
@@ -27,16 +27,16 @@ const tracks = songs.map((song, idx) => ({
   title: song.title,
   lyrics: song.lyrics,
   versions: Object.fromEntries(
-    Object.entries(song.versions).map(([genre, filename]) => [
+    Object.entries(song.versions).map(([genre, filepath]) => [
       genre,
-      `/assets/music/${filename}`
+      `/assets/music/${filepath}`
     ])
   )
 }));
 
 // Load lyrics
 const lyricsDirPath = fileURLToPath(new URL('../content/lyrics', import.meta.url));
-const lyricsHtml: Record<string, string> = {};
+const lyricsHtml: Record<string, Record<string, string>> = {};
 
 const escapeHtml = (text: string): string => {
   const map: Record<string, string> = {
@@ -59,29 +59,34 @@ try {
   
   for (const song of songs) {
     if (!song.lyrics) continue;
-    try {
-      const filePath = path.join(lyricsDir, song.lyrics);
-      const markdownContent = await fs.readFile(filePath, 'utf-8');
-      
-      const html = markdownContent
-        .split('\n')
-        .map(line => {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('## ')) {
-            return `<h3 class="lyrics-header">${escapeHtml(trimmed.slice(3))}</h3>`;
-          } else if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-            return `<h3 class="lyrics-header">${escapeHtml(trimmed.slice(1, -1))}</h3>`;
-          } else if (trimmed === '') {
-            return '<p class="lyrics-line lyrics-spacer"></p>';
-          } else {
-            return `<p class="lyrics-line">${escapeHtml(trimmed)}</p>`;
-          }
-        })
-        .filter(line => line !== '')
-        .join('');
-      lyricsHtml[song.title] = html;
-    } catch (err) {
-      console.warn(`Failed to load lyrics for ${song.title}:`, err);
+    lyricsHtml[song.title] = {};
+    
+    // Load lyrics for each genre
+    for (const [genre, filepath] of Object.entries(song.lyrics)) {
+      try {
+        const filePath = path.join(lyricsDir, filepath);
+        const markdownContent = await fs.readFile(filePath, 'utf-8');
+        
+        const html = markdownContent
+          .split('\n')
+          .map(line => {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('## ')) {
+              return `<h3 class="lyrics-header">${escapeHtml(trimmed.slice(3))}</h3>`;
+            } else if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+              return `<h3 class="lyrics-header">${escapeHtml(trimmed.slice(1, -1))}</h3>`;
+            } else if (trimmed === '') {
+              return '<p class="lyrics-line lyrics-spacer"></p>';
+            } else {
+              return `<p class="lyrics-line">${escapeHtml(trimmed)}</p>`;
+            }
+          })
+          .filter(line => line !== '')
+          .join('');
+        lyricsHtml[song.title][genre] = html;
+      } catch (err) {
+        console.warn(`Failed to load lyrics for ${song.title} (${genre}):`, err);
+      }
     }
   }
 } catch (err) {
@@ -98,59 +103,59 @@ const clientTracks = tracks.map(t => ({
 ---
 
 <div class="music-player">
-  <!-- Hero Banner with Now Playing -->
+  <!-- Hero Banner with Two-Column Layout -->
   <div class="hero-now-playing">
     <img src="/waves-hero.png" alt="" class="hero-bg" aria-hidden="true" />
-    <div class="hero-overlay">
-      <div class="hero-header">
-        <div class="hero-branding">
-          <h1 class="hero-title">waves</h1>
-          <p class="hero-subtitle">Original tracks and creative experiments</p>
+    <div class="hero-content">
+      <audio id="audio-player" preload="metadata"></audio>
+      
+      <!-- Left Column: Title, Now Playing, Controls -->
+      <div class="hero-left">
+        <h1 class="hero-title">waves</h1>
+        
+        <div class="now-playing-info">
+          <div class="now-playing-label">Now Playing</div>
+          <div class="track-title" id="current-track-title">Select a track</div>
+          <div class="track-duration-display">
+            <span id="current-time">0:00</span> / <span id="duration-time">0:00</span>
+          </div>
         </div>
-        <button class="lyrics-toggle-btn" id="lyrics-toggle-btn" title="Toggle lyrics">
-          <span class="lyrics-icon">&#9835;</span>
-          <span class="lyrics-label">Lyrics</span>
-        </button>
-      </div>
-      <div class="now-playing-card">
-        <div class="now-playing-label">Now Playing</div>
-        <div class="track-title" id="current-track-title">Select a track</div>
-        <div class="track-duration-display">
-          <span id="current-time">0:00</span> / <span id="duration-time">0:00</span>
+
+        <div class="player-controls">
+          <div class="playback-buttons">
+            <button class="control-btn" id="btn-previous" title="Previous">&#9198;</button>
+            <button class="control-btn play-btn" id="btn-play" title="Play/Pause">
+              <span class="play-icon">&#9654;</span>
+              <span class="pause-icon" style="display: none;">&#9208;</span>
+            </button>
+            <button class="control-btn" id="btn-next" title="Next">&#9197;</button>
+          </div>
+
+          <div class="progress-section">
+            <span class="time-display" id="progress-current">0:00</span>
+            <input type="range" id="progress-slider" class="progress-slider" min="0" max="100" value="0" />
+            <span class="time-display" id="progress-duration">0:00</span>
+          </div>
+
+          <div class="volume-control">
+            <span class="volume-label">vol:</span>
+            <div class="volume-blocks" id="volume-blocks">
+              {[1,2,3,4,5,6,7,8,9,10].map(level => (
+                <div class={`volume-block ${level <= 7 ? 'active' : ''}`} data-level={level}></div>
+              ))}
+            </div>
+            <span class="volume-percent" id="volume-percent">70%</span>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="player-container">
-
-    <audio id="audio-player" preload="metadata"></audio>
-
-    <!-- Player Controls -->
-    <div class="player-controls">
-      <div class="playback-buttons">
-        <button class="control-btn" id="btn-previous" title="Previous">&#9198;</button>
-        <button class="control-btn play-btn" id="btn-play" title="Play/Pause">
-          <span class="play-icon">&#9654;</span>
-          <span class="pause-icon" style="display: none;">&#9208;</span>
-        </button>
-        <button class="control-btn" id="btn-next" title="Next">&#9197;</button>
-      </div>
-
-      <div class="progress-section">
-        <span class="time-display" id="progress-current">0:00</span>
-        <input type="range" id="progress-slider" class="progress-slider" min="0" max="100" value="0" />
-        <span class="time-display" id="progress-duration">0:00</span>
-      </div>
-
-      <div class="volume-control">
-        <span class="volume-label">vol:</span>
-        <div class="volume-blocks" id="volume-blocks">
-          {[1,2,3,4,5,6,7,8,9,10].map(level => (
-            <div class={`volume-block ${level <= 7 ? 'active' : ''}`} data-level={level}></div>
-          ))}
+      <!-- Right Column: Lyrics -->
+      <div class="hero-right">
+        <div class="lyrics-container" id="lyrics-content">
+          <div class="lyrics-empty">
+            <p>Select a track to view lyrics</p>
+          </div>
         </div>
-        <span class="volume-percent" id="volume-percent">70%</span>
       </div>
     </div>
   </div>
@@ -191,21 +196,7 @@ const clientTracks = tracks.map(t => ({
   </div>
 </div>
 
-<!-- Lyrics Panel -->
-<div class="lyrics-panel" id="lyrics-panel">
-  <div class="lyrics-panel-header">
-    <h3 class="lyrics-title">Lyrics</h3>
-    <button class="lyrics-close-btn" id="lyrics-close-btn" title="Close lyrics">&times;</button>
-  </div>
-  <div class="lyrics-content" id="lyrics-content">
-    <div class="lyrics-empty">
-      <p>Select a track to view lyrics</p>
-    </div>
-  </div>
-</div>
 
-<!-- Overlay for mobile -->
-<div class="lyrics-overlay" id="lyrics-overlay"></div>
 
 <script is:inline define:vars={{ lyricsHtml: lyricsHtml || {}, clientTracks, defaultGenre, genres }}>
   const lyrics = typeof lyricsHtml !== 'undefined' ? lyricsHtml : {};
@@ -226,11 +217,7 @@ const clientTracks = tracks.map(t => ({
   const playIcon = btnPlay ? btnPlay.querySelector('.play-icon') : null;
   const pauseIcon = btnPlay ? btnPlay.querySelector('.pause-icon') : null;
   const queueItems = document.querySelectorAll('.queue-item');
-  const lyricsPanel = document.getElementById('lyrics-panel');
-  const lyricsToggleBtn = document.getElementById('lyrics-toggle-btn');
-  const lyricsCloseBtn = document.getElementById('lyrics-close-btn');
   const lyricsContent = document.getElementById('lyrics-content');
-  const lyricsOverlay = document.getElementById('lyrics-overlay');
   const genreSelect = document.getElementById('genre-select');
 
   let currentIndex = -1;
@@ -267,16 +254,9 @@ const clientTracks = tracks.map(t => ({
 
   function updateGenreBadges() {
     queueItems.forEach(function(item, idx) {
-      const versions = JSON.parse(item.dataset.versions || '{}');
       const badge = document.getElementById('genre-badge-' + idx);
       if (badge) {
-        if (!versions[currentGenre]) {
-          badge.textContent = defaultGenre;
-          badge.classList.add('fallback');
-        } else {
-          badge.textContent = '';
-          badge.classList.remove('fallback');
-        }
+        badge.textContent = '';
       }
     });
   }
@@ -313,9 +293,12 @@ const clientTracks = tracks.map(t => ({
     
     currentGenre = newGenre;
     updateGenreBadges();
+    updateQueueListTheme();
     
     // If a track is loaded, switch to the new genre version
     if (currentIndex >= 0) {
+      const item = queueItems[currentIndex];
+      const title = item.dataset.title;
       const newSrc = getTrackSrc(currentIndex, currentGenre);
       if (newSrc && newSrc !== audio.src) {
         audio.src = newSrc;
@@ -324,31 +307,41 @@ const clientTracks = tracks.map(t => ({
           audio.play();
         }
       }
+      // Reload lyrics for the new genre
+      if (title) {
+        loadLyrics(title);
+      }
+    }
+  }
+
+  function updateQueueListTheme() {
+    const queueList = document.getElementById('queue-list');
+    if (!queueList) return;
+    
+    if (currentGenre === 'country') {
+      queueList.classList.add('country-theme');
+    } else {
+      queueList.classList.remove('country-theme');
     }
   }
 
   function loadLyrics(trackTitle) {
     if (!lyricsContent) return;
     
-    const trackLyricsHtml = lyrics[trackTitle];
+    const trackLyrics = lyrics[trackTitle];
+    if (!trackLyrics) {
+      lyricsContent.innerHTML = '<div class="lyrics-empty"><p>No lyrics available for this track</p></div>';
+      return;
+    }
+    
+    // Get lyrics for current genre, fallback to default genre, then first available
+    const trackLyricsHtml = trackLyrics[currentGenre] || trackLyrics[defaultGenre] || Object.values(trackLyrics)[0];
     
     if (trackLyricsHtml && trackLyricsHtml.trim() !== '') {
       lyricsContent.innerHTML = trackLyricsHtml;
     } else {
       lyricsContent.innerHTML = '<div class="lyrics-empty"><p>No lyrics available for this track</p></div>';
     }
-  }
-
-  function toggleLyricsPanel() {
-    if (!lyricsPanel || !lyricsOverlay) return;
-    lyricsPanel.classList.toggle('open');
-    lyricsOverlay.classList.toggle('active');
-  }
-
-  function closeLyricsPanel() {
-    if (!lyricsPanel || !lyricsOverlay) return;
-    lyricsPanel.classList.remove('open');
-    lyricsOverlay.classList.remove('active');
   }
 
   function showPlayIcon() {
@@ -416,10 +409,6 @@ const clientTracks = tracks.map(t => ({
   if (btnNext) btnNext.addEventListener('click', playNext);
   if (btnPrevious) btnPrevious.addEventListener('click', playPrevious);
 
-  if (lyricsToggleBtn) lyricsToggleBtn.addEventListener('click', toggleLyricsPanel);
-  if (lyricsCloseBtn) lyricsCloseBtn.addEventListener('click', closeLyricsPanel);
-  if (lyricsOverlay) lyricsOverlay.addEventListener('click', closeLyricsPanel);
-
   audio.addEventListener('timeupdate', function() {
     if (audio.duration) {
       const percent = (audio.currentTime / audio.duration) * 100;
@@ -480,6 +469,7 @@ const clientTracks = tracks.map(t => ({
 
   // Initialize
   updateGenreBadges();
+  updateQueueListTheme();
   
   const urlMatch = window.location.pathname.match(/^\/waves\/(.+)$/);
   if (urlMatch) {
@@ -499,14 +489,15 @@ const clientTracks = tracks.map(t => ({
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    position: relative;
   }
 
-  /* Hero Now Playing Section */
+  /* Hero Now Playing Section - Unified with Player */
   .hero-now-playing {
     position: relative;
     border-radius: 12px;
     overflow: hidden;
-    min-height: 200px;
+    min-height: 320px;
     box-shadow: 
       0 10px 40px rgba(0, 0, 0, 0.4),
       0 0 60px var(--phosphor-glow);
@@ -518,38 +509,39 @@ const clientTracks = tracks.map(t => ({
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: brightness(0.4) contrast(1.1);
+    filter: brightness(0.35) contrast(1.1);
+    transform: scale(1.15);
+    object-position: center center;
   }
 
-  .hero-overlay {
+  /* Two-column hero content layout */
+  .hero-content {
     position: relative;
     z-index: 1;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 200px;
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    grid-template-rows: 1fr;
+    align-items: stretch;
+    gap: 2.5rem;
+    padding: 2rem;
+    height: 420px;
     background: linear-gradient(
       135deg,
-      rgba(0, 0, 0, 0.3) 0%,
-      rgba(0, 0, 0, 0.5) 100%
+      rgba(0, 0, 0, 0.4) 0%,
+      rgba(0, 0, 0, 0.6) 100%
     );
   }
 
-  .hero-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-
-  .hero-branding {
+  .hero-left {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 1.25rem;
+    justify-content: center;
+    min-height: 0;
   }
 
   .hero-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 700;
     color: var(--phosphor-base);
     margin: 0;
@@ -557,20 +549,50 @@ const clientTracks = tracks.map(t => ({
     letter-spacing: -1px;
   }
 
-  .hero-subtitle {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin: 0;
-    opacity: 0.9;
-  }
-
-  .now-playing-card {
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
+  .now-playing-info {
+    background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(51, 255, 51, 0.2);
     border-radius: 8px;
     padding: 1rem 1.25rem;
   }
+
+  .hero-right {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    border-left: 1px solid rgba(51, 255, 51, 0.15);
+    padding-left: 2rem;
+  }
+
+  .lyrics-container {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    color: var(--text-primary);
+    line-height: 1.9;
+    font-size: 0.9rem;
+  }
+
+  /* Scrollbar for lyrics container */
+  .lyrics-container::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .lyrics-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .lyrics-container::-webkit-scrollbar-thumb {
+    background: rgba(51, 255, 51, 0.2);
+    border-radius: 3px;
+  }
+
+  .lyrics-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(51, 255, 51, 0.35);
+  }
+
+
 
   .now-playing-label {
     font-size: 0.65rem;
@@ -591,42 +613,6 @@ const clientTracks = tracks.map(t => ({
   .track-duration-display {
     font-size: 0.75rem;
     color: rgba(51, 255, 51, 0.7);
-  }
-
-  .lyrics-toggle-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(51, 255, 51, 0.25);
-    color: var(--phosphor-base);
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-family: var(--font-mono);
-  }
-
-  .lyrics-toggle-btn:hover {
-    border-color: rgba(51, 255, 51, 0.5);
-    background: rgba(51, 255, 51, 0.15);
-  }
-
-  .lyrics-icon {
-    font-size: 1rem;
-  }
-
-  /* Player Controls Container */
-  .player-container {
-    background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(20, 25, 30, 0.8) 100%);
-    border: 1px solid rgba(51, 255, 51, 0.2);
-    border-radius: 12px;
-    padding: 1.5rem;
-    position: relative;
   }
 
   .player-controls {
@@ -662,6 +648,17 @@ const clientTracks = tracks.map(t => ({
     width: 56px;
     height: 56px;
     font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .play-btn .play-icon,
+  .play-btn .pause-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
   }
 
   .progress-section {
@@ -709,38 +706,46 @@ const clientTracks = tracks.map(t => ({
 
   .volume-blocks {
     display: flex;
-    gap: 2px;
+    gap: 3px;
   }
 
   .volume-block {
     width: 8px;
-    height: 16px;
-    background: var(--border-base);
+    height: 18px;
+    background: var(--border-dim);
     border-radius: 2px;
     cursor: pointer;
     transition: all 0.1s ease;
+  }
+
+  .volume-block:hover {
+    background: var(--border-base);
   }
 
   .volume-block[data-level="1"].active,
   .volume-block[data-level="2"].active,
   .volume-block[data-level="3"].active {
     background: #33ff33;
+    box-shadow: 0 0 4px rgba(51, 255, 51, 0.4);
   }
 
   .volume-block[data-level="4"].active,
   .volume-block[data-level="5"].active,
   .volume-block[data-level="6"].active {
     background: #ffb84d;
+    box-shadow: 0 0 4px rgba(255, 184, 77, 0.4);
   }
 
   .volume-block[data-level="7"].active,
   .volume-block[data-level="8"].active {
     background: #ff9500;
+    box-shadow: 0 0 4px rgba(255, 149, 0, 0.4);
   }
 
   .volume-block[data-level="9"].active,
   .volume-block[data-level="10"].active {
     background: #ff3333;
+    box-shadow: 0 0 4px rgba(255, 51, 51, 0.4);
   }
 
   .volume-percent {
@@ -788,38 +793,62 @@ const clientTracks = tracks.map(t => ({
   }
 
   .genre-label {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
+    font-size: 0.65rem;
+    color: var(--phosphor-dim);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+  }
+
+  .genre-label::after {
+    content: '>';
+    margin-left: 0.35rem;
+    color: var(--phosphor-base);
+    opacity: 0.6;
   }
 
   .genre-select {
-    background: rgba(51, 255, 51, 0.08);
-    border: 1px solid rgba(51, 255, 51, 0.25);
-    color: var(--phosphor-base);
-    padding: 0.4rem 0.6rem;
-    border-radius: 6px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border-dim);
+    border-left: 3px solid var(--phosphor-dim);
+    color: var(--text-primary);
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    border-radius: 0 4px 4px 0;
     font-size: 0.8rem;
     font-family: var(--font-mono);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2333ff33' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    min-width: 120px;
   }
 
   .genre-select:hover {
-    border-color: rgba(51, 255, 51, 0.5);
-    background: rgba(51, 255, 51, 0.15);
+    border-color: var(--border-base);
+    border-left-color: var(--phosphor-base);
+    color: var(--phosphor-bright);
+    background-color: var(--bg-surface);
   }
 
   .genre-select:focus {
     outline: none;
-    border-color: var(--phosphor-base);
-    box-shadow: 0 0 0 2px rgba(51, 255, 51, 0.2);
+    border-color: var(--phosphor-dim);
+    border-left-color: var(--phosphor-base);
+    box-shadow: 0 0 0 1px var(--phosphor-dim);
+    color: var(--phosphor-bright);
   }
 
   .genre-select option {
-    background: var(--bg-elevated);
+    background: var(--bg-deep);
     color: var(--text-primary);
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-dim);
+  }
+
+  .genre-select option:checked {
+    background: var(--bg-surface);
+    color: var(--phosphor-base);
   }
 
   .queue-count {
@@ -834,6 +863,18 @@ const clientTracks = tracks.map(t => ({
     gap: 0.5rem;
     max-height: 400px;
     overflow-y: auto;
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 8px;
+    background: transparent;
+  }
+
+  /* Country theme - amber glow styling */
+  .queue-list.country-theme {
+    background: rgba(255, 176, 0, 0.02);
+    box-shadow: 
+      0 0 12px rgba(255, 176, 0, 0.04),
+      inset 0 0 8px rgba(255, 176, 0, 0.02);
   }
 
   .queue-item {
@@ -848,14 +889,29 @@ const clientTracks = tracks.map(t => ({
     transition: all 0.15s ease;
   }
 
+  .queue-list.country-theme .queue-item {
+    background: rgba(255, 176, 0, 0.03);
+    border: 1px solid rgba(255, 176, 0, 0.1);
+  }
+
   .queue-item:hover {
     background: rgba(51, 255, 51, 0.08);
     border-color: rgba(51, 255, 51, 0.25);
   }
 
+  .queue-list.country-theme .queue-item:hover {
+    background: rgba(255, 176, 0, 0.06);
+    border-color: rgba(255, 176, 0, 0.18);
+  }
+
   .queue-item.active {
     background: rgba(51, 255, 51, 0.12);
     border-color: rgba(51, 255, 51, 0.3);
+  }
+
+  .queue-list.country-theme .queue-item.active {
+    background: rgba(255, 176, 0, 0.08);
+    border-color: rgba(255, 176, 0, 0.2);
   }
 
   .queue-item-number {
@@ -899,12 +955,6 @@ const clientTracks = tracks.map(t => ({
     letter-spacing: 0.3px;
   }
 
-  .queue-item-genre-badge.fallback {
-    background: rgba(255, 184, 77, 0.2);
-    color: var(--amber-base);
-    border: 1px solid rgba(255, 184, 77, 0.3);
-  }
-
   /* Scrollbar */
   .queue-list::-webkit-scrollbar {
     width: 6px;
@@ -920,80 +970,7 @@ const clientTracks = tracks.map(t => ({
     border-radius: 3px;
   }
 
-  /* Lyrics Panel Styles */
-  .lyrics-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 400px;
-    max-width: 90vw;
-    height: 100vh;
-    background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(20, 25, 30, 0.95) 100%);
-    border-left: 1px solid rgba(51, 255, 51, 0.2);
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .lyrics-panel.open {
-    transform: translateX(0);
-  }
-
-  .lyrics-panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    padding-top: 2rem;
-    border-bottom: 1px solid rgba(51, 255, 51, 0.2);
-    background: rgba(51, 255, 51, 0.05);
-    flex-shrink: 0;
-  }
-
-  .lyrics-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--amber-base);
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .lyrics-close-btn {
-    background: transparent;
-    border: 1px solid rgba(51, 255, 51, 0.25);
-    color: var(--phosphor-base);
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1.5rem;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    padding: 0;
-  }
-
-  .lyrics-close-btn:hover {
-    border-color: rgba(51, 255, 51, 0.5);
-    background: rgba(51, 255, 51, 0.1);
-  }
-
-  .lyrics-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 2rem 1.5rem;
-    color: var(--text-primary);
-    line-height: 1.8;
-    font-size: 0.95rem;
-  }
-
+  /* Lyrics styles for hero-right column */
   .lyrics-empty {
     display: flex;
     align-items: center;
@@ -1001,35 +978,61 @@ const clientTracks = tracks.map(t => ({
     height: 100%;
     color: var(--text-secondary);
     font-style: italic;
+    opacity: 0.6;
   }
 
   .lyrics-line {
-    margin: 0.5rem 0;
-    color: var(--text-primary);
+    margin: 0.7rem 0;
+    color: rgba(255, 255, 255, 0.85);
     transition: all 0.3s ease;
+    padding-left: 0.75rem;
+    border-left: 2px solid transparent;
+    font-weight: 400;
   }
 
   .lyrics-line.lyrics-spacer {
-    margin: 1rem 0;
+    margin: 2rem 0;
     height: 0;
+    border-left: none;
   }
 
   .lyrics-line.lyrics-header,
-  .lyrics-content h3.lyrics-header {
-    color: var(--amber-base);
+  .lyrics-container h3.lyrics-header {
+    color: var(--amber-bright);
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
+    font-size: 0.7rem;
+    letter-spacing: 2.5px;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    padding-left: 0;
+    border-left: none;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-shadow: 0 0 8px rgba(255, 176, 0, 0.3);
   }
 
-  .lyrics-content h3.lyrics-header:first-child {
+  /* Decorative line after section headers */
+  .lyrics-container h3.lyrics-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 176, 0, 0.4) 0%,
+      rgba(51, 255, 51, 0.2) 70%,
+      transparent 100%
+    );
+    box-shadow: 0 0 4px rgba(255, 176, 0, 0.2);
+  }
+
+  .lyrics-container h3.lyrics-header:first-child {
     margin-top: 0;
   }
 
-  .lyrics-content h3 {
+  .lyrics-container h3 {
     margin: 0;
     font-size: inherit;
     font-weight: inherit;
@@ -1037,56 +1040,36 @@ const clientTracks = tracks.map(t => ({
 
   .lyrics-line.active {
     color: var(--phosphor-bright);
-    text-shadow: 0 0 10px rgba(51, 255, 51, 0.5);
+    text-shadow: 0 0 12px rgba(51, 255, 51, 0.5);
     font-weight: 500;
+    border-left-color: var(--phosphor-base);
   }
 
-  .lyrics-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 999;
-  }
-
-  .lyrics-overlay.active {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  /* Scrollbar styling for lyrics */
-  .lyrics-content::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .lyrics-content::-webkit-scrollbar-track {
-    background: var(--bg-surface);
-    border-radius: 3px;
-  }
-
-  .lyrics-content::-webkit-scrollbar-thumb {
-    background: var(--border-base);
-    border-radius: 3px;
-  }
-
-  .lyrics-content::-webkit-scrollbar-thumb:hover {
-    background: rgba(51, 255, 51, 0.3);
-  }
-
-  /* Responsive */
-  @media (max-width: 640px) {
-    .hero-now-playing {
-      min-height: 160px;
+  /* Responsive - Tablet: stack columns */
+  @media (max-width: 900px) {
+    .hero-content {
+      grid-template-columns: 1fr;
+      min-height: auto;
     }
 
-    .hero-overlay {
+    .hero-right {
+      border-left: none;
+      border-top: 1px solid rgba(51, 255, 51, 0.15);
+      padding-left: 0;
+      padding-top: 1.5rem;
+      max-height: 300px;
+    }
+  }
+
+  /* Responsive - Mobile */
+  @media (max-width: 640px) {
+    .hero-content {
       padding: 1rem;
-      min-height: 160px;
+      gap: 1.5rem;
+    }
+
+    .hero-now-playing {
+      min-height: auto;
     }
 
     .hero-title {
@@ -1107,6 +1090,7 @@ const clientTracks = tracks.map(t => ({
 
     .player-container {
       padding: 1rem;
+      margin-top: 0.75rem;
     }
 
     .control-btn {
@@ -1118,6 +1102,10 @@ const clientTracks = tracks.map(t => ({
       width: 48px;
       height: 48px;
       font-size: 1.25rem;
+    }
+
+    .volume-percent {
+      min-width: 35px;
     }
 
     .queue-section {
@@ -1139,12 +1127,29 @@ const clientTracks = tracks.map(t => ({
     }
 
     .lyrics-panel {
-      width: 100vw;
-      max-width: 100vw;
+      position: static;
+      width: 100%;
+      max-height: 350px;
+      margin-top: 1.5rem;
     }
 
-    .lyrics-toggle-btn .lyrics-label {
-      display: none;
+    .lyrics-panel-inner {
+      max-height: 350px;
+    }
+
+    .lyrics-panel-header {
+      padding: 0.75rem 1rem;
+    }
+
+    .lyrics-content {
+      padding: 1rem;
+      line-height: 1.8;
+      font-size: 0.85rem;
+    }
+
+    .lyrics-content h3.lyrics-header {
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
     }
   }
 </style>

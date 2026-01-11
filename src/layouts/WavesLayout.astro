@@ -1,0 +1,44 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import type { ImageMetadata } from 'astro';
+
+interface PlayerCardProps {
+	embedUrl: string;
+	streamUrl: string;
+	slug: string;
+	width?: number;
+	height?: number;
+}
+
+interface Props {
+	title: string;
+	description: string;
+	image?: ImageMetadata | string;
+	playerCard?: PlayerCardProps;
+}
+
+const { title, description, image, playerCard } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} image={image} playerCard={playerCard} />
+		<style is:global>
+			/* Override global.css width constraint for waves page */
+			main.waves-main {
+				width: 100% !important;
+				max-width: 1100px !important;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main class="waves-main">
+			<slot />
+		</main>
+		<Footer />
+	</body>
+</html>

@@ -1,4 +1,4 @@
-Lose Yourself (In the Context Window)
+Lose Yourself
 
 [Intro]
 

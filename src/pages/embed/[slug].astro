@@ -28,6 +28,7 @@ export async function getStaticPaths() {
 }
 
 const { trackTitle, filename } = Astro.props;
+// filename already includes genre path (e.g., "hip-hop/song.mp3")
 const audioSrc = `/assets/music/${filename}`;
 ---
 

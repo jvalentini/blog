@@ -1,8 +1,8 @@
 {
 	"hip-hop": {
-		"base": "#33ff33",
-		"bright": "#66ff66",
-		"dim": "rgba(51, 255, 51, 0.1)"
+		"base": "#C3732A",
+		"bright": "#D6893F",
+		"dim": "rgba(195, 115, 42, 0.1)"
 	},
 	"country": {
 		"base": "#d4a03a",
@@ -23,5 +23,10 @@
 		"base": "#ff00ff",
 		"bright": "#ff33ff",
 		"dim": "rgba(255, 0, 255, 0.1)"
+	},
+	"bluegrass": {
+		"base": "#33ff33",
+		"bright": "#66ff66",
+		"dim": "rgba(51, 255, 51, 0.1)"
 	}
 }

@@ -129,6 +129,7 @@ const genreIcons: Record<string, string> = {
 	rock: 'guitar',
 	weird: 'spiral',
 	pop: 'microphone',
+	bluegrass: 'banjo',
 };
 
 export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | null {

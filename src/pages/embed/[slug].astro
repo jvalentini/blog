@@ -164,9 +164,12 @@ const { trackTitle, trackId, versions, genres, defaultGenre } = Astro.props;
       justify-content: center;
     }
 
-    .genre-btn {
-      padding: 6px 12px;
-      font-size: 11px;
+    /* Use :global() for dynamically created buttons to bypass Astro's CSS scoping */
+    .genre-controls :global(.genre-btn) {
+      padding: 8px 16px;
+      font-size: 12px;
+      font-family: inherit;
+      font-weight: 500;
       background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text-muted);
@@ -174,14 +177,15 @@ const { trackTitle, trackId, versions, genres, defaultGenre } = Astro.props;
       cursor: pointer;
       transition: all 0.15s ease;
       text-transform: capitalize;
+      outline: none;
     }
 
-    .genre-btn:hover {
+    .genre-controls :global(.genre-btn:hover) {
       border-color: var(--phosphor);
       color: var(--text);
     }
 
-    .genre-btn.active {
+    .genre-controls :global(.genre-btn.active) {
       background: var(--phosphor-dim);
       border-color: var(--phosphor);
       color: var(--phosphor);
@@ -331,9 +335,15 @@ const { trackTitle, trackId, versions, genres, defaultGenre } = Astro.props;
       audio.currentTime = pct * audio.duration;
     });
 
-    // Keyboard shortcut for genre switching
+    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'g' || e.key === 'G') {
+      // Spacebar for play/pause
+      if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        playBtn.click();
+      }
+      // G for genre switching
+      else if (e.key === 'g' || e.key === 'G') {
         const genres = Object.keys(versions);
         const currentIndex = genres.indexOf(currentGenre);
         const nextIndex = (currentIndex + 1) % genres.length;

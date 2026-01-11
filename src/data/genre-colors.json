@@ -1,0 +1,27 @@
+{
+	"hip-hop": {
+		"base": "#33ff33",
+		"bright": "#66ff66",
+		"dim": "rgba(51, 255, 51, 0.1)"
+	},
+	"country": {
+		"base": "#d4a03a",
+		"bright": "#e8b84a",
+		"dim": "rgba(212, 160, 58, 0.1)"
+	},
+	"rock": {
+		"base": "#ff3333",
+		"bright": "#ff4444",
+		"dim": "rgba(255, 51, 51, 0.1)"
+	},
+	"weird": {
+		"base": "#0088ff",
+		"bright": "#0099ff",
+		"dim": "rgba(0, 136, 255, 0.1)"
+	},
+	"pop": {
+		"base": "#ff00ff",
+		"bright": "#ff33ff",
+		"dim": "rgba(255, 0, 255, 0.1)"
+	}
+}

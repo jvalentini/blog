@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import wavesHeroImage from '../assets/waves-hero.png';
+import genreColorsData from '../data/genre-colors.json';
 import tracksData from '../data/tracks.json';
 import type { ParsedLyrics } from '../scripts/music-player/types';
 import { parseLyrics } from '../utils/lyrics-parser';
@@ -129,13 +130,14 @@ const clientTracks = tracks.map((t) => ({
 
 <HotkeysModal />
 
-<script define:vars={{ lyricsData, clientTracks, defaultGenre, genres }}>
+<script define:vars={{ lyricsData, clientTracks, defaultGenre, genres, genreColors: genreColorsData }}>
   // Store data globally for the music player module to access
   window.__MUSIC_PLAYER_CONFIG__ = {
     tracks: clientTracks,
     lyricsData: lyricsData,
     defaultGenre: defaultGenre,
-    genres: genres
+    genres: genres,
+    genreColors: genreColors
   };
 </script>
 
@@ -150,7 +152,8 @@ const clientTracks = tracks.map((t) => ({
         tracks: config.tracks,
         lyricsData: config.lyricsData,
         defaultGenre: config.defaultGenre,
-        genres: config.genres
+        genres: config.genres,
+        genreColors: config.genreColors
       });
     }
   });

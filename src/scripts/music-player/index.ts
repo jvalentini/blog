@@ -11,6 +11,7 @@ export interface MusicPlayerConfig {
 	lyricsData: Record<string, Record<string, ParsedLyrics>>;
 	defaultGenre: Genre;
 	genres: string[];
+	genreColors: Record<string, { base: string; bright: string; dim: string }>;
 }
 
 interface DOMElements {
@@ -121,11 +122,20 @@ function getElements(): DOMElements | null {
 	};
 }
 
+// Icon mapping for genres
+const genreIcons: Record<string, string> = {
+	'hip-hop': 'turntable',
+	country: 'cowboy-hat',
+	rock: 'guitar',
+	weird: 'spiral',
+	pop: 'microphone',
+};
+
 export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | null {
 	const elements = getElements();
 	if (!elements) return null;
 
-	const { tracks, lyricsData, defaultGenre, genres } = config;
+	const { tracks, lyricsData, defaultGenre, genres, genreColors } = config;
 
 	const storage = new PlayerStorage();
 	const savedSettings = storage.load();
@@ -216,11 +226,52 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			const btnGenre = btn.getAttribute('data-genre');
 			btn.classList.toggle('active', btnGenre === genre);
 		});
-		// Icon is now generic, no need to toggle visibility
+
+		// Update icon based on genre
+		const iconType = genreIcons[genre] || 'generic';
+		const iconElement = elements.genreIcon;
+		if (iconElement) {
+			iconElement.setAttribute('data-icon', iconType);
+			// Show the correct icon, hide others
+			const allIcons = iconElement.querySelectorAll('.genre-icon-svg');
+			allIcons.forEach((icon) => {
+				const iconTypeAttr = icon.getAttribute('data-icon-type');
+				if (iconTypeAttr === iconType) {
+					(icon as HTMLElement).style.display = 'block';
+				} else {
+					(icon as HTMLElement).style.display = 'none';
+				}
+			});
+		}
+
+		// Apply genre colors via CSS variables
+		const colors = genreColors[genre];
+		if (colors) {
+			const musicPlayer = document.querySelector('.music-player') as HTMLElement;
+			if (musicPlayer) {
+				musicPlayer.style.setProperty('--genre-base', colors.base);
+				musicPlayer.style.setProperty('--genre-bright', colors.bright);
+				musicPlayer.style.setProperty('--genre-dim', colors.dim);
+			}
+		}
 	};
 
 	const updateQueueListTheme = (genre: Genre): void => {
-		// Theme is now generic, no specific theme classes needed
+		// Apply genre colors to queue list
+		const colors = genreColors[genre];
+		if (colors) {
+			const queueList = document.getElementById('queue-list');
+			const queueTitle = document.getElementById('queue-title');
+			if (queueList) {
+				queueList.style.setProperty('--genre-base', colors.base);
+				queueList.style.setProperty('--genre-bright', colors.bright);
+				queueList.style.setProperty('--genre-dim', colors.dim);
+			}
+			if (queueTitle) {
+				queueTitle.style.setProperty('--genre-base', colors.base);
+				queueTitle.style.setProperty('--genre-bright', colors.bright);
+			}
+		}
 	};
 
 	const updateShuffleUI = (enabled: boolean): void => {

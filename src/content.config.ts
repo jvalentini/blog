@@ -12,7 +12,11 @@ const blog = defineCollection({
 			// Transform string to Date object
 			pubDate: z.coerce.date(),
 			updatedDate: z.coerce.date().optional(),
-			heroImage: image().optional(),
+			// Accept image assets (relative paths to src/assets) or string URLs (external URLs)
+			// Best practice: Use relative paths (../../assets/...) for local images to enable optimization
+			// Use string URLs only for external images (https://...)
+			// Note: image() processes and optimizes images from src/assets during build
+			heroImage: z.union([image(), z.string().url()]).optional(),
 			// Cross-posting / syndication tracking
 			canonicalUrl: z.string().url().optional(),
 			syndication: z

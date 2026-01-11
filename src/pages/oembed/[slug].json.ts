@@ -1,4 +1,6 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
+import { getImage } from 'astro:assets';
+import wavesHeroImage from '../../assets/waves-hero.png';
 import tracksData from '../../data/tracks.json';
 
 interface Song {
@@ -28,6 +30,10 @@ export const GET: APIRoute = async ({ params, props, site }) => {
 	const slug = params.slug;
 	const title = (props as { trackTitle: string }).trackTitle;
 	const embedUrl = `${siteUrl}/embed/${slug}`;
+	
+	// Get optimized image URL for thumbnail
+	const thumbnailImage = getImage({ src: wavesHeroImage, width: 1200, height: 630 });
+	const thumbnailUrl = new URL(thumbnailImage.src, siteUrl).href;
 
 	const oembedResponse = {
 		version: '1.0',
@@ -40,7 +46,7 @@ export const GET: APIRoute = async ({ params, props, site }) => {
 		html: `<iframe src="${embedUrl}" width="480" height="200" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`,
 		width: 480,
 		height: 200,
-		thumbnail_url: `${siteUrl}/waves-hero.png`,
+		thumbnail_url: thumbnailUrl,
 		thumbnail_width: 1200,
 		thumbnail_height: 630,
 	};

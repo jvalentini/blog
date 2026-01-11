@@ -17,7 +17,7 @@
 
   .time-display {
     font-size: 0.75rem;
-    color: var(--phosphor-base);
+    color: var(--genre-base, var(--phosphor-base));
     min-width: 35px;
     text-align: center;
   }
@@ -26,7 +26,7 @@
     flex: 1;
     height: 4px;
     border-radius: 2px;
-    background: rgba(51, 255, 51, 0.15);
+    background: color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 15%, transparent);
     appearance: none;
     cursor: pointer;
   }
@@ -36,7 +36,30 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: var(--phosphor-base);
+    background: var(--genre-base, var(--phosphor-base));
     cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 40%, transparent);
+  }
+
+  .progress-slider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 12px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 60%, transparent);
+    transform: scale(1.2);
+  }
+
+  .progress-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--genre-base, var(--phosphor-base));
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 40%, transparent);
+  }
+
+  .progress-slider::-moz-range-thumb:hover {
+    box-shadow: 0 0 12px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 60%, transparent);
+    transform: scale(1.2);
   }
 </style>

@@ -388,6 +388,10 @@ const clientTracks = tracks.map(t => ({
         <span>Toggle Genre</span>
       </div>
       <div class="hotkey-item">
+        <kbd>/</kbd>
+        <span>Terminal</span>
+      </div>
+      <div class="hotkey-item">
         <kbd>?</kbd>
         <span>Show Shortcuts</span>
       </div>
@@ -395,6 +399,40 @@ const clientTracks = tracks.map(t => ({
         <kbd>Esc</kbd>
         <span>Close Modal</span>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Terminal Modal - Single Line Prompt -->
+<div class="terminal-modal" id="terminal-modal">
+  <div class="terminal-output-popup" id="terminal-output"></div>
+  <div class="terminal-prompt-bar">
+    <span class="terminal-prompt-full"><span class="terminal-user">guest</span><span class="terminal-at">@</span><span class="terminal-host">waves</span><span class="terminal-colon">:</span><span class="terminal-path">~</span><span class="terminal-prompt-symbol">$</span></span>
+    <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" spellcheck="false" placeholder="type 'help' for commands" />
+  </div>
+</div>
+
+<!-- System Destruction Overlay (Easter Egg) -->
+<div class="destruction-overlay" id="destruction-overlay">
+  <div class="destruction-terminal" id="destruction-terminal"></div>
+  <div class="bios-screen" id="bios-screen">
+    <div class="bios-logo">
+      <pre>
+ █     █░ ▄▄▄    ██▒   █▓▓█████   ██████ 
+▓█░ █ ░█░▒████▄ ▓██░   █▒▓█   ▀ ▒██    ▒ 
+▒█░ █ ░█ ▒██  ▀█▄▓██  █▒░▒███   ░ ▓██▄   
+░█░ █ ░█ ░██▄▄▄▄██▒██ █░░▒▓█  ▄   ▒   ██▒
+░░██▒██▓  ▓█   ▓██▒▒▀█░  ░▒████▒▒██████▒▒
+░ ▓░▒ ▒   ▒▒   ▓▒█░░ ▐░  ░░ ▒░ ░▒ ▒▓▒ ▒ ░
+  ▒ ░ ░    ▒   ▒▒ ░░ ░░   ░ ░  ░░ ░▒  ░ ░
+  ░   ░    ░   ▒     ░░     ░   ░  ░  ░  
+    ░          ░  ░   ░     ░  ░      ░  
+      </pre>
+    </div>
+    <div class="bios-text">
+      <p>BIOS v4.20.69</p>
+      <p>Detecting hardware...</p>
+      <p class="bios-loading" id="bios-loading"></p>
     </div>
   </div>
 </div>
@@ -983,12 +1021,69 @@ const clientTracks = tracks.map(t => ({
         toggleHotkeysModal();
         break;
         
+      case '/': // Open terminal
+        e.preventDefault();
+        openTerminal();
+        break;
+        
       case 'Escape': // Close modal
         e.preventDefault();
         closeHotkeysModal();
+        closeTerminal();
         break;
     }
+    
+    // Konami code detection
+    checkKonamiCode(e.key);
   });
+  
+  // Konami code: ↑ ↑ ↓ ↓ ← → ← → B A
+  const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+  let konamiIndex = 0;
+  
+  function checkKonamiCode(key) {
+    const expected = konamiSequence[konamiIndex];
+    if (key === expected || key === expected.toUpperCase()) {
+      konamiIndex++;
+      if (konamiIndex === konamiSequence.length) {
+        konamiIndex = 0;
+        triggerKonamiEasterEgg();
+      }
+    } else {
+      konamiIndex = 0;
+    }
+  }
+  
+  function triggerKonamiEasterEgg() {
+    // 30 lives! Classic Contra reference
+    const overlay = document.createElement('div');
+    overlay.className = 'konami-overlay';
+    overlay.innerHTML = `
+      <div class="konami-content">
+        <div class="konami-text">+30 LIVES</div>
+        <div class="konami-subtext">↑↑↓↓←→←→BA</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    // Play all tracks in rapid succession preview
+    let previewIndex = 0;
+    const previewInterval = setInterval(() => {
+      if (previewIndex < queueItems.length) {
+        loadTrack(previewIndex, true);
+        previewIndex++;
+      } else {
+        clearInterval(previewInterval);
+      }
+    }, 300);
+    
+    setTimeout(() => {
+      overlay.classList.add('fade-out');
+      setTimeout(() => overlay.remove(), 500);
+      clearInterval(previewInterval);
+      loadTrack(0, true);
+    }, 2500);
+  }
   
   // Hotkeys modal functions
   function toggleHotkeysModal() {

@@ -3,6 +3,14 @@
 ---
 
 <div class="lyrics-panel">
+  <button class="lyrics-fullscreen-btn" id="lyrics-fullscreen-btn" title="Full screen lyrics">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="15 3 21 3 21 9"></polyline>
+      <polyline points="9 21 3 21 3 15"></polyline>
+      <line x1="21" y1="3" x2="14" y2="10"></line>
+      <line x1="3" y1="21" x2="10" y2="14"></line>
+    </svg>
+  </button>
   <div class="lyrics-scroll-track">
     <div class="lyrics-scroll-progress" id="lyrics-scroll-progress"></div>
   </div>
@@ -11,6 +19,18 @@
       <p>Select a track to view lyrics</p>
     </div>
   </div>
+</div>
+
+<!-- Fullscreen Lyrics Overlay -->
+<div class="lyrics-fullscreen-overlay" id="lyrics-fullscreen-overlay">
+  <button class="lyrics-fullscreen-close" id="lyrics-fullscreen-close" title="Exit full screen">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+  <div class="lyrics-fullscreen-track" id="lyrics-fullscreen-track">Now Playing</div>
+  <div class="lyrics-fullscreen-content" id="lyrics-fullscreen-content"></div>
 </div>
 
 <style>
@@ -231,5 +251,120 @@
       margin-top: 1.5rem;
       margin-bottom: 0.75rem;
     }
+  }
+
+  /* Fullscreen Button */
+  .lyrics-fullscreen-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--genre-base, rgba(51, 255, 51, 0.3));
+    color: var(--genre-base, #33ff33);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .lyrics-fullscreen-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+    border-color: var(--genre-base, rgba(51, 255, 51, 0.5));
+  }
+
+  @media (max-width: 768px) {
+    .lyrics-fullscreen-btn {
+      display: flex;
+    }
+  }
+
+  /* Fullscreen Overlay */
+  .lyrics-fullscreen-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: linear-gradient(180deg, rgba(5, 8, 10, 0.98) 0%, rgba(10, 15, 20, 0.98) 100%);
+    display: none;
+    flex-direction: column;
+    padding: 1rem;
+    padding-top: env(safe-area-inset-top, 1rem);
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
+
+  .lyrics-fullscreen-overlay.visible {
+    display: flex;
+  }
+
+  .lyrics-fullscreen-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  .lyrics-fullscreen-track {
+    text-align: center;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--genre-base, #33ff33);
+    margin-bottom: 1rem;
+    padding-top: 0.5rem;
+  }
+
+  .lyrics-fullscreen-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1.5rem;
+    line-height: 2;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 2rem 1rem;
+    scroll-behavior: smooth;
+  }
+
+  .lyrics-fullscreen-content :global(.lyrics-line) {
+    margin: 0.75rem 0;
+    padding: 0.5rem 1rem;
+    transition: all 0.4s ease;
+    max-width: 90%;
+  }
+
+  .lyrics-fullscreen-content :global(.lyrics-line.active) {
+    color: var(--genre-bright, #66ff66);
+    font-size: 1.75rem;
+    font-weight: 600;
+    text-shadow: 
+      0 0 30px var(--genre-base, #33ff33),
+      0 0 60px var(--genre-base, #33ff33);
+  }
+
+  .lyrics-fullscreen-content :global(.lyrics-header) {
+    color: var(--genre-base, #33ff33);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-top: 2rem;
+    opacity: 0.8;
   }
 </style>

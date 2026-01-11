@@ -4,7 +4,7 @@ import tracksData from '../../data/tracks.json';
 interface Song {
   id: string;
   title: string;
-  lyrics: string;
+  lyrics: Record<string, string>;
   versions: Record<string, string>;
 }
 

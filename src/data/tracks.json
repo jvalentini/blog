@@ -3,27 +3,37 @@
     {
       "id": "slop-slinger",
       "title": "Slop Slinger",
-      "lyrics": "slop-slinger.md",
+      "lyrics": {
+        "hip-hop": "hip-hop/slop-slinger.md",
+        "country": "country/slop-slinger.md"
+      },
       "versions": {
-        "hip-hop": "slop-slinger.mp3",
-        "country": "slop-slinger-country.mp3"
+        "hip-hop": "hip-hop/slop-slinger.mp3",
+        "country": "country/slop-slinger.mp3"
       }
     },
     {
       "id": "lose-yourself",
-      "title": "Lose Yourself (In the Context Window)",
-      "lyrics": "lose-yourself-in-the-context-window.md",
+      "title": "Lose Yourself",
+      "lyrics": {
+        "hip-hop": "hip-hop/lose-yourself.md",
+        "country": "country/lose-yourself.md"
+      },
       "versions": {
-        "hip-hop": "lose-yourself-in-the-context-window.mp3",
-        "country": "lose-yourself-country.mp3"
+        "hip-hop": "hip-hop/lose-yourself.mp3",
+        "country": "country/lose-yourself.mp3"
       }
     },
     {
       "id": "without-me",
       "title": "Without Me",
-      "lyrics": "without-me.md",
+      "lyrics": {
+        "hip-hop": "hip-hop/without-me.md",
+        "country": "country/without-me.md"
+      },
       "versions": {
-        "hip-hop": "without-me.mp3"
+        "hip-hop": "hip-hop/without-me.mp3",
+        "country": "country/without-me.mp3"
       }
     }
   ],

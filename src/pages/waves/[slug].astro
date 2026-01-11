@@ -1,5 +1,5 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import WavesLayout from '../../layouts/WavesLayout.astro';
 import MusicPlayer from '../../components/MusicPlayer.astro';
 import { SITE_TITLE } from '../../consts';
 import tracksData from '../../data/tracks.json';
@@ -45,11 +45,11 @@ const playerCard = {
 };
 ---
 
-<BaseLayout title={`${trackTitle} | ${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image="/waves-hero.png" wide playerCard={playerCard}>
+<WavesLayout title={`${trackTitle} | ${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image="/waves-hero.png" playerCard={playerCard}>
 	<section class="player-section">
 		<MusicPlayer />
 	</section>
-</BaseLayout>
+</WavesLayout>
 
 <style>
 	.player-section {

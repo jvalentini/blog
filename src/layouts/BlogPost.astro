@@ -18,7 +18,12 @@ const postUrl = Astro.url.href;
 
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} image={heroImage} />
+		<BaseHead 
+			title={title} 
+			description={description} 
+			image={heroImage}
+			article={{ pubDate, updatedDate, tags }}
+		/>
 	</head>
 
 	<body>

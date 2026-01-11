@@ -1187,18 +1187,51 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
   let lastTabInput = '';
   const DOUBLE_TAB_THRESHOLD = 500; // ms
 
-  // Base commands for completion
-  const baseCommands = [
+  // Menu-complete cycling state
+  let cycleCompletions: string[] = [];
+  let cycleIndex = -1;
+  let cycleOriginalInput = '';
+
+  // Visual bell for no completions
+  function triggerVisualBell() {
+    if (!terminalInput) return;
+    terminalInput.classList.add('visual-bell');
+    setTimeout(() => {
+      terminalInput.classList.remove('visual-bell');
+    }, 150);
+  }
+
+  // Reset cycling state when input changes
+  function resetCycleState() {
+    cycleCompletions = [];
+    cycleIndex = -1;
+    cycleOriginalInput = '';
+  }
+
+  // Core commands (always available)
+  const coreCommands = [
     'help', 'cd', 'ls', 'cat', 'open', 'clear', 'exit',
-    'play', 'pause', 'next', 'prev', 'volume', 'queue',
-    'shuffle', 'repeat', 'mute', 'loop', 'info', 'nowplaying',
     'whoami', 'pwd', 'date', 'uptime', 'uname',
     'cowsay', 'matrix', 'neofetch', 'sl', 'echo', 'hack', 'history',
     'sudo', 'fortune', 'ping', 'man', 'top', 'ps', 'free', 'df',
   ];
 
-  // Cat command completions: about, posts/, waves/
-  const catTargets = ['about', 'posts/', 'waves/'];
+  // Music commands (only when player available)
+  const musicCommands = [
+    'play', 'pause', 'next', 'prev', 'volume', 'queue',
+    'shuffle', 'repeat', 'mute', 'loop', 'info', 'nowplaying',
+  ];
+
+  // Get available commands based on context
+  function getAvailableCommands(): string[] {
+    if (hasMusicPlayer()) {
+      return [...coreCommands, ...musicCommands];
+    }
+    return coreCommands;
+  }
+
+  // Cat command completions: about, about.txt, posts/, waves/
+  const catTargets = ['about', 'about.txt', 'posts/', 'waves/'];
 
   // Find longest common prefix among strings
   function findCommonPrefix(strings: string[]): string {
@@ -1216,21 +1249,36 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
 
   // Get completions for current input
   function getCompletions(input: string): string[] {
-    const lower = input.toLowerCase();
+    const lower = input.toLowerCase().trimStart();
     const parts = lower.split(/\s+/);
     const command = parts[0];
     const args = parts.slice(1).join(' ');
+    const availableCommands = getAvailableCommands();
 
-    // Empty or partial command - complete command name
+    // Empty input - return all commands (for double-tab to show)
+    if (lower === '') {
+      return availableCommands;
+    }
+
+    // Partial command (no space yet) - complete command name
     if (parts.length === 1 && !lower.endsWith(' ')) {
-      return baseCommands.filter(cmd => cmd.startsWith(lower));
+      return availableCommands.filter(cmd => cmd.startsWith(lower));
+    }
+
+    // sudo command - complete with available commands
+    if (command === 'sudo') {
+      if (args === '') {
+        return availableCommands.map(cmd => `sudo ${cmd}`);
+      }
+      const matches = availableCommands.filter(cmd => cmd.startsWith(args));
+      return matches.map(cmd => `sudo ${cmd}`);
     }
 
     // cat command completions
     if (command === 'cat') {
       // "cat " or "cat <partial>"
       if (args === '' || !args.includes('/')) {
-        // Show cat targets (about, posts/, waves/)
+        // Show cat targets (about, about.txt, posts/, waves/)
         const matchingTargets = catTargets.filter(t => t.startsWith(args));
         return matchingTargets.map(t => `cat ${t}`);
       }
@@ -1280,6 +1328,15 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
       return matches.map(t => `open ${t}`);
     }
 
+    // man command completions - show available commands
+    if (command === 'man') {
+      if (args === '') {
+        return availableCommands.map(cmd => `man ${cmd}`);
+      }
+      const matches = availableCommands.filter(cmd => cmd.startsWith(args));
+      return matches.map(cmd => `man ${cmd}`);
+    }
+
     return [];
   }
 
@@ -1293,7 +1350,10 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
     
     if (completions.length === 1) {
       // Single match - complete it
-      return { completed: completions[0], showOptions: [] };
+      // Add trailing space unless it ends with / (directory) so user can continue typing
+      const completed = completions[0];
+      const withSpace = completed.endsWith('/') ? completed : completed + ' ';
+      return { completed: withSpace, showOptions: [] };
     }
     
     // Multiple matches
@@ -1328,8 +1388,25 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
         const isDoubleTab = (now - lastTabTime < DOUBLE_TAB_THRESHOLD) && (lastTabInput === currentInput);
         lastTabTime = now;
         lastTabInput = currentInput;
+
+        // Menu-complete cycling: if we have active completions and user presses tab again
+        if (cycleCompletions.length > 1 && currentInput === cycleCompletions[cycleIndex]) {
+          // Cycle to next completion
+          cycleIndex = (cycleIndex + 1) % cycleCompletions.length;
+          terminalInput.value = cycleCompletions[cycleIndex];
+          lastTabInput = cycleCompletions[cycleIndex];
+          return;
+        }
         
         const result = handleTabCompletion(currentInput, isDoubleTab);
+        
+        // No completions available - trigger visual bell
+        if (result.completed === currentInput && result.showOptions.length === 0) {
+          const completions = getCompletions(currentInput);
+          if (completions.length === 0 && currentInput.trim() !== '') {
+            triggerVisualBell();
+          }
+        }
         
         // Update input with completion
         if (result.completed !== currentInput) {
@@ -1339,11 +1416,35 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
         
         // Show options if double-tab revealed them
         if (result.showOptions.length > 0) {
+          // Set up cycling state for menu-complete
+          cycleCompletions = result.showOptions;
+          cycleIndex = 0;
+          cycleOriginalInput = currentInput;
+          
+          // Set input to first completion for cycling
+          terminalInput.value = cycleCompletions[0];
+          lastTabInput = cycleCompletions[0];
+          
           clearTerminalOutput();
-          // Format options nicely - extract just the argument part for display
+          // Format options nicely - extract just the relevant part for display
+          // When inside a directory context (e.g., "cat posts/"), show only the filename
+          const displayInput = terminalInput.value;
           const options = result.showOptions.map(opt => {
             const parts = opt.split(' ');
-            return parts.length > 1 ? parts.slice(1).join(' ') : opt;
+            if (parts.length <= 1) return opt;
+            
+            const arg = parts.slice(1).join(' ');
+            
+            // Strip directory prefix if we're inside that directory
+            // e.g., "cat posts/" input should show "worklog" not "posts/worklog"
+            if (displayInput.includes('posts/') && arg.startsWith('posts/')) {
+              return arg.slice(6); // Remove "posts/"
+            }
+            if (displayInput.includes('waves/') && arg.startsWith('waves/')) {
+              return arg.slice(6); // Remove "waves/"
+            }
+            
+            return arg;
           });
           // Display in columns
           const perRow = 3;
@@ -1351,6 +1452,9 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
             const row = options.slice(i, i + perRow);
             print(row.map(o => `<span class="ls-file">${o}</span>`).join('  '));
           }
+        } else {
+          // Reset cycling when we get a unique completion or no suggestions
+          resetCycleState();
         }
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
@@ -1375,6 +1479,14 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
 
     terminalInput.addEventListener('keyup', function(e) {
       e.stopPropagation();
+    });
+
+    // Reset cycling state when input changes (user types something new)
+    terminalInput.addEventListener('input', function() {
+      // Only reset if the current input doesn't match any of the cycle completions
+      if (cycleCompletions.length > 0 && !cycleCompletions.includes(terminalInput.value)) {
+        resetCycleState();
+      }
     });
   }
 
@@ -1544,6 +1656,20 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
   .terminal-input::placeholder {
     color: rgba(255, 255, 255, 0.3);
     font-style: italic;
+  }
+
+  /* Visual bell animation for no completions */
+  .terminal-input.visual-bell {
+    animation: visualBell 0.15s ease;
+  }
+
+  @keyframes visualBell {
+    0%, 100% { 
+      background: transparent; 
+    }
+    50% { 
+      background: rgba(255, 100, 100, 0.15);
+    }
   }
 
   .terminal-output-popup {

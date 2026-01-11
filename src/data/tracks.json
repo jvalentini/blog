@@ -59,6 +59,16 @@
 				"pop": "pop/without-me-pop.mp3",
 				"bluegrass": "bluegrass/without-me-bluegrass.mp3"
 			}
+		},
+		{
+			"id": "ai-why-do-you-lie",
+			"title": "AI, why do you lie?",
+			"lyrics": {
+				"hip-hop": "ai-why-do-you-lie.md"
+			},
+			"versions": {
+				"hip-hop": "hip-hop/ai-why-do-you-lie-hip-hop.mp3"
+			}
 		}
 	],
 	"genres": ["hip-hop", "country", "rock", "weird", "pop", "bluegrass"],

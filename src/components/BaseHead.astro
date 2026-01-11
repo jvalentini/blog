@@ -195,29 +195,29 @@ const faqSchema: WithContext<FAQPage> | null = faq && faq.length > 0 ? {
 )}
 
 <!-- Structured Data (JSON-LD) -->
-<script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+<script is:inline type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
 
-<script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+<script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)} />
 
 {articleSchema && (
-	<script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+	<script is:inline type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
 )}
 
 {howToSchema && (
-	<script type="application/ld+json" set:html={JSON.stringify(howToSchema)} />
+	<script is:inline type="application/ld+json" set:html={JSON.stringify(howToSchema)} />
 )}
 
 {faqSchema && (
-	<script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+	<script is:inline type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 )}
 
 {breadcrumbSchema && (
-	<script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+	<script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 )}
 
 <!-- Google Analytics (GA4) with Partytown -->
-<script type="text/partytown" src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
-<script type="text/partytown">
+<script is:inline type="text/partytown" src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
+<script is:inline type="text/partytown">
 	window.dataLayer = window.dataLayer || [];
 	function gtag(){dataLayer.push(arguments);}
 	gtag('js', new Date());

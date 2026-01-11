@@ -12,7 +12,10 @@
 		"lint": "biome check --fix && oxlint --fix",
 		"lint:check": "biome check && oxlint",
 		"format": "biome format --write",
-		"check": "astro check"
+		"check": "astro check",
+		"seo:check": "bun run scripts/seo-check.ts",
+		"links:check": "linkinator ./dist --recurse --skip '^(?!http://localhost)' --skip 'https?://(?!jval\\.dev)' --verbosity error",
+		"prebuild": "bun run seo:check"
 	},
 	"dependencies": {
 		"@astrojs/mdx": "^4.3.13",

@@ -3,6 +3,7 @@ title: "Building Waves: A Genre-Switching Music Player"
 description: "Exploring the architecture, features, and technology behind a custom-built music player with genre variants, keyboard shortcuts, and real-time lyrics sync."
 pubDate: 2026-01-11
 heroImage: "../../assets/waves-hero.png"
+tags: ['astro', 'typescript', 'web-audio', 'music-player', 'ui-design']
 ---
 
 I built Waves, a music player for my blog. The main feature: toggle between hip-hop and country versions of the same song. No other player does this. It's original. Started simple, grew into more.

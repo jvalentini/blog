@@ -6,7 +6,7 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://jvalentini.pages.dev',
+	site: 'https://jval.dev',
 	integrations: [
 		mdx(),
 		sitemap({

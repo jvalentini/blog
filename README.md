@@ -1,6 +1,6 @@
-# Justin's Blog
+# jval.dev
 
-Personal blog built with Astro, deployed on Cloudflare Pages.
+Personal blog built with Astro, deployed on Cloudflare Pages at **https://jval.dev**.
 
 ## Quick Start
 

@@ -77,7 +77,11 @@ export function createPlayerState(initial: Partial<PlayerState> = {}): PlayerSta
 		if (!subscribers.has(event)) {
 			subscribers.set(event, new Set());
 		}
-		return subscribers.get(event)!;
+		const result = subscribers.get(event);
+		if (!result) {
+			throw new Error(`Subscribers not found for event: ${event}`);
+		}
+		return result;
 	}
 
 	return {

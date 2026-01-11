@@ -8,9 +8,9 @@ import tracksData from '../data/tracks.json';
 // Fetch blog post slugs at build time
 const allPosts = await getCollection('blog');
 const blogSlugs = allPosts
-  .filter((post) => !post.data.draft)
-  .map((post) => post.id)
-  .sort();
+	.filter((post) => !post.data.draft)
+	.map((post) => post.id)
+	.sort();
 
 // Get song slugs from tracks data
 const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort();

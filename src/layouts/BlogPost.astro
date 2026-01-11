@@ -18,12 +18,18 @@ type Props = CollectionEntry<'blog'>['data'] & {
 	id: string;
 };
 
-const { title, description, pubDate, updatedDate, heroImage, tags = [] } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags = [], howTo, faq } = Astro.props;
 const postUrl = Astro.url.href;
 
 const allPosts = await getPublishedPosts();
 const currentPost = allPosts.find(post => `/blog/${post.id}/` === Astro.url.pathname);
 const relatedPosts = currentPost ? getRelatedPosts(currentPost, allPosts) : [];
+
+const breadcrumbData = [
+	{ label: 'Home', url: Astro.site?.href || '/' },
+	{ label: 'Blog', url: `${Astro.site?.href || ''}/blog` },
+	{ label: title, url: postUrl },
+];
 ---
 
 <html lang="en">
@@ -33,6 +39,9 @@ const relatedPosts = currentPost ? getRelatedPosts(currentPost, allPosts) : [];
 			description={description} 
 			image={heroImage}
 			article={{ pubDate, updatedDate, tags }}
+			breadcrumbs={breadcrumbData}
+			howTo={howTo}
+			faq={faq}
 		/>
 	</head>
 

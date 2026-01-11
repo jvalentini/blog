@@ -22,17 +22,30 @@ interface ArticleData {
 	tags?: string[];
 }
 
+interface HowToStep {
+	name: string;
+	text: string;
+}
+
+interface FAQItem {
+	question: string;
+	answer: string;
+}
+
 interface Props {
 	title: string;
 	description: string;
 	image?: ImageMetadata | string;
-	playerCard?: PlayerCardProps; // Optional: enables Twitter Player Card for audio
-	article?: ArticleData; // Optional: enables Article schema for blog posts
+	playerCard?: PlayerCardProps;
+	article?: ArticleData;
+	howTo?: { steps: HowToStep[]; totalTime?: string };
+	faq?: FAQItem[];
+	breadcrumbs?: { label: string; url: string }[];
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-const { title, description, image = DEFAULT_OG_IMAGE, playerCard, article } = Astro.props;
+const { title, description, image = DEFAULT_OG_IMAGE, playerCard, article, howTo, faq, breadcrumbs } = Astro.props;
 
 // Handle both ImageMetadata and string URLs
 // For ImageMetadata, get the optimized image URL and construct full URL using site origin
@@ -150,5 +163,49 @@ const twitterCardType = playerCard ? 'player' : 'summary_large_image';
 			"@id": canonicalURL.href,
 		},
 		"keywords": article.tags?.join(', '),
+	})} />
+)}
+
+{howTo && (
+	<script type="application/ld+json" set:html={JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "HowTo",
+		"name": title,
+		"description": description,
+		"totalTime": howTo.totalTime,
+		"step": howTo.steps.map((step, index) => ({
+			"@type": "HowToStep",
+			"position": index + 1,
+			"name": step.name,
+			"text": step.text,
+		})),
+	})} />
+)}
+
+{faq && faq.length > 0 && (
+	<script type="application/ld+json" set:html={JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "FAQPage",
+		"mainEntity": faq.map((item) => ({
+			"@type": "Question",
+			"name": item.question,
+			"acceptedAnswer": {
+				"@type": "Answer",
+				"text": item.answer,
+			},
+		})),
+	})} />
+)}
+
+{breadcrumbs && breadcrumbs.length > 0 && (
+	<script type="application/ld+json" set:html={JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		"itemListElement": breadcrumbs.map((crumb, index) => ({
+			"@type": "ListItem",
+			"position": index + 1,
+			"name": crumb.label,
+			"item": crumb.url,
+		})),
 	})} />
 )}

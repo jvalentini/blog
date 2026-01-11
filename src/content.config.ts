@@ -9,15 +9,9 @@ const blog = defineCollection({
 		z.object({
 			title: z.string(),
 			description: z.string(),
-			// Transform string to Date object
 			pubDate: z.coerce.date(),
 			updatedDate: z.coerce.date().optional(),
-			// Accept image assets (relative paths to src/assets) or string URLs (external URLs)
-			// Best practice: Use relative paths (../../assets/...) for local images to enable optimization
-			// Use string URLs only for external images (https://...)
-			// Note: image() processes and optimizes images from src/assets during build
 			heroImage: z.union([image(), z.string().url()]).optional(),
-			// Cross-posting / syndication tracking
 			canonicalUrl: z.string().url().optional(),
 			syndication: z
 				.object({
@@ -28,9 +22,27 @@ const blog = defineCollection({
 					medium: z.string().url().optional(),
 				})
 				.optional(),
-			// Content metadata for social sharing
 			tags: z.array(z.string()).default([]),
 			draft: z.boolean().default(false),
+			howTo: z
+				.object({
+					steps: z.array(
+						z.object({
+							name: z.string(),
+							text: z.string(),
+						}),
+					),
+					totalTime: z.string().optional(),
+				})
+				.optional(),
+			faq: z
+				.array(
+					z.object({
+						question: z.string(),
+						answer: z.string(),
+					}),
+				)
+				.optional(),
 		}),
 });
 

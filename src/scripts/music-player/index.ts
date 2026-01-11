@@ -589,6 +589,10 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	let nextTouchActive = false;
 	let prevTouchActive = false;
 
+	// Prevent long-press context menu on seek buttons
+	elements.btnNext.addEventListener('contextmenu', (e) => e.preventDefault());
+	elements.btnPrevious.addEventListener('contextmenu', (e) => e.preventDefault());
+
 	elements.btnNext.addEventListener(
 		'touchstart',
 		() => {

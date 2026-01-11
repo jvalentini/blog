@@ -1,0 +1,181 @@
+---
+// No props needed - modal visibility is controlled via CSS class
+---
+
+<div class="hotkeys-modal" id="hotkeys-modal">
+  <div class="hotkeys-content">
+    <h3>Keyboard Shortcuts</h3>
+    <div class="hotkeys-grid">
+      <div class="hotkey-item">
+        <kbd>Space</kbd>
+        <span>Play / Pause</span>
+      </div>
+      <div class="hotkey-item">
+        <kbd>&larr;</kbd>
+        <span>Previous Track</span>
+      </div>
+      <div class="hotkey-item">
+        <kbd>&rarr;</kbd>
+        <span>Next Track</span>
+      </div>
+      <div class="hotkey-item">
+        <kbd>&uarr;</kbd>
+        <span>Volume Up</span>
+      </div>
+      <div class="hotkey-item">
+        <kbd>&darr;</kbd>
+        <span>Volume Down</span>
+      </div>
+      <div class="hotkey-item">
+        <kbd>M</kbd>
+        <span>Mute Toggle</span>
+      </div>
+      <div class="hotkey-item">
+        <kbd>S</kbd>
+        <span>Shuffle Toggle</span>
+      </div>
+      <div class="hotkey-item">
+        <kbd>R</kbd>
+        <span>Repeat Mode</span>
+      </div>
+      <div class="hotkey-item">
+        <kbd>G</kbd>
+        <span>Genre Toggle</span>
+      </div>
+      <div class="hotkey-item">
+        <kbd>/</kbd>
+        <span>Terminal</span>
+      </div>
+      <div class="hotkey-item">
+        <kbd>?</kbd>
+        <span>Show This Help</span>
+      </div>
+      <div class="hotkey-item">
+        <kbd>Esc</kbd>
+        <span>Close Modal</span>
+      </div>
+    </div>
+    <p class="hotkeys-hint">Click outside or press Esc to close</p>
+  </div>
+</div>
+
+<style>
+  /* Modal backdrop - hidden by default */
+  .hotkeys-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+
+  /* Visible state - toggled via JavaScript */
+  .hotkeys-modal.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Modal content card */
+  .hotkeys-content {
+    background: linear-gradient(135deg, var(--bg-elevated, #1a1d21) 0%, var(--bg-deep, #0d0f12) 100%);
+    border: 1px solid rgba(51, 255, 51, 0.25);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.5),
+      0 0 40px rgba(51, 255, 51, 0.1);
+    transform: scale(0.95);
+    transition: transform 0.2s ease;
+  }
+
+  .hotkeys-modal.visible .hotkeys-content {
+    transform: scale(1);
+  }
+
+  /* Title */
+  .hotkeys-content h3 {
+    margin: 0 0 1.25rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(51, 255, 51, 0.15);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--phosphor-base, #33ff33);
+    text-shadow: 0 0 10px rgba(51, 255, 51, 0.4);
+    letter-spacing: 0.5px;
+  }
+
+  /* Grid layout for shortcuts */
+  .hotkeys-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  /* Individual shortcut item */
+  .hotkey-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(51, 255, 51, 0.04);
+    border-radius: 6px;
+    border: 1px solid rgba(51, 255, 51, 0.08);
+  }
+
+  /* Keyboard key styling */
+  .hotkey-item kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 28px;
+    padding: 0 0.5rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(51, 255, 51, 0.3);
+    border-radius: 4px;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--phosphor-bright, #66ff66);
+    text-shadow: 0 0 6px rgba(51, 255, 51, 0.5);
+    box-shadow: 
+      0 2px 0 rgba(51, 255, 51, 0.2),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  /* Action description */
+  .hotkey-item span {
+    font-size: 0.8rem;
+    color: var(--text-primary, rgba(255, 255, 255, 0.85));
+  }
+
+  /* Hint text at bottom */
+  .hotkeys-hint {
+    margin: 1.25rem 0 0 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(51, 255, 51, 0.1);
+    font-size: 0.7rem;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+    text-align: center;
+    font-style: italic;
+  }
+
+  /* Mobile: single column layout */
+  @media (max-width: 480px) {
+    .hotkeys-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hotkeys-content {
+      padding: 1rem;
+    }
+  }
+</style>

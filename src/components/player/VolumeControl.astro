@@ -1,0 +1,80 @@
+---
+interface Props {
+  initialVolume?: number; // 0-10, default 7
+}
+const { initialVolume = 7 } = Astro.props;
+---
+
+<div class="volume-control">
+  <span class="volume-label">vol:</span>
+  <div class="volume-blocks" id="volume-blocks">
+    {[1,2,3,4,5,6,7,8,9,10].map(level => (
+      <div class={`volume-block ${level <= initialVolume ? 'active' : ''}`} data-level={level}></div>
+    ))}
+  </div>
+  <span class="volume-percent" id="volume-percent">{initialVolume * 10}%</span>
+</div>
+
+<style>
+  .volume-control {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .volume-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+  }
+
+  .volume-blocks {
+    display: flex;
+    gap: 3px;
+  }
+
+  .volume-block {
+    width: 8px;
+    height: 18px;
+    background: var(--border-dim);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+  }
+
+  .volume-block:hover {
+    background: var(--border-base);
+  }
+
+  .volume-block[data-level="1"].active,
+  .volume-block[data-level="2"].active,
+  .volume-block[data-level="3"].active {
+    background: #33ff33;
+    box-shadow: 0 0 4px rgba(51, 255, 51, 0.4);
+  }
+
+  .volume-block[data-level="4"].active,
+  .volume-block[data-level="5"].active,
+  .volume-block[data-level="6"].active {
+    background: #ffb84d;
+    box-shadow: 0 0 4px rgba(255, 184, 77, 0.4);
+  }
+
+  .volume-block[data-level="7"].active,
+  .volume-block[data-level="8"].active {
+    background: #ff9500;
+    box-shadow: 0 0 4px rgba(255, 149, 0, 0.4);
+  }
+
+  .volume-block[data-level="9"].active,
+  .volume-block[data-level="10"].active {
+    background: #ff3333;
+    box-shadow: 0 0 4px rgba(255, 51, 51, 0.4);
+  }
+
+  .volume-percent {
+    font-size: 0.75rem;
+    color: var(--phosphor-base);
+    min-width: 35px;
+  }
+</style>

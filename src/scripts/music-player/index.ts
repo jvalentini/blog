@@ -30,10 +30,8 @@ interface DOMElements {
 	volumeBlocks: NodeListOf<HTMLElement>;
 	queueItems: NodeListOf<HTMLElement>;
 	queueTitle: HTMLElement;
-	genreBtnHipHop: HTMLButtonElement;
-	genreBtnCountry: HTMLButtonElement;
-	genreIconMic: HTMLElement;
-	genreIconLasso: HTMLElement;
+	genreToggle: HTMLElement;
+	genreIcon: HTMLElement;
 	hotkeysModal: HTMLElement;
 	playIcon: HTMLElement;
 	pauseIcon: HTMLElement;
@@ -61,10 +59,8 @@ function getElements(): DOMElements | null {
 	const currentTrackTitle = document.getElementById('current-track-title');
 	const volumePercent = document.getElementById('volume-percent');
 	const queueTitle = document.getElementById('queue-title');
-	const genreBtnHipHop = document.getElementById('genre-btn-hip-hop') as HTMLButtonElement | null;
-	const genreBtnCountry = document.getElementById('genre-btn-country') as HTMLButtonElement | null;
-	const genreIconMic = document.getElementById('genre-icon-mic');
-	const genreIconLasso = document.getElementById('genre-icon-lasso');
+	const genreToggle = document.getElementById('genre-toggle');
+	const genreIcon = document.getElementById('genre-icon');
 	const hotkeysModal = document.getElementById('hotkeys-modal');
 	const volumeBlocks = document.querySelectorAll('.volume-block') as NodeListOf<HTMLElement>;
 	const queueItems = document.querySelectorAll('.queue-item') as NodeListOf<HTMLElement>;
@@ -90,10 +86,8 @@ function getElements(): DOMElements | null {
 		!currentTrackTitle ||
 		!volumePercent ||
 		!queueTitle ||
-		!genreBtnHipHop ||
-		!genreBtnCountry ||
-		!genreIconMic ||
-		!genreIconLasso ||
+		!genreToggle ||
+		!genreIcon ||
 		!hotkeysModal ||
 		!playIcon ||
 		!pauseIcon
@@ -119,10 +113,8 @@ function getElements(): DOMElements | null {
 		volumeBlocks,
 		queueItems,
 		queueTitle,
-		genreBtnHipHop,
-		genreBtnCountry,
-		genreIconMic,
-		genreIconLasso,
+		genreToggle,
+		genreIcon,
 		hotkeysModal,
 		playIcon,
 		pauseIcon,
@@ -133,7 +125,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	const elements = getElements();
 	if (!elements) return null;
 
-	const { tracks, lyricsData, defaultGenre } = config;
+	const { tracks, lyricsData, defaultGenre, genres } = config;
 
 	const storage = new PlayerStorage();
 	const savedSettings = storage.load();
@@ -218,16 +210,17 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	};
 
 	const updateGenreUI = (genre: Genre): void => {
-		elements.genreBtnHipHop.classList.toggle('active', genre === 'hip-hop');
-		elements.genreBtnCountry.classList.toggle('active', genre === 'country');
-		elements.genreIconMic.style.display = genre === 'hip-hop' ? 'block' : 'none';
-		elements.genreIconLasso.style.display = genre === 'country' ? 'block' : 'none';
-		elements.queueTitle.classList.toggle('country-theme', genre === 'country');
+		// Update all genre buttons
+		const genreButtons = elements.genreToggle.querySelectorAll('.genre-btn');
+		genreButtons.forEach((btn) => {
+			const btnGenre = btn.getAttribute('data-genre');
+			btn.classList.toggle('active', btnGenre === genre);
+		});
+		// Icon is now generic, no need to toggle visibility
 	};
 
 	const updateQueueListTheme = (genre: Genre): void => {
-		const queueList = document.getElementById('queue-list');
-		queueList?.classList.toggle('country-theme', genre === 'country');
+		// Theme is now generic, no specific theme classes needed
 	};
 
 	const updateShuffleUI = (enabled: boolean): void => {
@@ -407,7 +400,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		},
 		onGenreToggle: () => {
 			const currentGenre = state.get('currentGenre');
-			const newGenre: Genre = currentGenre === 'hip-hop' ? 'country' : 'hip-hop';
+			const currentIndex = genres.indexOf(currentGenre);
+			const nextIndex = (currentIndex + 1) % genres.length;
+			const newGenre = genres[nextIndex];
 			queueManager.switchGenre(newGenre);
 		},
 		onShuffleToggle: () => {
@@ -466,15 +461,15 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		});
 	});
 
-	elements.genreBtnHipHop.addEventListener('click', () => {
-		if (state.get('currentGenre') !== 'hip-hop') {
-			queueManager.switchGenre('hip-hop');
-		}
-	});
-
-	elements.genreBtnCountry.addEventListener('click', () => {
-		if (state.get('currentGenre') !== 'country') {
-			queueManager.switchGenre('country');
+	// Use event delegation for genre buttons
+	elements.genreToggle.addEventListener('click', (e) => {
+		const target = e.target as HTMLElement;
+		const genreBtn = target.closest('.genre-btn') as HTMLButtonElement | null;
+		if (genreBtn) {
+			const genre = genreBtn.getAttribute('data-genre');
+			if (genre && state.get('currentGenre') !== genre) {
+				queueManager.switchGenre(genre);
+			}
 		}
 	});
 

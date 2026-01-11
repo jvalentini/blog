@@ -4,39 +4,57 @@
 			"id": "slop-slinger",
 			"title": "Slop Slinger",
 			"lyrics": {
-				"hip-hop": "hip-hop/slop-slinger.md",
-				"country": "country/slop-slinger.md"
+				"hip-hop": "hip-hop/slop-slinger-hip-hop.md",
+				"country": "country/slop-slinger-country.md",
+				"rock": "rock/slop-slinger-rock.md",
+				"weird": "weird/slop-slinger-weird.md",
+				"pop": "pop/slop-slinger-pop.md"
 			},
 			"versions": {
-				"hip-hop": "hip-hop/slop-slinger.mp3",
-				"country": "country/slop-slinger.mp3"
+				"hip-hop": "hip-hop/slop-slinger-hip-hop.mp3",
+				"country": "country/slop-slinger-country.mp3",
+				"rock": "rock/slop-slinger-rock.mp3",
+				"weird": "weird/slop-slinger-weird.mp3",
+				"pop": "pop/slop-slinger-pop.mp3"
 			}
 		},
 		{
 			"id": "lose-yourself",
 			"title": "Lose Yourself",
 			"lyrics": {
-				"hip-hop": "hip-hop/lose-yourself.md",
-				"country": "country/lose-yourself.md"
+				"hip-hop": "hip-hop/lose-yourself-hip-hop.md",
+				"country": "country/lose-yourself-country.md",
+				"rock": "rock/lose-yourself-rock.md",
+				"weird": "weird/lose-yourself-weird.md",
+				"pop": "pop/lose-yourself-pop.md"
 			},
 			"versions": {
-				"hip-hop": "hip-hop/lose-yourself.mp3",
-				"country": "country/lose-yourself.mp3"
+				"hip-hop": "hip-hop/lose-yourself-hip-hop.mp3",
+				"country": "country/lose-yourself-country.mp3",
+				"rock": "rock/lose-yourself-rock.mp3",
+				"weird": "weird/lose-yourself-weird.mp3",
+				"pop": "pop/lose-yourself-pop.mp3"
 			}
 		},
 		{
 			"id": "without-me",
 			"title": "Without Me",
 			"lyrics": {
-				"hip-hop": "hip-hop/without-me.md",
-				"country": "country/without-me.md"
+				"hip-hop": "hip-hop/without-me-hip-hop.md",
+				"country": "country/without-me-country.md",
+				"rock": "rock/without-me-rock.md",
+				"weird": "weird/without-me-weird.md",
+				"pop": "pop/without-me-pop.md"
 			},
 			"versions": {
-				"hip-hop": "hip-hop/without-me.mp3",
-				"country": "country/without-me.mp3"
+				"hip-hop": "hip-hop/without-me-hip-hop.mp3",
+				"country": "country/without-me-country.mp3",
+				"rock": "rock/without-me-rock.mp3",
+				"weird": "weird/without-me-weird.mp3",
+				"pop": "pop/without-me-pop.mp3"
 			}
 		}
 	],
-	"genres": ["hip-hop", "country"],
+	"genres": ["hip-hop", "country", "rock", "weird", "pop"],
 	"defaultGenre": "hip-hop"
 }

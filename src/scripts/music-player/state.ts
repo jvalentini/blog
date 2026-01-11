@@ -1,6 +1,6 @@
 export type RepeatMode = 'off' | 'all' | 'one';
 
-export type Genre = 'hip-hop' | 'country';
+export type Genre = string;
 
 export interface LyricsLine {
   time?: number;

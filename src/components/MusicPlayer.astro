@@ -1,20 +1,19 @@
 ---
+import { Image } from 'astro:assets';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { Image } from 'astro:assets';
 import wavesHeroImage from '../assets/waves-hero.png';
 import tracksData from '../data/tracks.json';
-import { parseLyrics } from '../utils/lyrics-parser';
 import type { ParsedLyrics } from '../scripts/music-player/types';
-
+import { parseLyrics } from '../utils/lyrics-parser';
+import HotkeysModal from './player/HotkeysModal.astro';
+import LyricsPanel from './player/LyricsPanel.astro';
 // Sub-components
 import PlayerControls from './player/PlayerControls.astro';
-import VolumeControl from './player/VolumeControl.astro';
 import ProgressBar from './player/ProgressBar.astro';
-import LyricsPanel from './player/LyricsPanel.astro';
 import QueueList from './player/QueueList.astro';
-import HotkeysModal from './player/HotkeysModal.astro';
+import VolumeControl from './player/VolumeControl.astro';
 
 interface Song {
 	id: string;
@@ -61,8 +60,18 @@ try {
 
 		for (const [genre, filepath] of Object.entries(song.lyrics)) {
 			try {
+				// Try genre-specific path first (e.g., "hip-hop/slop-slinger-hip-hop.md")
 				const filePath = path.join(lyricsDir, filepath);
-				const markdownContent = await fs.readFile(filePath, 'utf-8');
+				let markdownContent: string;
+
+				try {
+					markdownContent = await fs.readFile(filePath, 'utf-8');
+				} catch {
+					// Fallback to parent folder (e.g., "slop-slinger.md")
+					const fallbackPath = path.join(lyricsDir, path.basename(filepath));
+					markdownContent = await fs.readFile(fallbackPath, 'utf-8');
+				}
+
 				lyricsData[song.title][genre] = parseLyrics(markdownContent);
 			} catch (err) {
 				console.warn(`Failed to load lyrics for ${song.title} (${genre}):`, err);

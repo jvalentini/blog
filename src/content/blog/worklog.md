@@ -3,6 +3,7 @@ title: 'Building Worklog: A Developer Activity Aggregator'
 description: 'How I built a CLI tool to aggregate AI coding sessions, git commits, and GitHub activity for daily standups and weekly retrospectives—in under 5 hours.'
 pubDate: 'Jan 01 2026'
 heroImage: '../../assets/worklog-hero.png'
+tags: ['typescript', 'cli', 'developer-tools', 'ai-assisted-development', 'bun']
 ---
 
 ## The Problem

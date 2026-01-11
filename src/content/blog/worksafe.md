@@ -1,8 +1,9 @@
 ---
 title: 'Building WorkSafe: A Profanity Filter with an Office Space Theme'
-description: 'How I built a TPS Report Compliance System that transforms your unfiltered workplace rage into professional communication - complete with greenbar paper, CRT monitors, and Milton''s stapler.'
+description: 'A TPS Report Compliance System that transforms unfiltered workplace thoughts into professional communication with greenbar paper and CRT monitors.'
 pubDate: 'Jan 01 2026'
 heroImage: 'https://raw.githubusercontent.com/jvalentini/worksafe/master/banner.png'
+tags: ['vue', 'typescript', 'nlp', 'ui-design', 'web-speech-api']
 ---
 
 ## The Problem

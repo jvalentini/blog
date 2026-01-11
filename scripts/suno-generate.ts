@@ -65,10 +65,21 @@ async function generateMusic(lyricsFile: string, style?: string) {
 	}
 	lastRequestTime = Date.now();
 
-	// Get API key from environment
-	const apiKey = process.env.SUNO_API_KEY;
+	// Get API key from environment (can be JWT token directly or extracted from cookies)
+	let apiKey = process.env.SUNO_API_KEY;
+	const cookies = process.env.SUNO_COOKIES;
+
+	if (!apiKey && cookies) {
+		const sessionMatch = cookies.match(/__session=([^;]+)/);
+		if (sessionMatch) {
+			apiKey = sessionMatch[1];
+		}
+	}
+
 	if (!apiKey) {
-		console.error('❌ SUNO_API_KEY environment variable not set');
+		console.error('❌ SUNO_API_KEY or SUNO_COOKIES environment variable not set');
+		console.error('   Set SUNO_API_KEY to your JWT token, or');
+		console.error('   Set SUNO_COOKIES to your browser cookies string');
 		process.exit(1);
 	}
 
@@ -168,7 +179,8 @@ function parseArgs() {
 		console.error('  style          Optional style description or @file for file path');
 		console.error('');
 		console.error('Environment:');
-		console.error('  SUNO_API_KEY  Required Suno API key');
+		console.error('  SUNO_API_KEY   JWT token from Suno (the __session cookie value)');
+		console.error('  SUNO_COOKIES   Full cookie string from browser (alternative to SUNO_API_KEY)');
 		process.exit(1);
 	}
 

@@ -1,0 +1,1216 @@
+---
+// Terminal Component - Global terminal accessible from any page
+// Music player integration is optional - works standalone on non-music pages
+---
+
+<!-- Terminal Modal - Single Line Prompt -->
+<div class="terminal-modal" id="terminal-modal">
+  <div class="terminal-output-popup" id="terminal-output"></div>
+  <div class="terminal-prompt-bar">
+    <span class="terminal-prompt-full"><span class="terminal-user">justin.valentini</span><span class="terminal-at">@</span><span class="terminal-host">blog</span><span class="terminal-colon">:</span><span class="terminal-path">~</span><span class="terminal-prompt-symbol">$</span></span>
+    <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" spellcheck="false" placeholder="type 'help' for commands" />
+  </div>
+</div>
+
+<!-- System Destruction Overlay (Easter Egg) -->
+<div class="destruction-overlay" id="destruction-overlay">
+  <div class="destruction-terminal" id="destruction-terminal"></div>
+  <div class="bios-screen" id="bios-screen">
+    <div class="bios-logo">
+      <pre>
+ █     █░ ▄▄▄    ██▒   █▓▓█████   ██████ 
+▓█░ █ ░█░▒████▄ ▓██░   █▒▓█   ▀ ▒██    ▒ 
+▒█░ █ ░█ ▒██  ▀█▄▓██  █▒░▒███   ░ ▓██▄   
+░█░ █ ░█ ░██▄▄▄▄██▒██ █░░▒▓█  ▄   ▒   ██▒
+░░██▒██▓  ▓█   ▓██▒▒▀█░  ░▒████▒▒██████▒▒
+░ ▓░▒ ▒   ▒▒   ▓▒█░░ ▐░  ░░ ▒░ ░▒ ▒▓▒ ▒ ░
+  ▒ ░ ░    ▒   ▒▒ ░░ ░░   ░ ░  ░░ ░▒  ░ ░
+  ░   ░    ░   ▒     ░░     ░   ░  ░  ░  
+    ░          ░  ░   ░     ░  ░      ░  
+      </pre>
+    </div>
+    <div class="bios-text">
+      <p>BIOS v4.20.69</p>
+      <p>Detecting hardware...</p>
+      <p class="bios-loading" id="bios-loading"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Terminal Module - Works globally, integrates with music player when available
+  
+  interface MusicPlayerAPI {
+    playNext: () => void;
+    playPrevious: () => void;
+    pauseAudio: () => void;
+    playAudio: () => void;
+    setVolume: (level: number) => void;
+    toggleShuffle: () => void;
+    toggleRepeat: () => void;
+    getState: () => {
+      currentIndex: number;
+      currentGenre: string;
+      currentTrackTitle: string | null;
+      currentTime: string;
+      duration: string;
+      volume: number;
+      shuffleEnabled: boolean;
+      repeatMode: string;
+      queueTitles: string[];
+    };
+  }
+  
+  // Global music player API - set by MusicPlayer component when present
+  declare global {
+    interface Window {
+      musicPlayerAPI?: MusicPlayerAPI;
+    }
+  }
+
+  const terminalModal = document.getElementById('terminal-modal');
+  const terminalInput = document.getElementById('terminal-input') as HTMLInputElement | null;
+  const terminalOutput = document.getElementById('terminal-output');
+  const terminalUserEl = document.querySelector('.terminal-user') as HTMLElement | null;
+  const terminalPromptSymbol = document.querySelector('.terminal-prompt-symbol') as HTMLElement | null;
+  const terminalHost = document.querySelector('.terminal-host') as HTMLElement | null;
+  
+  let terminalHistory: string[] = [];
+  let historyIndex = -1;
+  let isRoot = false;
+
+  // Update host based on current page
+  function updateHost() {
+    if (terminalHost) {
+      const path = window.location.pathname;
+      if (path.startsWith('/waves')) {
+        terminalHost.textContent = 'waves';
+      } else if (path.startsWith('/blog')) {
+        terminalHost.textContent = 'blog';
+      } else if (path === '/about') {
+        terminalHost.textContent = 'about';
+      } else {
+        terminalHost.textContent = 'blog';
+      }
+    }
+  }
+
+  function updateTerminalPrompt() {
+    if (terminalUserEl) {
+      terminalUserEl.textContent = isRoot ? 'root' : 'justin.valentini';
+      terminalUserEl.style.color = isRoot ? '#ff3333' : '';
+    }
+    if (terminalPromptSymbol) {
+      terminalPromptSymbol.textContent = isRoot ? '#' : '$';
+    }
+  }
+
+  function openTerminal() {
+    if (terminalModal) {
+      updateHost();
+      terminalModal.classList.add('visible');
+      setTimeout(() => {
+        if (terminalInput) {
+          terminalInput.focus();
+        }
+      }, 50);
+    }
+  }
+
+  function closeTerminal() {
+    if (terminalModal) {
+      terminalModal.classList.remove('visible');
+      clearTerminalOutput();
+      if (terminalInput) terminalInput.value = '';
+    }
+  }
+
+  function clearTerminalOutput() {
+    if (terminalOutput) {
+      terminalOutput.innerHTML = '';
+      terminalOutput.classList.remove('has-content');
+    }
+  }
+
+  function addTerminalLine(text: string) {
+    if (!terminalOutput) return;
+    const line = document.createElement('div');
+    line.className = 'terminal-line';
+    line.innerHTML = text;
+    terminalOutput.appendChild(line);
+    terminalOutput.classList.add('has-content');
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  }
+
+  function print(...lines: string[]) {
+    for (const text of lines) {
+      addTerminalLine(text);
+    }
+  }
+
+  function navigate(path: string, message?: string) {
+    if (message) addTerminalLine(message);
+    setTimeout(() => { window.location.href = path; }, 300);
+  }
+
+  // Check if music player is available
+  function hasMusicPlayer(): boolean {
+    return typeof window.musicPlayerAPI !== 'undefined';
+  }
+
+  function formatTime(seconds: number): string {
+    if (!isFinite(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return mins + ':' + secs.toString().padStart(2, '0');
+  }
+
+  function processCommand(cmd: string) {
+    const trimmed = cmd.trim().toLowerCase();
+    const parts = trimmed.split(/\s+/);
+    const command = parts[0];
+    const args = parts.slice(1).join(' ');
+
+    clearTerminalOutput();
+
+    // Known slugs
+    const blogSlugs = ['slop-slinger', 'introducing-bakery', 'building-speak-strong', 'building-tabgen', 'building-worklog', 'building-worksafe'];
+
+    // === HELP ===
+    if (trimmed === 'help') {
+      print('<span class="cmd">cd</span> · <span class="cmd">ls</span> · <span class="cmd">cat</span> · <span class="cmd">open</span> · <span class="cmd">clear</span> · <span class="cmd">exit</span>');
+      if (hasMusicPlayer()) {
+        print('<span class="cmd">play</span> · <span class="cmd">pause</span> · <span class="cmd">next</span> · <span class="cmd">prev</span> · <span class="cmd">volume</span> · <span class="cmd">queue</span>');
+        print('<span class="cmd">&lt;/&gt;</span> · <span class="cmd">mute</span> · <span class="cmd">loop</span> · <span class="cmd">info</span> · <span class="cmd">shuffle</span> · <span class="cmd">repeat</span>');
+      }
+      return;
+    }
+
+    if (trimmed === '') return;
+
+    // === NAVIGATION ===
+    if (trimmed === 'cd' || trimmed === 'cd home' || trimmed === 'cd ~' || trimmed === 'cd /') {
+      navigate('/', 'Navigating to home...');
+    } else if (trimmed === 'cd posts' || trimmed === 'cd posts/' || trimmed === 'cd blog' || trimmed === 'cd blog/') {
+      navigate('/blog', 'Navigating to posts...');
+    } else if (trimmed === 'cd waves' || trimmed === 'cd waves/' || trimmed === 'cd music' || trimmed === 'cd music/') {
+      navigate('/waves', 'Navigating to waves...');
+    } else if (trimmed === 'cd about' || trimmed === 'cd about/') {
+      navigate('/about', 'Navigating to about...');
+    } else if (command === 'cd') {
+      print(`bash: cd: ${args}: No such directory. Try: ~, posts, waves, about`);
+    }
+    // === LS ===
+    else if (trimmed === 'ls') {
+      print('<span class="ls-dir">posts/</span>  <span class="ls-dir">waves/</span>  <span class="ls-file">about.txt</span>  <span class="ls-file">README.md</span>');
+    } else if (trimmed === 'ls posts' || trimmed === 'ls posts/' || trimmed === 'ls blog' || trimmed === 'ls blog/') {
+      print('<span class="ls-file">slop-slinger.md</span>  <span class="ls-file">introducing-bakery.md</span>  <span class="ls-file">building-speak-strong.md</span>');
+      print('<span class="ls-file">building-tabgen.md</span>  <span class="ls-file">building-worklog.md</span>  <span class="ls-file">building-worksafe.md</span>');
+    } else if (trimmed === 'ls waves' || trimmed === 'ls waves/' || trimmed === 'ls music' || trimmed === 'ls music/') {
+      print('<span class="ls-file">slop-slinger.mp3</span>  <span class="ls-file">lose-yourself.mp3</span>  <span class="ls-file">without-me.mp3</span>');
+    } else if (command === 'ls') {
+      print(`ls: cannot access '${args}': No such file or directory`);
+    }
+    // === CAT ===
+    else if (trimmed === 'cat about' || trimmed === 'cat about.txt') {
+      print('Hey, I\'m Justin. I build things with code and occasionally make music.');
+    } else if (trimmed === 'cat readme.md' || trimmed === 'cat readme') {
+      print('# justin.blog - Personal blog and music. Press / for terminal, ? for shortcuts.');
+    } else if (trimmed === 'cat /etc/passwd') {
+      print(
+        'root:x:0:0:root:/root:/bin/bash',
+        'daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin',
+        'bin:x:2:2:bin:/bin:/usr/sbin/nologin',
+        'sys:x:3:3:sys:/dev:/usr/sbin/nologin',
+        'www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin',
+        'justin.valentini:x:1000:1000:Justin Valentini:/home/justin.valentini:/bin/bash',
+        'postgres:x:109:117:PostgreSQL administrator:/var/lib/postgresql:/bin/bash',
+        'node:x:1001:1001:Node.js:/home/node:/bin/bash'
+      );
+    } else if (trimmed === 'cat /etc/shadow') {
+      print(
+        'root:$6$rounds=656000$saltsalt:18945:0:99999:7:::',
+        'justin.valentini:$6$yourmom$notactuallyhashed:19847:0:99999:7:::',
+        'cat: /etc/shadow: Nice try reading the shadow file 😏'
+      );
+    } else if (command === 'cat') {
+      const catArg = args.replace(/\.md$/, '').replace(/^posts\//, '').replace(/^blog\//, '');
+      if (blogSlugs.includes(catArg)) {
+        navigate(`/blog/${catArg}`, `Opening ${catArg}...`);
+      } else {
+        print(`cat: ${args}: No such file or directory`);
+      }
+    }
+    // === OPEN ===
+    else if (command === 'open') {
+      const pages: Record<string, string> = { 'about': '/about', 'blog': '/blog', 'posts': '/blog', 'waves': '/waves', 'home': '/', '~': '/' };
+      const openArg = args.replace(/\.mp3$/, '').replace(/^waves\//, '');
+      if (pages[args]) {
+        navigate(pages[args], `Opening ${args}...`);
+      } else if (blogSlugs.includes(openArg)) {
+        navigate(`/blog/${openArg}`, `Opening ${openArg}...`);
+      } else if (args) {
+        print(`open: ${args}: not found. Try: about, blog, waves, home`);
+      } else {
+        print('Usage: open <page>');
+      }
+    }
+    // === CLEAR/EXIT ===
+    else if (trimmed === 'clear') {
+      clearTerminalOutput();
+    } else if (trimmed === 'exit' || trimmed === 'quit' || trimmed === 'q' || trimmed === 'logout') {
+      if (isRoot) {
+        isRoot = false;
+        updateTerminalPrompt();
+        print('logout', 'Returning to justin.valentini...');
+      } else {
+        closeTerminal();
+      }
+    }
+    // === SUDO / ROOT ===
+    else if (trimmed === 'sudo rm -rf /' || trimmed === 'sudo rm -rf /*' || (isRoot && (trimmed === 'rm -rf /' || trimmed === 'rm -rf /*'))) {
+      triggerDestruction();
+    } else if (trimmed === 'rm -rf /' || trimmed === 'rm -rf /*') {
+      print('rm: cannot remove \'/\': Permission denied. Try sudo.');
+    } else if (command === 'rm' && !isRoot) {
+      print(`rm: cannot remove '${args}': Permission denied`);
+    } else if (command === 'rm' && isRoot) {
+      print(`rm: removed '${args}'`);
+    } else if (trimmed === 'sudo su' || trimmed === 'sudo -i' || trimmed === 'sudo bash' || trimmed === 'su' || trimmed === 'su -' || trimmed === 'sudo -s') {
+      isRoot = true;
+      updateTerminalPrompt();
+      print('root@blog:~# You are now root. With great power comes great responsibility.');
+    } else if (command === 'sudo') {
+      print(`[sudo] password for justin.valentini: `, '(just kidding, you\'re already authorized)');
+      if (args) {
+        const sudoCmd = args.trim();
+        if (sudoCmd === 'rm -rf /' || sudoCmd === 'rm -rf /*') {
+          triggerDestruction();
+        } else {
+          print(`Executed: ${sudoCmd}`);
+        }
+      }
+    }
+    // === MUSIC COMMANDS (only when player available) ===
+    else if (trimmed === 'next' || trimmed === 'n') {
+      if (hasMusicPlayer()) {
+        window.musicPlayerAPI!.playNext();
+        closeTerminal();
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'prev' || trimmed === 'previous' || trimmed === 'p') {
+      if (hasMusicPlayer()) {
+        window.musicPlayerAPI!.playPrevious();
+        closeTerminal();
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'pause' || trimmed === 'stop') {
+      if (hasMusicPlayer()) {
+        window.musicPlayerAPI!.pauseAudio();
+        print('Paused');
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'play' || trimmed === 'resume' || trimmed === 'unpause') {
+      if (hasMusicPlayer()) {
+        window.musicPlayerAPI!.playAudio();
+        closeTerminal();
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (command === 'volume' || command === 'vol') {
+      if (hasMusicPlayer()) {
+        const state = window.musicPlayerAPI!.getState();
+        const vol = parseInt(args);
+        if (!isNaN(vol) && vol >= 0 && vol <= 100) {
+          window.musicPlayerAPI!.setVolume(Math.round(vol / 10));
+          print(`Volume: ${vol}%`);
+        } else if (args === 'up') {
+          const newVol = Math.min(10, Math.round(state.volume * 10) + 1);
+          window.musicPlayerAPI!.setVolume(newVol);
+          print(`Volume: ${newVol * 10}%`);
+        } else if (args === 'down') {
+          const newVol = Math.max(0, Math.round(state.volume * 10) - 1);
+          window.musicPlayerAPI!.setVolume(newVol);
+          print(`Volume: ${newVol * 10}%`);
+        } else {
+          print(`Volume: ${Math.round(state.volume * 100)}%`);
+        }
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'shuffle') {
+      if (hasMusicPlayer()) {
+        window.musicPlayerAPI!.toggleShuffle();
+        const state = window.musicPlayerAPI!.getState();
+        print(`Shuffle: ${state.shuffleEnabled ? 'on' : 'off'}`);
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'repeat') {
+      if (hasMusicPlayer()) {
+        window.musicPlayerAPI!.toggleRepeat();
+        const state = window.musicPlayerAPI!.getState();
+        print(`Repeat: ${state.repeatMode}`);
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'queue' || trimmed === 'playlist') {
+      if (hasMusicPlayer()) {
+        const state = window.musicPlayerAPI!.getState();
+        state.queueTitles.forEach((title, idx) => {
+          const marker = idx === state.currentIndex ? '▶ ' : '  ';
+          print(`${marker}${idx + 1}. ${title}`);
+        });
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'nowplaying' || trimmed === 'np') {
+      if (hasMusicPlayer()) {
+        const state = window.musicPlayerAPI!.getState();
+        if (state.currentIndex >= 0 && state.currentTrackTitle) {
+          print(`♫ ${state.currentTrackTitle} [${state.currentTime}/${state.duration}]`);
+        } else {
+          print('Nothing playing');
+        }
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    }
+    // === ADVANCED MUSIC COMMANDS ===
+    else if (command === 'seek') {
+      if (hasMusicPlayer()) {
+        print('Seek functionality coming soon! For now use the progress bar.');
+        print('Try: seek +5, seek -10, seek 50%, seek 1:30');
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'mute' || trimmed === 'm') {
+      if (hasMusicPlayer()) {
+        const state = window.musicPlayerAPI!.getState();
+        if (state.volume > 0) {
+          window.musicPlayerAPI!.setVolume(0);
+          print('🔇 Muted');
+        } else {
+          window.musicPlayerAPI!.setVolume(7); // Default volume
+          print('🔊 Unmuted');
+        }
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'loop' || trimmed === 'repeat one' || trimmed === 'repeat-one') {
+      if (hasMusicPlayer()) {
+        window.musicPlayerAPI!.toggleRepeat();
+        const state = window.musicPlayerAPI!.getState();
+        if (state.repeatMode === 'one') {
+          print('🔁 Loop: One track');
+        } else {
+          print(`🔁 Loop: ${state.repeatMode}`);
+        }
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'fullscreen' || trimmed === 'fs') {
+      if (hasMusicPlayer()) {
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+          print('Exited fullscreen');
+        } else {
+          document.documentElement.requestFullscreen();
+          print('Entered fullscreen');
+        }
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (command === 'speed' || command === 'rate') {
+      if (hasMusicPlayer()) {
+        print('Playback speed control coming soon!');
+        print('Try: speed 0.5, speed 1.25, speed 1.5, speed normal');
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'info' || trimmed === 'trackinfo') {
+      if (hasMusicPlayer()) {
+        const state = window.musicPlayerAPI!.getState();
+        if (state.currentIndex >= 0 && state.currentTrackTitle) {
+          print(`🎵 Track Info:`);
+          print(`   Title: ${state.currentTrackTitle}`);
+          print(`   Genre: ${state.currentGenre}`);
+          print(`   Position: ${state.currentIndex + 1}/${state.queueTitles.length}`);
+          print(`   Time: ${state.currentTime}/${state.duration}`);
+          print(`   Volume: ${Math.round(state.volume * 10)}/10`);
+          print(`   Shuffle: ${state.shuffleEnabled ? 'On' : 'Off'}`);
+          print(`   Repeat: ${state.repeatMode}`);
+        } else {
+          print('No track currently playing');
+        }
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'lyrics' || trimmed === 'lyric') {
+      if (hasMusicPlayer()) {
+        print('Lyrics toggle coming soon! (They\'re always visible for now)');
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === 'quality' || trimmed === 'q') {
+      if (hasMusicPlayer()) {
+        print('Audio quality: High (MP3)');
+        print('Available formats: hip-hop, country versions');
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === '<' || trimmed === 'back' || trimmed === 'rewind') {
+      if (hasMusicPlayer()) {
+        print('⏪ Seeking backward 5 seconds...');
+        // This would need seek API - for now just show it's coming
+        setTimeout(() => print('Feature coming soon!'), 500);
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    } else if (trimmed === '>' || trimmed === 'forward' || trimmed === 'ff') {
+      if (hasMusicPlayer()) {
+        print('⏩ Seeking forward 5 seconds...');
+        // This would need seek API - for now just show it's coming
+        setTimeout(() => print('Feature coming soon!'), 500);
+      } else {
+        print('Music player not available. Try: cd waves');
+      }
+    }
+    // === INFO COMMANDS ===
+    else if (trimmed === 'whoami') {
+      print(isRoot ? 'root' : 'justin.valentini');
+    } else if (trimmed === 'id') {
+      print(isRoot 
+        ? 'uid=0(root) gid=0(root) groups=0(root)'
+        : 'uid=1000(justin.valentini) gid=1000(justin.valentini) groups=1000(justin.valentini),27(sudo),docker');
+    } else if (trimmed === 'pwd') {
+      print(isRoot ? '/root' : '/home/justin.valentini' + window.location.pathname);
+    } else if (trimmed === 'date') {
+      print(new Date().toString());
+    } else if (trimmed === 'uptime') {
+      print(' ' + new Date().toLocaleTimeString() + ' up 42 days,  3:14,  1 user,  load average: 0.52, 0.58, 0.59');
+    } else if (trimmed === 'uname' || trimmed === 'uname -a') {
+      print('JustinOS 1.0.0 justin.blog x86_64 JavaScript/Vibes');
+    }
+    // === FUN COMMANDS ===
+    else if (trimmed === 'cowsay' || command === 'cowsay') {
+      const msg = args || 'moo';
+      print(
+        '        \\   ^__^',
+        '         \\  (oo)\\_______',
+        '            (__)\\       )\\/\\',
+        '                ||----w |',
+        '                ||     ||',
+        `< ${msg} >`
+      );
+    } else if (trimmed === 'matrix' || trimmed === 'cmatrix') {
+      print('Wake up, Neo...');
+      setTimeout(() => triggerMatrixRain(), 500);
+    } else if (trimmed === 'neofetch') {
+      const musicInfo = hasMusicPlayer() ? window.musicPlayerAPI!.getState().currentTrackTitle || 'None' : 'N/A';
+      print(
+        '<span class="neofetch-logo">      ●</span>    <span class="cmd">justin.valentini</span>@<span class="host">blog</span>',
+        '<span class="neofetch-logo">    ●   ●</span>  ────────────────────',
+        '<span class="neofetch-logo">  ●   ●   ●</span> <span class="cmd">OS:</span> JustinOS 1.0',
+        '<span class="neofetch-logo">●   ●   ●   </span><span class="cmd">Host:</span> justin.blog',
+        '<span class="neofetch-logo">  ●   ●   ●</span> <span class="cmd">Shell:</span> waveshell',
+        `<span class="neofetch-logo">    ●   ●</span>  <span class="cmd">Music:</span> ${musicInfo}`,
+        `<span class="neofetch-logo">      ●</span>    <span class="cmd">Page:</span> ${window.location.pathname}`
+      );
+    } else if (trimmed === 'sl') {
+      print(
+        '      ====        ________                ',
+        '  _D _|  |_______/        \\__I_I_____===__|',
+        '   |(_)---  |   H\\________/ |   |        =|',
+        '   /     |  |   H  |  |     |   |         |',
+        '  |      |  |   H  |__--------------------| ',
+        '  | ________|___H__/__|_____/[][]~\\_______|',
+        '  |/ |   |-----------I_____I [][] []  D   |',
+        '__/ =| o |=-~~\\  /~~\\  /~~\\  /~~\\ ____Y_________',
+        ' |/-=|___|=    ||    ||    ||    |_____/~\\___/',
+        '  \\_/      \\O=====O=====O=====O_/      \\_/'
+      );
+    } else if (command === 'echo') {
+      print(args || '');
+    } else if (trimmed === 'hack') {
+      print(
+        'ACCESSING MAINFRAME...',
+        'BYPASSING FIREWALL...',
+        'DOWNLOADING user_data.db...',
+        '████████████████████ 100%',
+        'Just kidding. You\'re not that cool.'
+      );
+    } else if (trimmed === '1337' || trimmed === 'leet') {
+      print('y0u 4r3 n0w 1n 1337 m0d3');
+    } else if (trimmed === 'vim' || trimmed === 'vi' || trimmed === 'nano' || trimmed === 'emacs') {
+      print('~', '~', '~  You\'re trapped. Press Esc 47 times to exit.', '~  (just kidding, closing in 3 seconds...)', '~', '-- INSERT --');
+      setTimeout(() => closeTerminal(), 3000);
+    } else if (trimmed === 'fortune') {
+      const fortunes = [
+        '"There are only two hard things in CS: cache invalidation, naming things, and off-by-one errors."',
+        '"It works on my machine." - Every developer ever',
+        '"99 little bugs in the code, 99 little bugs. Take one down, patch it around, 127 little bugs in the code."',
+        '"A SQL query walks into a bar, walks up to two tables and asks... may I join you?"',
+        '"Why do programmers prefer dark mode? Because light attracts bugs."',
+        '"The best code is no code at all."',
+        '"First, solve the problem. Then, write the code." - John Johnson',
+        '"Code is like humor. When you have to explain it, it\'s bad." - Cory House',
+        '"Deleted code is debugged code." - Jeff Sickel',
+        '"If debugging is the process of removing bugs, then programming must be the process of putting them in."'
+      ];
+      print(fortunes[Math.floor(Math.random() * fortunes.length)]);
+    } else if (command === 'ping') {
+      const host = args || 'localhost';
+      const ip = host === 'localhost' || host === '127.0.0.1' ? '127.0.0.1' : `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+      print(
+        `PING ${host} (${ip}): 56 data bytes`,
+        `64 bytes from ${ip}: icmp_seq=0 ttl=64 time=${(Math.random() * 50).toFixed(3)} ms`,
+        `64 bytes from ${ip}: icmp_seq=1 ttl=64 time=${(Math.random() * 50).toFixed(3)} ms`,
+        `64 bytes from ${ip}: icmp_seq=2 ttl=64 time=${(Math.random() * 50).toFixed(3)} ms`,
+        '',
+        `--- ${host} ping statistics ---`,
+        '3 packets transmitted, 3 packets received, 0.0% packet loss'
+      );
+    } else if (command === 'ssh') {
+      print(`ssh: connect to host ${args || 'localhost'} port 22: Connection refused`);
+    } else if (trimmed === 'git status') {
+      print(
+        'On branch main',
+        'Your life is 3 commits behind \'goals\'.',
+        '  (use "git pull yourself together" to update)',
+        '',
+        'Untracked files:',
+        '  <span class="ls-file">anxiety.js</span>',
+        '  <span class="ls-file">imposter-syndrome.ts</span>',
+        '  <span class="ls-file">coffee-dependency.lock</span>'
+      );
+    } else if (trimmed === 'git pull' || trimmed === 'git pull yourself together') {
+      print('Already up to date. (mentally, at least)');
+    } else if (command === 'git') {
+      print(`git: '${args}' is not a git command. Try 'git status'.`);
+    } else if (trimmed === 'rm -rf node_modules' || trimmed === 'rm -rf ./node_modules') {
+      print('Ah, the universal fix.', 'Removing node_modules... (547,832 files)', 'Done. Now run: bun install');
+    } else if (command === 'man') {
+      if (args) {
+        print(
+          `<span class="cmd">${args.toUpperCase()}(1)</span>                   User Commands                   <span class="cmd">${args.toUpperCase()}(1)</span>`,
+          '',
+          '<span class="cmd">NAME</span>',
+          `       ${args} - does something probably`,
+          '',
+          '<span class="cmd">SYNOPSIS</span>',
+          `       ${args} [OPTIONS] [ARGS]`,
+          '',
+          '<span class="cmd">DESCRIPTION</span>',
+          '       Real programmers don\'t read manuals.',
+          '       They prefer Stack Overflow and vibes.'
+        );
+      } else {
+        print('What manual page do you want?');
+      }
+    } else if (command === 'curl') {
+      if (!args) {
+        print('curl: try \'curl --help\' for more information');
+      } else {
+        print(
+          '  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current',
+          '                                 Dload  Upload   Total   Spent    Left  Speed',
+          '100  1256  100  1256    0     0  12560      0 --:--:-- --:--:-- --:--:-- 12560',
+          '<!DOCTYPE html>',
+          '<html>',
+          '<head><title>Example Domain</title></head>',
+          '<body><h1>Example Domain</h1></body>',
+          '</html>'
+        );
+      }
+    } else if (command === 'wget') {
+      if (!args) {
+        print('wget: missing URL');
+      } else {
+        const host = args.replace(/https?:\/\//, '').split('/')[0];
+        print(
+          `--${new Date().toISOString().slice(0, 10)}--  ${args}`,
+          `Resolving ${host}... done.`,
+          'Connecting... connected.',
+          'HTTP request sent, awaiting response... 200 OK',
+          'Length: 1256 (1.2K) [text/html]',
+          'Saving to: \'index.html\'',
+          '',
+          'index.html          100%[===================>]   1.23K  --.-KB/s    in 0s',
+          '',
+          `${new Date().toISOString().slice(0, 10)} - \'index.html\' saved [1256/1256]`
+        );
+      }
+    } else if (trimmed === 'top' || trimmed === 'htop') {
+      print(
+        'top - ' + new Date().toLocaleTimeString() + ' up 42 days,  3:14,  1 user,  load average: 0.52, 0.58, 0.59',
+        'Tasks: 127 total,   1 running, 126 sleeping,   0 stopped,   0 zombie',
+        '%Cpu(s):  2.3 us,  0.7 sy,  0.0 ni, 96.7 id,  0.3 wa,  0.0 hi,  0.0 si',
+        'MiB Mem :  16384.0 total,   8234.2 free,   4521.8 used,   3628.0 buff/cache',
+        '',
+        '  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     COMMAND',
+        ' 1337 justin    20   0  512344  45612  12344 S   2.3   0.3     node',
+        ' 4040 justin    20   0  256128  32456   8192 S   1.2   0.2     bun',
+        ' 8080 www-data  20   0  128064  16384   4096 S   0.7   0.1     nginx',
+        '  420 postgres  20   0  384512  65536  16384 S   0.3   0.4     postgres',
+        '    1 root      20   0    4096   2048   1024 S   0.0   0.0     systemd'
+      );
+    } else if (command === 'which') {
+      const bins: Record<string, string> = {
+        'node': '/usr/local/bin/node', 'bun': '/usr/local/bin/bun',
+        'git': '/usr/bin/git', 'vim': '/usr/bin/vim', 'bash': '/bin/bash',
+        'cat': '/bin/cat', 'ls': '/bin/ls', 'cd': 'cd is a shell builtin',
+        'python': '/usr/bin/python3', 'npm': '/usr/local/bin/npm',
+      };
+      if (!args) print('which: missing argument');
+      else print(bins[args] || `${args} not found`);
+    } else if (trimmed === 'yes') {
+      print('y', 'y', 'y (okay that\'s enough)');
+    } else if (trimmed === 'no') {
+      print('Understandable, have a nice day.');
+    } else if (trimmed === 'please') {
+      print('Since you asked nicely... still no.');
+    } else if (trimmed === 'hello' || trimmed === 'hi' || trimmed === 'hey') {
+      print('Hey! 👋 Type "help" to see what you can do.');
+    } else if (trimmed === 'history') {
+      if (terminalHistory.length === 0) {
+        print('No history yet');
+      } else {
+        terminalHistory.forEach((c, idx) => {
+          print(`${idx + 1}  ${c}`);
+        });
+      }
+    }
+    // === FALLBACK ===
+    else {
+      print(`bash: ${command}: command not found`);
+    }
+  }
+
+  // Matrix rain effect
+  function triggerMatrixRain() {
+    closeTerminal();
+    const canvas = document.createElement('canvas');
+    canvas.id = 'matrix-canvas';
+    canvas.style.cssText = 'position:fixed;inset:0;z-index:9998;background:#000;';
+    document.body.appendChild(canvas);
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789';
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops: number[] = Array(Math.floor(columns)).fill(1);
+    
+    let frameCount = 0;
+    const maxFrames = 180;
+    
+    function draw() {
+      if (!ctx) return;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = '#0f0';
+      ctx.font = fontSize + 'px monospace';
+      
+      for (let i = 0; i < drops.length; i++) {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+        
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+      
+      frameCount++;
+      if (frameCount < maxFrames) {
+        requestAnimationFrame(draw);
+      } else {
+        canvas.remove();
+      }
+    }
+    draw();
+  }
+
+  // System destruction Easter egg
+  function triggerDestruction() {
+    closeTerminal();
+    
+    const overlay = document.getElementById('destruction-overlay');
+    const terminal = document.getElementById('destruction-terminal');
+    const biosScreen = document.getElementById('bios-screen');
+    const biosLoading = document.getElementById('bios-loading');
+    
+    if (!overlay || !terminal) return;
+    
+    overlay.classList.add('active');
+    
+    const messages = [
+      { text: 'rm: removing /home/guest/music/*', delay: 0 },
+      { text: 'rm: removing /var/log/*', delay: 400 },
+      { text: 'rm: removing /usr/share/sounds/*', delay: 700 },
+      { text: 'rm: removing /etc/passwd', delay: 1000 },
+      { text: 'rm: WARNING: removing system files', delay: 1300 },
+      { text: 'rm: removing /boot/vmlinuz', delay: 1600 },
+      { text: 'rm: removing /bin/bash', delay: 1900 },
+      { text: 'KERNEL PANIC - not syncing: Attempted to kill init!', delay: 2300 },
+      { text: '---[ end Kernel panic ]---', delay: 2600 },
+    ];
+
+    // Start deleting page elements
+    setTimeout(() => {
+      const elements = document.querySelectorAll('header, footer, main > *:not(.destruction-overlay)');
+      let i = 0;
+      const deleteInterval = setInterval(() => {
+        if (i < elements.length) {
+          const el = elements[i] as HTMLElement;
+          el.style.transition = 'all 0.3s ease';
+          el.style.transform = 'scale(0.95) translateY(10px)';
+          el.style.opacity = '0';
+          el.style.filter = 'blur(4px)';
+          i++;
+        } else {
+          clearInterval(deleteInterval);
+        }
+      }, 200);
+    }, 500);
+
+    // Display destruction messages
+    messages.forEach(({ text, delay }) => {
+      setTimeout(() => {
+        const line = document.createElement('div');
+        line.className = 'destruction-line';
+        line.textContent = text;
+        terminal.appendChild(line);
+        terminal.scrollTop = terminal.scrollHeight;
+      }, delay);
+    });
+
+    // Show BIOS after destruction
+    setTimeout(() => {
+      terminal.style.display = 'none';
+      if (biosScreen) biosScreen.classList.add('active');
+      
+      const loadingSteps = [
+        'Memory OK: 640K base, 32768K extended',
+        'CPU: Quantum i9-9900K @ 4.20GHz',
+        'Initializing USB controllers... Done',
+        'Loading justin.sys...',
+        'Restoring user data...',
+        'System restored successfully.',
+        '',
+        'Just kidding. Everything is fine. 😈',
+      ];
+      
+      let step = 0;
+      const loadingInterval = setInterval(() => {
+        if (step < loadingSteps.length && biosLoading) {
+          const line = document.createElement('p');
+          line.textContent = loadingSteps[step];
+          biosLoading.appendChild(line);
+          step++;
+        } else {
+          clearInterval(loadingInterval);
+          
+          setTimeout(() => {
+            const elements = document.querySelectorAll('header, footer, main > *');
+            elements.forEach(el => {
+              const htmlEl = el as HTMLElement;
+              htmlEl.style.transition = 'all 0.5s ease';
+              htmlEl.style.transform = '';
+              htmlEl.style.opacity = '';
+              htmlEl.style.filter = '';
+            });
+            
+            overlay.classList.remove('active');
+            terminal.style.display = '';
+            terminal.innerHTML = '';
+            if (biosScreen) biosScreen.classList.remove('active');
+            if (biosLoading) biosLoading.innerHTML = '';
+          }, 2500);
+        }
+      }, 400);
+    }, 3200);
+  }
+
+  // Tab completions
+  const tabCompletions: Record<string, string> = {
+    '': 'help', 'h': 'help', 'he': 'help', 'hel': 'help',
+    'c': 'cd ~', 'cd': 'cd ~',
+    'l': 'ls', 'ls': 'ls posts', 'ls ': 'ls posts', 'ls p': 'ls posts', 'ls w': 'ls waves',
+    'ca': 'cat about', 'cat': 'cat about', 'cat ': 'cat about', 'cat a': 'cat about', 'cat r': 'cat readme',
+    'cl': 'clear', 'cle': 'clear', 'clea': 'clear',
+    'n': 'next', 'ne': 'next', 'nex': 'next',
+    'pr': 'prev', 'pre': 'prev', 'prev': 'prev',
+    'pa': 'pause', 'pau': 'pause', 'paus': 'pause',
+    'pl': 'play', 'pla': 'play',
+    're': 'resume', 'res': 'resume', 'resu': 'resume', 'resum': 'resume',
+    'v': 'volume', 'vo': 'volume', 'vol': 'volume',
+    'sh': 'shuffle', 'shu': 'shuffle', 'shuf': 'shuffle',
+    'rep': 'repeat', 'repe': 'repeat', 'repea': 'repeat',
+    'q': 'queue', 'qu': 'queue', 'que': 'queue', 'queu': 'queue',
+    'np': 'nowplaying', 'now': 'nowplaying',
+    'mu': 'mute', 'mut': 'mute',
+    'loo': 'loop', 'loop': 'loop',
+    'in': 'info', 'inf': 'info', 'info': 'info',
+    'fs': 'fullscreen', 'ful': 'fullscreen',
+    'o': 'open ', 'op': 'open ', 'ope': 'open ', 'open': 'open ',
+    'w': 'whoami', 'wh': 'whoami', 'who': 'whoami',
+    'pw': 'pwd',
+    'd': 'date', 'da': 'date', 'dat': 'date',
+    'co': 'cowsay', 'cow': 'cowsay',
+    'm': 'matrix', 'ma': 'matrix', 'mat': 'matrix',
+    'neo': 'neofetch', 'neof': 'neofetch',
+    'sl': 'sl',
+    'e': 'echo ', 'ec': 'echo ', 'ech': 'echo ',
+    'ha': 'hack', 'hac': 'hack',
+    'hi': 'history', 'his': 'history', 'hist': 'history',
+    'su': 'sudo su', 'sud': 'sudo su', 'sudo': 'sudo su',
+  };
+
+  function getTabCompletion(input: string): string | null {
+    return tabCompletions[input.toLowerCase()] || null;
+  }
+
+  // Terminal input handling
+  if (terminalInput) {
+    terminalInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const cmd = terminalInput.value;
+        if (cmd.trim()) {
+          terminalHistory.push(cmd);
+          historyIndex = terminalHistory.length;
+        }
+        processCommand(cmd);
+        terminalInput.value = '';
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        const completion = getTabCompletion(terminalInput.value);
+        if (completion) {
+          terminalInput.value = completion;
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (historyIndex > 0) {
+          historyIndex--;
+          terminalInput.value = terminalHistory[historyIndex] || '';
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex < terminalHistory.length - 1) {
+          historyIndex++;
+          terminalInput.value = terminalHistory[historyIndex] || '';
+        } else {
+          historyIndex = terminalHistory.length;
+          terminalInput.value = '';
+        }
+      } else if (e.key === 'Escape') {
+        closeTerminal();
+      }
+      e.stopPropagation();
+    });
+
+    terminalInput.addEventListener('keyup', function(e) {
+      e.stopPropagation();
+    });
+  }
+
+  // Close on backdrop click
+  if (terminalModal) {
+    terminalModal.addEventListener('click', function(e) {
+      if (e.target === terminalModal) {
+        closeTerminal();
+      }
+    });
+  }
+
+  // Global keyboard shortcut to open terminal
+  document.addEventListener('keydown', function(e) {
+    // Ignore if typing in input/textarea
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || (e.target as HTMLElement).isContentEditable) {
+      return;
+    }
+    
+    if (e.key === '/') {
+      e.preventDefault();
+      openTerminal();
+    } else if (e.key === 'Escape') {
+      closeTerminal();
+    }
+  });
+
+  // Expose terminal API globally
+  (window as any).terminalAPI = {
+    open: openTerminal,
+    close: closeTerminal,
+  };
+</script>
+
+<style>
+  /* Terminal Modal - Single Line Prompt */
+  .terminal-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease, visibility 0.15s ease;
+  }
+
+  .terminal-modal.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .terminal-prompt-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(51, 255, 51, 0.4);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.5),
+      0 0 30px rgba(51, 255, 51, 0.2),
+      inset 0 1px 0 rgba(51, 255, 51, 0.1);
+    transform: translateY(-10px);
+    transition: transform 0.15s ease;
+  }
+
+  .terminal-modal.visible .terminal-prompt-bar {
+    transform: translateY(0);
+  }
+
+  .terminal-prompt-full {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+  }
+
+  .terminal-user {
+    color: var(--phosphor-bright, #66ff66);
+    text-shadow: 0 0 8px rgba(51, 255, 51, 0.5);
+  }
+
+  .terminal-at {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .terminal-host {
+    color: #5c9eff;
+    text-shadow: 0 0 8px rgba(92, 158, 255, 0.4);
+  }
+
+  .terminal-colon {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .terminal-path {
+    color: var(--amber-base, #ffb000);
+    text-shadow: 0 0 8px rgba(255, 176, 0, 0.4);
+  }
+
+  .terminal-prompt-symbol {
+    color: rgba(255, 255, 255, 0.6);
+    margin-left: 0.25rem;
+    margin-right: 0.5rem;
+  }
+
+  .terminal-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--font-mono, monospace);
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.95);
+    caret-color: var(--phosphor-base, #33ff33);
+  }
+
+  .terminal-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+    font-style: italic;
+  }
+
+  .terminal-output-popup {
+    margin-bottom: 1rem;
+    background: rgba(10, 15, 10, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(51, 255, 51, 0.25);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    width: 90%;
+    max-width: 500px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--phosphor-base, #33ff33);
+    display: none;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(51, 255, 51, 0.1),
+      inset 0 1px 0 rgba(51, 255, 51, 0.1);
+    transform: translateY(10px);
+    opacity: 0;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .terminal-output-popup.has-content {
+    display: block;
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .terminal-output-popup::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .terminal-output-popup::-webkit-scrollbar-thumb {
+    background: rgba(51, 255, 51, 0.3);
+    border-radius: 2px;
+  }
+
+  .terminal-line {
+    margin-bottom: 0.25rem;
+  }
+
+  .terminal-line .ls-dir {
+    color: #5c9eff;
+  }
+
+  .terminal-line .ls-file {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .terminal-line .cmd {
+    color: var(--phosphor-bright, #66ff66);
+    font-weight: 600;
+  }
+
+  .terminal-line .host {
+    color: #5c9eff;
+  }
+
+  .terminal-line .neofetch-logo {
+    color: var(--phosphor-bright, #66ff66);
+    text-shadow: 0 0 8px rgba(51, 255, 51, 0.6);
+  }
+
+  /* Destruction Overlay (Easter Egg) */
+  .destruction-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .destruction-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .destruction-terminal {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    right: 2rem;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.9rem;
+    color: #ff3333;
+    text-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .destruction-line {
+    margin-bottom: 0.5rem;
+    animation: glitchIn 0.1s ease;
+  }
+
+  @keyframes glitchIn {
+    0% { 
+      opacity: 0; 
+      transform: translateX(-10px);
+      filter: blur(2px);
+    }
+    100% { 
+      opacity: 1; 
+      transform: translateX(0);
+      filter: blur(0);
+    }
+  }
+
+  .bios-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--phosphor-base, #33ff33);
+    font-family: var(--font-mono, monospace);
+  }
+
+  .bios-screen.active {
+    display: flex;
+  }
+
+  .bios-logo {
+    margin-bottom: 2rem;
+  }
+
+  .bios-logo pre {
+    font-size: 0.5rem;
+    line-height: 1.2;
+    color: var(--phosphor-bright, #66ff66);
+    text-shadow: 0 0 20px rgba(51, 255, 51, 0.6);
+    margin: 0;
+  }
+
+  .bios-text {
+    font-size: 0.85rem;
+    text-align: left;
+  }
+
+  .bios-text p {
+    margin: 0.4rem 0;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  #bios-loading p:last-child {
+    color: var(--amber-base, #ffb000);
+  }
+</style>

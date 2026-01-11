@@ -403,39 +403,7 @@ const clientTracks = tracks.map(t => ({
   </div>
 </div>
 
-<!-- Terminal Modal - Single Line Prompt -->
-<div class="terminal-modal" id="terminal-modal">
-  <div class="terminal-output-popup" id="terminal-output"></div>
-  <div class="terminal-prompt-bar">
-    <span class="terminal-prompt-full"><span class="terminal-user">guest</span><span class="terminal-at">@</span><span class="terminal-host">waves</span><span class="terminal-colon">:</span><span class="terminal-path">~</span><span class="terminal-prompt-symbol">$</span></span>
-    <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" spellcheck="false" placeholder="type 'help' for commands" />
-  </div>
-</div>
 
-<!-- System Destruction Overlay (Easter Egg) -->
-<div class="destruction-overlay" id="destruction-overlay">
-  <div class="destruction-terminal" id="destruction-terminal"></div>
-  <div class="bios-screen" id="bios-screen">
-    <div class="bios-logo">
-      <pre>
- █     █░ ▄▄▄    ██▒   █▓▓█████   ██████ 
-▓█░ █ ░█░▒████▄ ▓██░   █▒▓█   ▀ ▒██    ▒ 
-▒█░ █ ░█ ▒██  ▀█▄▓██  █▒░▒███   ░ ▓██▄   
-░█░ █ ░█ ░██▄▄▄▄██▒██ █░░▒▓█  ▄   ▒   ██▒
-░░██▒██▓  ▓█   ▓██▒▒▀█░  ░▒████▒▒██████▒▒
-░ ▓░▒ ▒   ▒▒   ▓▒█░░ ▐░  ░░ ▒░ ░▒ ▒▓▒ ▒ ░
-  ▒ ░ ░    ▒   ▒▒ ░░ ░░   ░ ░  ░░ ░▒  ░ ░
-  ░   ░    ░   ▒     ░░     ░   ░  ░  ░  
-    ░          ░  ░   ░     ░  ░      ░  
-      </pre>
-    </div>
-    <div class="bios-text">
-      <p>BIOS v4.20.69</p>
-      <p>Detecting hardware...</p>
-      <p class="bios-loading" id="bios-loading"></p>
-    </div>
-  </div>
-</div>
 
 <script is:inline define:vars={{ lyricsData: lyricsData || {}, clientTracks, defaultGenre, genres }}>
   const lyrics = typeof lyricsData !== 'undefined' ? lyricsData : {};
@@ -941,6 +909,30 @@ const clientTracks = tracks.map(t => ({
     loadTrack(0, false);
   }
 
+  // Expose music player API for terminal integration
+  window.musicPlayerAPI = {
+    playNext: playNext,
+    playPrevious: playPrevious,
+    pauseAudio: function() { audio.pause(); },
+    playAudio: function() { audio.play(); },
+    setVolume: setVolume,
+    toggleShuffle: toggleShuffle,
+    toggleRepeat: toggleRepeat,
+    getState: function() {
+      return {
+        currentIndex: currentIndex,
+        currentGenre: currentGenre,
+        currentTrackTitle: currentIndex >= 0 ? queueItems[currentIndex]?.dataset.title || null : null,
+        currentTime: formatTime(audio.currentTime),
+        duration: formatTime(audio.duration),
+        volume: audio.volume,
+        shuffleEnabled: shuffleEnabled,
+        repeatMode: repeatMode,
+        queueTitles: Array.from(queueItems).map(function(item) { return item.dataset.title || ''; })
+      };
+    }
+  };
+
   // Keyboard hotkeys
   let previousVolume = audio.volume;
   
@@ -996,19 +988,50 @@ const clientTracks = tracks.map(t => ({
         }
         break;
         
-      case 'g': // Toggle genre
-      case 'G':
-        e.preventDefault();
-        const newGenre = currentGenre === 'hip-hop' ? 'country' : 'hip-hop';
-        switchGenre(newGenre);
-        updateGenreUI(newGenre);
-        break;
-        
-      case 's': // Toggle shuffle
-      case 'S':
-        e.preventDefault();
-        toggleShuffle();
-        break;
+       case 'g': // Toggle genre
+       case 'G':
+         e.preventDefault();
+         const newGenre = currentGenre === 'hip-hop' ? 'country' : 'hip-hop';
+         switchGenre(newGenre);
+         updateGenreUI(newGenre);
+         break;
+
+       case 's': // Toggle shuffle
+       case 'S':
+         e.preventDefault();
+         toggleShuffle();
+         break;
+
+       // Vim-style navigation hotkeys
+       case 'h': // Left - previous
+         e.preventDefault();
+         playPrevious();
+         break;
+
+       case 'j': // Down - next
+         e.preventDefault();
+         playNext();
+         break;
+
+       case 'k': // Up - previous
+         e.preventDefault();
+         playPrevious();
+         break;
+
+       case 'l': // Right - next
+         e.preventDefault();
+         playNext();
+         break;
+
+       case 'n': // Next
+         e.preventDefault();
+         playNext();
+         break;
+
+       case 'p': // Previous
+         e.preventDefault();
+         playPrevious();
+         break;
         
       case 'r': // Toggle repeat
       case 'R':
@@ -1108,14 +1131,7 @@ const clientTracks = tracks.map(t => ({
         closeHotkeysModal();
       }
     });
-  }
-
-  // Terminal functionality
-  const terminalModal = document.getElementById('terminal-modal');
-  const terminalInput = document.getElementById('terminal-input');
-  const terminalOutput = document.getElementById('terminal-output');
-  let terminalHistory = [];
-  let historyIndex = -1;
+   }
 
   function openTerminal() {
     if (terminalModal) {
@@ -1163,52 +1179,91 @@ const clientTracks = tracks.map(t => ({
     // Clear previous output
     clearTerminalOutput();
 
+    // Known blog post slugs
+    const blogSlugs = ['slop-slinger', 'introducing-bakery', 'building-speak-strong', 'building-tabgen', 'building-worklog', 'building-worksafe'];
+    // Known song slugs (from tracksData)
+    const songSlugs = tracksData.map(t => t.songId);
+
     // Process commands
     if (trimmed === 'help') {
-      addTerminalLine('<span class="cmd">cd</span> · <span class="cmd">ls</span> · <span class="cmd">cat</span> · <span class="cmd">play</span> · <span class="cmd">clear</span> · <span class="cmd">exit</span>');
+      addTerminalLine('<span class="cmd">cd</span> · <span class="cmd">ls</span> · <span class="cmd">cat</span> · <span class="cmd">open</span> · <span class="cmd">clear</span> · <span class="cmd">exit</span>');
     } else if (trimmed === '') {
       // Do nothing for empty input
-    } else if (trimmed === 'cd' || trimmed === 'cd home' || trimmed === 'cd ~') {
-      addTerminalLine('~');
+    } else if (trimmed === 'cd' || trimmed === 'cd home' || trimmed === 'cd ~' || trimmed === 'cd /') {
+      addTerminalLine('Navigating to home...');
+      setTimeout(() => window.location.href = '/', 300);
+    } else if (trimmed === 'cd posts' || trimmed === 'cd posts/' || trimmed === 'cd blog' || trimmed === 'cd blog/') {
+      addTerminalLine('Navigating to posts...');
+      setTimeout(() => window.location.href = '/blog', 300);
+    } else if (trimmed === 'cd waves' || trimmed === 'cd waves/' || trimmed === 'cd music' || trimmed === 'cd music/') {
+      addTerminalLine('Navigating to waves...');
+      setTimeout(() => window.location.href = '/waves', 300);
+    } else if (trimmed === 'cd about' || trimmed === 'cd about/') {
+      addTerminalLine('Navigating to about...');
+      setTimeout(() => window.location.href = '/about', 300);
     } else if (command === 'cd') {
-      addTerminalLine(`bash: cd: ${args}: Permission denied`);
+      addTerminalLine(`bash: cd: ${args}: No such directory. Try: ~, posts, waves, about`);
     } else if (trimmed === 'ls') {
       addTerminalLine('<span class="ls-dir">posts/</span>  <span class="ls-dir">waves/</span>  <span class="ls-file">about.txt</span>  <span class="ls-file">README.md</span>');
-    } else if (trimmed === 'ls posts' || trimmed === 'ls posts/') {
+    } else if (trimmed === 'ls posts' || trimmed === 'ls posts/' || trimmed === 'ls blog' || trimmed === 'ls blog/') {
       addTerminalLine('<span class="ls-file">slop-slinger.md</span>  <span class="ls-file">introducing-bakery.md</span>  <span class="ls-file">building-speak-strong.md</span>');
-    } else if (trimmed === 'ls waves' || trimmed === 'ls waves/') {
+      addTerminalLine('<span class="ls-file">building-tabgen.md</span>  <span class="ls-file">building-worklog.md</span>  <span class="ls-file">building-worksafe.md</span>');
+    } else if (trimmed === 'ls waves' || trimmed === 'ls waves/' || trimmed === 'ls music' || trimmed === 'ls music/') {
       addTerminalLine('<span class="ls-file">slop-slinger.mp3</span>  <span class="ls-file">lose-yourself.mp3</span>  <span class="ls-file">without-me.mp3</span>');
     } else if (command === 'ls') {
       addTerminalLine(`ls: cannot access '${args}': No such file or directory`);
-    } else if (trimmed === 'play' || trimmed === 'play waves') {
-      closeTerminal();
-      if (currentIndex < 0) {
-        loadTrack(0, true);
-      } else {
-        audio.play();
-      }
     } else if (trimmed === 'cat about' || trimmed === 'cat about.txt') {
       addTerminalLine('Hey, I\'m Justin. I build things with code and occasionally make music.');
     } else if (trimmed === 'cat readme.md' || trimmed === 'cat readme') {
       addTerminalLine('# waves - A music player for original tracks. Press ? for shortcuts.');
     } else if (command === 'cat') {
-      addTerminalLine(`cat: ${args}: No such file or directory`);
+      // Check if it's a blog post slug
+      const catArg = args.replace(/\.md$/, '').replace(/^posts\//, '').replace(/^blog\//, '');
+      if (blogSlugs.includes(catArg)) {
+        addTerminalLine(`Opening ${catArg}...`);
+        setTimeout(() => window.location.href = `/blog/${catArg}`, 300);
+      } else {
+        addTerminalLine(`cat: ${args}: No such file or directory`);
+      }
     } else if (trimmed === 'clear' || trimmed === 'exit' || trimmed === 'quit') {
       closeTerminal();
-    } else if (trimmed === 'sudo rm -rf /' || trimmed === 'sudo rm -rf /*') {
+    } else if (trimmed === 'sudo rm -rf /' || trimmed === 'sudo rm -rf /*' || (isRoot && (trimmed === 'rm -rf /' || trimmed === 'rm -rf /*'))) {
       triggerDestruction();
     } else if (trimmed === 'rm -rf /' || trimmed === 'rm -rf /*') {
       addTerminalLine('rm: cannot remove \'/\': Permission denied. Try sudo.');
-    } else if (command === 'rm') {
+    } else if (command === 'rm' && !isRoot) {
       addTerminalLine(`rm: cannot remove '${args}': Permission denied`);
-    } else if (command === 'sudo' && args) {
-      addTerminalLine('guest is not in the sudoers file. This incident will be reported.');
+    } else if (command === 'rm' && isRoot) {
+      addTerminalLine(`rm: removed '${args}'`);
+    } else if (trimmed === 'sudo su' || trimmed === 'sudo -i' || trimmed === 'sudo bash' || trimmed === 'su' || trimmed === 'su -' || trimmed === 'sudo -s') {
+      isRoot = true;
+      updateTerminalPrompt();
+      addTerminalLine('root@waves:~# You are now root. With great power comes great responsibility.');
+    } else if (command === 'sudo') {
+      // Execute the command after sudo as if it worked
+      addTerminalLine(`[sudo] password for justin.valentini: `);
+      addTerminalLine('(just kidding, you\'re already authorized)');
+      // Re-process the command without sudo
+      if (args) {
+        const sudoCmd = args.trim();
+        if (sudoCmd === 'rm -rf /' || sudoCmd === 'rm -rf /*') {
+          triggerDestruction();
+        } else {
+          addTerminalLine(`Executed: ${sudoCmd}`);
+        }
+      }
     }
     // === EASTER EGG COMMANDS ===
     else if (trimmed === 'whoami') {
-      addTerminalLine('guest (but we both know you\'re a legend)');
+      addTerminalLine(isRoot ? 'root' : 'justin.valentini');
+    } else if (trimmed === 'id') {
+      if (isRoot) {
+        addTerminalLine('uid=0(root) gid=0(root) groups=0(root)');
+      } else {
+        addTerminalLine('uid=1000(justin.valentini) gid=1000(justin.valentini) groups=1000(justin.valentini),27(sudo),docker');
+      }
     } else if (trimmed === 'pwd') {
-      addTerminalLine('/home/guest/waves');
+      addTerminalLine(isRoot ? '/root' : '/home/justin.valentini/waves');
     } else if (trimmed === 'date') {
       addTerminalLine(new Date().toString());
     } else if (trimmed === 'cowsay' || command === 'cowsay') {
@@ -1225,14 +1280,23 @@ const clientTracks = tracks.map(t => ({
     }
     // === NAVIGATION COMMANDS ===
     else if (command === 'open') {
-      const pages = { 'about': '/about', 'blog': '/blog', 'waves': '/waves', 'home': '/' };
+      const pages = { 'about': '/about', 'blog': '/blog', 'posts': '/blog', 'waves': '/waves', 'home': '/', '~': '/' };
+      const openArg = args.replace(/\.mp3$/, '').replace(/^waves\//, '');
       if (pages[args]) {
         addTerminalLine(`Opening ${args}...`);
         setTimeout(() => window.location.href = pages[args], 300);
+      } else if (songSlugs.includes(openArg)) {
+        // Open specific song page
+        addTerminalLine(`Opening ${openArg}...`);
+        setTimeout(() => window.location.href = `/waves/${openArg}`, 300);
+      } else if (blogSlugs.includes(openArg)) {
+        // Also allow opening blog posts with 'open'
+        addTerminalLine(`Opening ${openArg}...`);
+        setTimeout(() => window.location.href = `/blog/${openArg}`, 300);
       } else if (args) {
-        addTerminalLine(`open: ${args}: page not found. Try: about, blog, waves, home`);
+        addTerminalLine(`open: ${args}: not found. Try: about, blog, waves, home, or a song/post slug`);
       } else {
-        addTerminalLine('Usage: open <page> (about, blog, waves, home)');
+        addTerminalLine('Usage: open <page|song|post>');
       }
     }
     // === MUSIC COMMANDS ===
@@ -1295,8 +1359,8 @@ const clientTracks = tracks.map(t => ({
         });
       }
     } else if (trimmed === 'neofetch') {
-      addTerminalLine('<span class="neofetch-logo">      ●</span>    <span class="cmd">guest</span>@<span class="host">waves</span>');
-      addTerminalLine('<span class="neofetch-logo">    ●   ●</span>  ──────────────');
+      addTerminalLine('<span class="neofetch-logo">      ●</span>    <span class="cmd">justin.valentini</span>@<span class="host">waves</span>');
+      addTerminalLine('<span class="neofetch-logo">    ●   ●</span>  ────────────────────');
       addTerminalLine('<span class="neofetch-logo">  ●   ●   ●</span> <span class="cmd">OS:</span> WavesOS 1.0');
       addTerminalLine('<span class="neofetch-logo">●   ●   ●   </span><span class="cmd">Host:</span> justin.blog');
       addTerminalLine('<span class="neofetch-logo">  ●   ●   ●</span> <span class="cmd">Shell:</span> waveshell');
@@ -1323,6 +1387,177 @@ const clientTracks = tracks.map(t => ({
       addTerminalLine('Just kidding. You\'re not that cool.');
     } else if (trimmed === '1337' || trimmed === 'leet') {
       addTerminalLine('y0u 4r3 n0w 1n 1337 m0d3');
+    }
+    // === MORE FUN COMMANDS ===
+    else if (trimmed === 'vim' || trimmed === 'vi' || trimmed === 'nano' || trimmed === 'emacs') {
+      addTerminalLine('~');
+      addTerminalLine('~');
+      addTerminalLine('~  You\'re trapped. Press Esc 47 times to exit.');
+      addTerminalLine('~  (just kidding, closing in 3 seconds...)');
+      addTerminalLine('~');
+      addTerminalLine('-- INSERT --');
+      setTimeout(() => closeTerminal(), 3000);
+    } else if (trimmed === 'fortune') {
+      const fortunes = [
+        '"There are only two hard things in CS: cache invalidation, naming things, and off-by-one errors."',
+        '"It works on my machine." - Every developer ever',
+        '"99 little bugs in the code, 99 little bugs. Take one down, patch it around, 127 little bugs in the code."',
+        '"A SQL query walks into a bar, walks up to two tables and asks... may I join you?"',
+        '"Why do programmers prefer dark mode? Because light attracts bugs."',
+        '"The best code is no code at all."',
+        '"First, solve the problem. Then, write the code." - John Johnson',
+        '"Code is like humor. When you have to explain it, it\'s bad." - Cory House',
+        '"Deleted code is debugged code." - Jeff Sickel',
+        '"If debugging is the process of removing bugs, then programming must be the process of putting them in."'
+      ];
+      addTerminalLine(fortunes[Math.floor(Math.random() * fortunes.length)]);
+    } else if (command === 'ping') {
+      const host = args || 'localhost';
+      const ip = host === 'localhost' || host === '127.0.0.1' ? '127.0.0.1' : `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+      addTerminalLine(`PING ${host} (${ip}): 56 data bytes`);
+      addTerminalLine(`64 bytes from ${ip}: icmp_seq=0 ttl=64 time=${(Math.random() * 50).toFixed(3)} ms`);
+      addTerminalLine(`64 bytes from ${ip}: icmp_seq=1 ttl=64 time=${(Math.random() * 50).toFixed(3)} ms`);
+      addTerminalLine(`64 bytes from ${ip}: icmp_seq=2 ttl=64 time=${(Math.random() * 50).toFixed(3)} ms`);
+      addTerminalLine('');
+      addTerminalLine(`--- ${host} ping statistics ---`);
+      addTerminalLine('3 packets transmitted, 3 packets received, 0.0% packet loss');
+    } else if (command === 'ssh') {
+      const target = args || 'localhost';
+      addTerminalLine(`ssh: connect to host ${target} port 22: Connection refused`);
+    } else if (trimmed === 'git status') {
+      addTerminalLine('On branch main');
+      addTerminalLine('Your life is 3 commits behind \'goals\'.');
+      addTerminalLine('  (use "git pull yourself together" to update)');
+      addTerminalLine('');
+      addTerminalLine('Untracked files:');
+      addTerminalLine('  <span class="ls-file">anxiety.js</span>');
+      addTerminalLine('  <span class="ls-file">imposter-syndrome.ts</span>');
+      addTerminalLine('  <span class="ls-file">coffee-dependency.lock</span>');
+    } else if (trimmed === 'git pull' || trimmed === 'git pull yourself together') {
+      addTerminalLine('Already up to date. (mentally, at least)');
+    } else if (command === 'git') {
+      addTerminalLine(`git: '${args}' is not a git command. Try 'git status'.`);
+    } else if (trimmed === 'rm -rf node_modules' || trimmed === 'rm -rf ./node_modules') {
+      addTerminalLine('Ah, the universal fix.');
+      addTerminalLine('Removing node_modules... (547,832 files)');
+      addTerminalLine('Done. Now run: bun install');
+    } else if (command === 'man') {
+      if (args) {
+        addTerminalLine(`<span class="cmd">${args.toUpperCase()}(1)</span>                   User Commands                   <span class="cmd">${args.toUpperCase()}(1)</span>`);
+        addTerminalLine('');
+        addTerminalLine('<span class="cmd">NAME</span>');
+        addTerminalLine(`       ${args} - does something probably`);
+        addTerminalLine('');
+        addTerminalLine('<span class="cmd">SYNOPSIS</span>');
+        addTerminalLine(`       ${args} [OPTIONS] [ARGS]`);
+        addTerminalLine('');
+        addTerminalLine('<span class="cmd">DESCRIPTION</span>');
+        addTerminalLine('       Real programmers don\'t read manuals.');
+        addTerminalLine('       They prefer Stack Overflow and vibes.');
+      } else {
+        addTerminalLine('What manual page do you want?');
+      }
+    } else if (command === 'curl') {
+      const url = args || 'https://example.com';
+      if (!args) {
+        addTerminalLine('curl: try \'curl --help\' for more information');
+      } else {
+        addTerminalLine(`  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current`);
+        addTerminalLine(`                                 Dload  Upload   Total   Spent    Left  Speed`);
+        addTerminalLine(`100  1256  100  1256    0     0  12560      0 --:--:-- --:--:-- --:--:-- 12560`);
+        addTerminalLine('<!DOCTYPE html>');
+        addTerminalLine('<html>');
+        addTerminalLine('<head><title>Example Domain</title></head>');
+        addTerminalLine('<body><h1>Example Domain</h1></body>');
+        addTerminalLine('</html>');
+      }
+    } else if (command === 'wget') {
+      const url = args || '';
+      if (!args) {
+        addTerminalLine('wget: missing URL');
+      } else {
+        addTerminalLine(`--2025-01-11 01:35:00--  ${url}`);
+        addTerminalLine(`Resolving ${url.replace(/https?:\/\//, '').split('/')[0]}... done.`);
+        addTerminalLine('Connecting... connected.');
+        addTerminalLine('HTTP request sent, awaiting response... 200 OK');
+        addTerminalLine('Length: 1256 (1.2K) [text/html]');
+        addTerminalLine('Saving to: \'index.html\'');
+        addTerminalLine('');
+        addTerminalLine('index.html          100%[===================>]   1.23K  --.-KB/s    in 0s');
+        addTerminalLine('');
+        addTerminalLine('2025-01-11 01:35:00 (12.5 MB/s) - \'index.html\' saved [1256/1256]');
+      }
+    } else if (trimmed === 'top' || trimmed === 'htop') {
+      addTerminalLine('top - 01:35:00 up 42 days,  3:14,  1 user,  load average: 0.52, 0.58, 0.59');
+      addTerminalLine('Tasks: 127 total,   1 running, 126 sleeping,   0 stopped,   0 zombie');
+      addTerminalLine('%Cpu(s):  2.3 us,  0.7 sy,  0.0 ni, 96.7 id,  0.3 wa,  0.0 hi,  0.0 si');
+      addTerminalLine('MiB Mem :  16384.0 total,   8234.2 free,   4521.8 used,   3628.0 buff/cache');
+      addTerminalLine('');
+      addTerminalLine('  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     COMMAND');
+      addTerminalLine(' 1337 justin    20   0  512344  45612  12344 S   2.3   0.3     node');
+      addTerminalLine(' 4040 justin    20   0  256128  32456   8192 S   1.2   0.2     bun');
+      addTerminalLine(' 8080 www-data  20   0  128064  16384   4096 S   0.7   0.1     nginx');
+      addTerminalLine('  420 postgres  20   0  384512  65536  16384 S   0.3   0.4     postgres');
+      addTerminalLine('    1 root      20   0    4096   2048   1024 S   0.0   0.0     systemd');
+    } else if (trimmed === 'cat /etc/passwd') {
+      addTerminalLine('root:x:0:0:root:/root:/bin/bash');
+      addTerminalLine('daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin');
+      addTerminalLine('bin:x:2:2:bin:/bin:/usr/sbin/nologin');
+      addTerminalLine('sys:x:3:3:sys:/dev:/usr/sbin/nologin');
+      addTerminalLine('www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin');
+      addTerminalLine('justin.valentini:x:1000:1000:Justin Valentini:/home/justin.valentini:/bin/bash');
+      addTerminalLine('postgres:x:109:117:PostgreSQL administrator:/var/lib/postgresql:/bin/bash');
+      addTerminalLine('node:x:1001:1001:Node.js:/home/node:/bin/bash');
+    } else if (trimmed === 'cat /etc/shadow') {
+      addTerminalLine('root:$6$rounds=656000$saltsalt:18945:0:99999:7:::');
+      addTerminalLine('justin.valentini:$6$yourmom$notactuallyhashed:19847:0:99999:7:::');
+      addTerminalLine('cat: /etc/shadow: Nice try reading the shadow file 😏');
+    } else if (trimmed === 'cmatrix') {
+      addTerminalLine('Wake up, Neo...');
+      setTimeout(() => triggerMatrixRain(), 500);
+    } else if (trimmed === 'uptime') {
+      addTerminalLine(' 01:35:00 up 42 days,  3:14,  1 user,  load average: 0.52, 0.58, 0.59');
+    } else if (trimmed === 'uname -a' || trimmed === 'uname') {
+      addTerminalLine('WavesOS 1.0.0 justin.blog x86_64 JavaScript/Vibes');
+    } else if (command === 'which') {
+      const knownCommands = {
+        'node': '/usr/local/bin/node',
+        'bun': '/usr/local/bin/bun',
+        'git': '/usr/bin/git',
+        'vim': '/usr/bin/vim',
+        'bash': '/bin/bash',
+        'cat': '/bin/cat',
+        'ls': '/bin/ls',
+        'cd': 'cd is a shell builtin',
+        'python': '/usr/bin/python3',
+        'npm': '/usr/local/bin/npm',
+      };
+      if (args && knownCommands[args]) {
+        addTerminalLine(knownCommands[args]);
+      } else if (args) {
+        addTerminalLine(`${args} not found`);
+      } else {
+        addTerminalLine('which: missing argument');
+      }
+    } else if (trimmed === 'yes') {
+      addTerminalLine('y');
+      addTerminalLine('y');
+      addTerminalLine('y (okay that\'s enough)');
+    } else if (trimmed === 'no') {
+      addTerminalLine('Understandable, have a nice day.');
+    } else if (trimmed === 'please') {
+      addTerminalLine('Since you asked nicely... still no.');
+    } else if (trimmed === 'hello' || trimmed === 'hi' || trimmed === 'hey') {
+      addTerminalLine('Hey! 👋 Type "help" to see what you can do.');
+    } else if (trimmed === 'exit' || trimmed === 'quit' || trimmed === 'q' || trimmed === 'logout') {
+      if (isRoot) {
+        isRoot = false;
+        updateTerminalPrompt();
+        addTerminalLine('logout');
+        addTerminalLine('Returning to justin.valentini...');
+      } else {
+        closeTerminal();
+      }
     }
     // === FALLBACK ===
     else {

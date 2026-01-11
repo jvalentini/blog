@@ -13,6 +13,20 @@ const pageDescription = 'A collection of original tracks and creative experiment
 	</section>
 </BaseLayout>
 
+<style is:global>
+	/* Hide scrollbar on waves page */
+	html:has(.player-section) {
+		overflow-y: auto;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+	
+	html:has(.player-section)::-webkit-scrollbar {
+		display: none;
+		width: 0;
+	}
+</style>
+
 <style>
 	.player-section {
 		margin-bottom: var(--space-3xl);

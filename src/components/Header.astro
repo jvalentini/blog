@@ -8,9 +8,9 @@ const pathDisplay = segments.length > 0 ? segments.join('/') : 'home';
 
 <header>
 	<nav>
-		<a href="/" class="terminal-prompt">
-			<span class="user">justin.valentini</span><span class="at">@</span><span class="host">blog</span><span class="colon">:</span><span class="path">~/{pathDisplay}</span><span class="dollar">$</span>
-		</a>
+		<button type="button" class="terminal-prompt" aria-label="Open terminal (or press /)" tabindex="0">
+			<span class="user">justin.valentini</span><span class="at">@</span><span class="host">blog</span><span class="colon">:</span><span class="path">~/{pathDisplay}</span><span class="dollar">$</span><span class="cursor">_</span>
+		</button>
 		
 		<button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
 			<span class="hamburger-line"></span>
@@ -67,6 +67,24 @@ const pathDisplay = segments.length > 0 ? segments.join('/') : 'home';
 		menuToggle.setAttribute('aria-expanded', (!isExpanded).toString());
 		navMenu?.classList.toggle('open');
 	});
+
+	// Terminal prompt button handler
+	const terminalPrompt = document.querySelector('.terminal-prompt');
+	
+	terminalPrompt?.addEventListener('click', () => {
+		if (typeof window.terminalAPI !== 'undefined') {
+			window.terminalAPI.open();
+		}
+	});
+
+	terminalPrompt?.addEventListener('keydown', (e) => {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			if (typeof window.terminalAPI !== 'undefined') {
+				window.terminalAPI.open();
+			}
+		}
+	});
 </script>
 
 <style>
@@ -95,11 +113,30 @@ const pathDisplay = segments.length > 0 ? segments.join('/') : 'home';
 		overflow: hidden;
 		text-overflow: ellipsis;
 		text-decoration: none;
-		transition: opacity var(--transition-fast);
+		transition: all var(--transition-fast);
+		background: transparent;
+		border: none;
+		padding: var(--space-xs) var(--space-sm);
+		margin: calc(-1 * var(--space-xs)) calc(-1 * var(--space-sm));
+		cursor: pointer;
+		font-family: inherit;
+		color: inherit;
+		display: flex;
+		align-items: center;
+		border-radius: 4px;
 	}
 
 	.terminal-prompt:hover {
-		opacity: 0.8;
+		background-color: var(--bg-surface);
+	}
+
+	.terminal-prompt:focus {
+		outline: 2px solid var(--phosphor-base);
+		outline-offset: 2px;
+	}
+
+	.terminal-prompt:focus:not(:focus-visible) {
+		outline: none;
 	}
 
 	.user { color: var(--phosphor-base); }
@@ -110,6 +147,24 @@ const pathDisplay = segments.length > 0 ? segments.join('/') : 'home';
 	.dollar { 
 		color: var(--phosphor-base); 
 		margin-left: var(--space-xs);
+	}
+
+	.cursor {
+		color: var(--phosphor-base, #33ff33);
+		margin-left: 2px;
+		animation: blink 1s step-end infinite;
+		transition: color 0.2s ease, transform 0.2s ease;
+		display: inline-block;
+	}
+
+	.terminal-prompt:hover .cursor {
+		color: var(--phosphor-bright, #66ff66);
+		transform: scale(1.1);
+	}
+
+	@keyframes blink {
+		0%, 50% { opacity: 1; }
+		51%, 100% { opacity: 0; }
 	}
 
 	.nav-commands {
@@ -226,6 +281,8 @@ const pathDisplay = segments.length > 0 ? segments.join('/') : 'home';
 		.terminal-prompt {
 			flex: 1;
 			min-width: 0;
+			min-height: 44px;
+			padding: var(--space-sm) var(--space-md);
 		}
 
 		.menu-toggle {
@@ -291,6 +348,10 @@ const pathDisplay = segments.length > 0 ? segments.join('/') : 'home';
 
 		.dollar {
 			display: none;
+		}
+
+		.cursor {
+			display: inline;
 		}
 	}
 </style>

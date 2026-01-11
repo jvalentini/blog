@@ -236,6 +236,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		if (repeatOne) repeatOne.style.display = mode === 'one' ? 'block' : 'none';
 	};
 
+	let pendingSeekTime: number | null = null;
+	let pendingAutoplay: boolean = false;
+
 	const queueManager = new QueueManager(tracks, defaultGenre, {
 		onTrackLoad: loadTrackAtIndex,
 		onGenreChange: (genre) => {
@@ -249,11 +252,11 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				const currentTime = audioController.getCurrentTime();
 				const src = queueManager.getTrackSrc(currentIndex, genre);
 				if (src) {
+					// Store seek time and playing state for after metadata loads
+					pendingSeekTime = currentTime;
+					pendingAutoplay = wasPlaying;
 					audioController.setSrc(src);
-					audioController.seek(currentTime);
-					if (wasPlaying) {
-						audioController.play();
-					}
+					audioController.load();
 				}
 				loadLyricsForTrack(currentIndex);
 			}
@@ -321,6 +324,16 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		onLoadedMetadata: (duration) => {
 			state.set('duration', duration);
 			updateTimeDisplay(0, duration);
+
+			if (pendingSeekTime !== null && pendingSeekTime > 0 && pendingSeekTime < duration) {
+				audioController.seek(pendingSeekTime);
+				pendingSeekTime = null;
+			}
+
+			if (pendingAutoplay) {
+				audioController.play();
+				pendingAutoplay = false;
+			}
 		},
 		onPlay: () => {
 			state.set('isPlaying', true);

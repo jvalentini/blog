@@ -9,6 +9,12 @@ I built Waves, a music player for my blog. The main feature: toggle between hip-
 
 Press G or click genre buttons. Instantly switch. Audio reloads seamlessly. Keeps playback spot and lyrics sync.
 
+## Try It Now
+
+<iframe src="/embed/slop-slinger" width="100%" height="600" frameborder="0" allow="autoplay" style="border-radius: 8px; border: 1px solid var(--border-dim); margin: 2rem 0;"></iframe>
+
+The embed above is the actual player. Press G to switch between hip-hop and country. Use arrow keys for navigation. Full version at [/waves](/waves).
+
 ## The Idea
 
 Came from seeing songs transform by genre. "Lose Yourself" hip-hop to country. Waves makes it happen.

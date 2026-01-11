@@ -498,6 +498,115 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		}
 	});
 
+	const HOLD_SEEK_DELAY_MS = 300;
+	const HOLD_SEEK_INTERVAL_MS = 100;
+	const HOLD_SEEK_STEP_SECONDS = 2;
+
+	let seekInterval: ReturnType<typeof setInterval> | null = null;
+	let seekHoldTimeout: ReturnType<typeof setTimeout> | null = null;
+	let isHoldSeek = false;
+
+	const startHoldSeek = (direction: 'forward' | 'backward') => {
+		seekHoldTimeout = setTimeout(() => {
+			isHoldSeek = true;
+			seekInterval = setInterval(() => {
+				const currentTime = audioController.getCurrentTime();
+				const duration = audioController.getDuration();
+				if (direction === 'forward') {
+					audioController.seek(Math.min(duration, currentTime + HOLD_SEEK_STEP_SECONDS));
+				} else {
+					audioController.seek(Math.max(0, currentTime - HOLD_SEEK_STEP_SECONDS));
+				}
+			}, HOLD_SEEK_INTERVAL_MS);
+		}, HOLD_SEEK_DELAY_MS);
+	};
+
+	const stopHoldSeek = () => {
+		if (seekHoldTimeout) {
+			clearTimeout(seekHoldTimeout);
+			seekHoldTimeout = null;
+		}
+		if (seekInterval) {
+			clearInterval(seekInterval);
+			seekInterval = null;
+		}
+		const wasHoldSeek = isHoldSeek;
+		isHoldSeek = false;
+		return wasHoldSeek;
+	};
+
+	elements.btnNext.addEventListener(
+		'touchstart',
+		(e) => {
+			e.preventDefault();
+			startHoldSeek('forward');
+		},
+		{ passive: false },
+	);
+
+	elements.btnNext.addEventListener('touchend', () => {
+		if (!stopHoldSeek()) {
+			queueManager.playNext();
+		}
+	});
+
+	elements.btnNext.addEventListener('touchcancel', () => {
+		stopHoldSeek();
+	});
+
+	elements.btnPrevious.addEventListener(
+		'touchstart',
+		(e) => {
+			e.preventDefault();
+			startHoldSeek('backward');
+		},
+		{ passive: false },
+	);
+
+	elements.btnPrevious.addEventListener('touchend', () => {
+		if (!stopHoldSeek()) {
+			if (audioController.getCurrentTime() > 3) {
+				audioController.seek(0);
+			} else {
+				queueManager.playPrevious();
+			}
+		}
+	});
+
+	elements.btnPrevious.addEventListener('touchcancel', () => {
+		stopHoldSeek();
+	});
+
+	elements.btnNext.addEventListener('touchcancel', () => {
+		stopHoldSeek();
+	});
+
+	// Touch events for hold-to-seek on previous button
+	elements.btnPrevious.addEventListener(
+		'touchstart',
+		(e) => {
+			e.preventDefault();
+			startHoldSeek('backward');
+		},
+		{ passive: false },
+	);
+
+	elements.btnPrevious.addEventListener('touchend', (e) => {
+		const wasHoldSeek = stopHoldSeek();
+		if (!wasHoldSeek) {
+			// Was a tap, not a hold - trigger normal previous action
+			if (audioController.getCurrentTime() > 3) {
+				audioController.seek(0);
+			} else {
+				queueManager.playPrevious();
+			}
+		}
+	});
+
+	elements.btnPrevious.addEventListener('touchcancel', () => {
+		stopHoldSeek();
+	});
+
 	elements.btnShuffle.addEventListener('click', () => queueManager.toggleShuffle());
 	elements.btnRepeat.addEventListener('click', () => queueManager.toggleRepeat());
 

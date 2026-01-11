@@ -62,4 +62,21 @@
     box-shadow: 0 0 12px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 60%, transparent);
     transform: scale(1.2);
   }
+
+  @media (max-width: 768px) {
+    .progress-slider {
+      height: 8px;
+      touch-action: none;
+    }
+
+    .progress-slider::-webkit-slider-thumb {
+      width: 20px;
+      height: 20px;
+    }
+
+    .progress-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+    }
+  }
 </style>

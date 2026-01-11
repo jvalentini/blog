@@ -419,6 +419,40 @@ const { tracks, genres, defaultGenre } = Astro.props;
       justify-content: space-between;
     }
 
+    /* Hide genre icon on mobile */
+    .genre-icon {
+      display: none;
+    }
+
+    .genre-selector {
+      width: 100%;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .genre-toggle {
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 0.375rem;
+      justify-content: center;
+    }
+
+    .genre-btn {
+      flex: 1 1 calc(50% - 0.375rem);
+      min-width: 0;
+      padding: 0.5rem 0.5rem;
+      text-align: center;
+      justify-content: center;
+    }
+
+    .genre-btn:not(:last-child) {
+      border-right: none;
+    }
+
+    .queue-count {
+      display: none;
+    }
+
     .queue-list {
       max-height: 300px;
     }

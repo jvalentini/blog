@@ -12,6 +12,14 @@ const { initialVolume = 7 } = Astro.props;
       <div class={`volume-block ${level <= initialVolume ? 'active' : ''}`} data-level={level}></div>
     ))}
   </div>
+  <input 
+    type="range" 
+    id="volume-slider" 
+    class="volume-slider" 
+    min="0" 
+    max="100" 
+    value={initialVolume * 10} 
+  />
   <span class="volume-percent" id="volume-percent">{initialVolume * 10}%</span>
 </div>
 
@@ -76,5 +84,50 @@ const { initialVolume = 7 } = Astro.props;
     font-size: 0.75rem;
     color: var(--phosphor-base);
     min-width: 35px;
+  }
+
+  .volume-slider {
+    display: none;
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--border-dim);
+    appearance: none;
+    cursor: pointer;
+    touch-action: none;
+  }
+
+  .volume-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--genre-base, #33ff33);
+    cursor: pointer;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--genre-base, #33ff33) 40%, transparent);
+  }
+
+  .volume-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--genre-base, #33ff33);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--genre-base, #33ff33) 40%, transparent);
+  }
+
+  @media (max-width: 768px) {
+    .volume-blocks {
+      display: none;
+    }
+
+    .volume-slider {
+      display: block;
+    }
+
+    .volume-label {
+      display: none;
+    }
   }
 </style>

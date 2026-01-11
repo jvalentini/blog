@@ -22,6 +22,7 @@ interface DOMElements {
 	btnShuffle: HTMLButtonElement;
 	btnRepeat: HTMLButtonElement;
 	progressSlider: HTMLInputElement;
+	volumeSlider: HTMLInputElement | null;
 	currentTime: HTMLElement;
 	durationTime: HTMLElement;
 	progressCurrent: HTMLElement;
@@ -36,6 +37,20 @@ interface DOMElements {
 	hotkeysModal: HTMLElement;
 	playIcon: HTMLElement;
 	pauseIcon: HTMLElement;
+	miniPlayer: HTMLElement | null;
+	miniPlayerPlay: HTMLButtonElement | null;
+	miniPlayerTitle: HTMLElement | null;
+	miniPlayerProgressBar: HTMLElement | null;
+	miniPlayerExpand: HTMLButtonElement | null;
+	miniPlayIcon: HTMLElement | null;
+	miniPauseIcon: HTMLElement | null;
+	heroNowPlaying: HTMLElement | null;
+	lyricsFullscreenBtn: HTMLButtonElement | null;
+	lyricsFullscreenOverlay: HTMLElement | null;
+	lyricsFullscreenClose: HTMLButtonElement | null;
+	lyricsFullscreenTrack: HTMLElement | null;
+	lyricsFullscreenContent: HTMLElement | null;
+	lyricsContent: HTMLElement | null;
 }
 
 function formatTime(seconds: number): string {
@@ -43,6 +58,12 @@ function formatTime(seconds: number): string {
 	const mins = Math.floor(seconds / 60);
 	const secs = Math.floor(seconds % 60);
 	return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function hapticFeedback(style: 'light' | 'medium' | 'heavy' = 'light'): void {
+	if (!navigator.vibrate) return;
+	const durations = { light: 10, medium: 20, heavy: 30 };
+	navigator.vibrate(durations[style]);
 }
 
 function getElements(): DOMElements | null {
@@ -64,7 +85,20 @@ function getElements(): DOMElements | null {
 	const genreIcon = document.getElementById('genre-icon');
 	const hotkeysModal = document.getElementById('hotkeys-modal');
 	const volumeBlocks = document.querySelectorAll('.volume-block') as NodeListOf<HTMLElement>;
+	const volumeSlider = document.getElementById('volume-slider') as HTMLInputElement | null;
 	const queueItems = document.querySelectorAll('.queue-item') as NodeListOf<HTMLElement>;
+	const miniPlayer = document.getElementById('mini-player');
+	const miniPlayerPlay = document.getElementById('mini-player-play') as HTMLButtonElement | null;
+	const miniPlayerTitle = document.getElementById('mini-player-title');
+	const miniPlayerProgressBar = document.getElementById('mini-player-progress-bar');
+	const miniPlayerExpand = document.getElementById('mini-player-expand') as HTMLButtonElement | null;
+	const heroNowPlaying = document.getElementById('hero-now-playing');
+	const lyricsFullscreenBtn = document.getElementById('lyrics-fullscreen-btn') as HTMLButtonElement | null;
+	const lyricsFullscreenOverlay = document.getElementById('lyrics-fullscreen-overlay');
+	const lyricsFullscreenClose = document.getElementById('lyrics-fullscreen-close') as HTMLButtonElement | null;
+	const lyricsFullscreenTrack = document.getElementById('lyrics-fullscreen-track');
+	const lyricsFullscreenContent = document.getElementById('lyrics-fullscreen-content');
+	const lyricsContent = document.getElementById('lyrics-content');
 
 	if (!audio || !btnPlay) {
 		console.warn('[MusicPlayer] Required DOM elements not found');
@@ -97,6 +131,9 @@ function getElements(): DOMElements | null {
 		return null;
 	}
 
+	const miniPlayIcon = miniPlayerPlay?.querySelector('.mini-play-icon') as HTMLElement | null;
+	const miniPauseIcon = miniPlayerPlay?.querySelector('.mini-pause-icon') as HTMLElement | null;
+
 	return {
 		audio,
 		btnPlay,
@@ -105,6 +142,7 @@ function getElements(): DOMElements | null {
 		btnShuffle,
 		btnRepeat,
 		progressSlider,
+		volumeSlider,
 		currentTime,
 		durationTime,
 		progressCurrent,
@@ -119,6 +157,20 @@ function getElements(): DOMElements | null {
 		hotkeysModal,
 		playIcon,
 		pauseIcon,
+		miniPlayer,
+		miniPlayerPlay,
+		miniPlayerTitle,
+		miniPlayerProgressBar,
+		miniPlayerExpand,
+		miniPlayIcon,
+		miniPauseIcon,
+		heroNowPlaying,
+		lyricsFullscreenBtn,
+		lyricsFullscreenOverlay,
+		lyricsFullscreenClose,
+		lyricsFullscreenTrack,
+		lyricsFullscreenContent,
+		lyricsContent,
 	};
 }
 
@@ -164,6 +216,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		state.set('currentIndex', index);
 		audioController.setSrc(src);
 		elements.currentTrackTitle.textContent = title;
+		if (elements.miniPlayerTitle) {
+			elements.miniPlayerTitle.textContent = title;
+		}
 
 		Array.from(elements.queueItems).forEach((el) => {
 			el.classList.remove('active');
@@ -334,11 +389,15 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	const showPlayIcon = (): void => {
 		elements.playIcon.style.display = 'inline';
 		elements.pauseIcon.style.display = 'none';
+		if (elements.miniPlayIcon) elements.miniPlayIcon.style.display = 'inline';
+		if (elements.miniPauseIcon) elements.miniPauseIcon.style.display = 'none';
 	};
 
 	const showPauseIcon = (): void => {
 		elements.playIcon.style.display = 'none';
 		elements.pauseIcon.style.display = 'inline';
+		if (elements.miniPlayIcon) elements.miniPlayIcon.style.display = 'none';
+		if (elements.miniPauseIcon) elements.miniPauseIcon.style.display = 'inline';
 	};
 
 	const updateTimeDisplay = (current: number, duration: number): void => {
@@ -352,6 +411,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 		if (duration > 0) {
 			elements.progressSlider.value = String((current / duration) * 100);
+			if (elements.miniPlayerProgressBar) {
+				elements.miniPlayerProgressBar.style.width = `${(current / duration) * 100}%`;
+			}
 		}
 	};
 
@@ -360,6 +422,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		elements.volumeBlocks.forEach((block, idx) => {
 			block.classList.toggle('active', idx < level);
 		});
+		if (elements.volumeSlider) {
+			elements.volumeSlider.value = String(level * 10);
+		}
 	};
 
 	const setVolume = (level: number): void => {
@@ -374,6 +439,21 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			state.setState({ currentTime, duration });
 			updateTimeDisplay(currentTime, duration);
 			lyricsSync.syncLyrics(currentTime, duration);
+			if (elements.lyricsFullscreenOverlay?.classList.contains('visible') && elements.lyricsContent) {
+				const activeLines = elements.lyricsContent.querySelectorAll('.lyrics-line.active');
+				const fullscreenLines = elements.lyricsFullscreenContent?.querySelectorAll('.lyrics-line');
+				if (fullscreenLines) {
+					fullscreenLines.forEach((line, idx) => {
+						const originalLine = elements.lyricsContent?.children[idx];
+						if (originalLine?.classList.contains('active')) {
+							line.classList.add('active');
+							line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+						} else {
+							line.classList.remove('active');
+						}
+					});
+				}
+			}
 		},
 		onEnded: () => {
 			queueManager.playNext();
@@ -482,6 +562,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	keyboardShortcuts.init();
 
 	elements.btnPlay.addEventListener('click', () => {
+		hapticFeedback('medium');
 		if (state.get('currentIndex') < 0) {
 			queueManager.loadTrack(0, true);
 		} else {
@@ -489,8 +570,12 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		}
 	});
 
-	elements.btnNext.addEventListener('click', () => queueManager.playNext());
+	elements.btnNext.addEventListener('click', () => {
+		hapticFeedback('light');
+		queueManager.playNext();
+	});
 	elements.btnPrevious.addEventListener('click', () => {
+		hapticFeedback('light');
 		if (audioController.getCurrentTime() > 3) {
 			audioController.seek(0);
 		} else {
@@ -607,8 +692,14 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		stopHoldSeek();
 	});
 
-	elements.btnShuffle.addEventListener('click', () => queueManager.toggleShuffle());
-	elements.btnRepeat.addEventListener('click', () => queueManager.toggleRepeat());
+	elements.btnShuffle.addEventListener('click', () => {
+		hapticFeedback('light');
+		queueManager.toggleShuffle();
+	});
+	elements.btnRepeat.addEventListener('click', () => {
+		hapticFeedback('light');
+		queueManager.toggleRepeat();
+	});
 
 	elements.progressSlider.addEventListener('input', () => {
 		const percent = parseFloat(elements.progressSlider.value);
@@ -622,13 +713,21 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		});
 	});
 
-	// Use event delegation for genre buttons
+	if (elements.volumeSlider) {
+		elements.volumeSlider.addEventListener('input', () => {
+			const percent = parseFloat(elements.volumeSlider!.value);
+			const level = Math.round(percent / 10);
+			setVolume(level);
+		});
+	}
+
 	elements.genreToggle.addEventListener('click', (e) => {
 		const target = e.target as HTMLElement;
 		const genreBtn = target.closest('.genre-btn') as HTMLButtonElement | null;
 		if (genreBtn) {
 			const genre = genreBtn.getAttribute('data-genre');
 			if (genre && state.get('currentGenre') !== genre) {
+				hapticFeedback('medium');
 				queueManager.switchGenre(genre);
 			}
 		}
@@ -639,11 +738,74 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		if (titleEl) {
 			titleEl.addEventListener('click', (e) => {
 				e.stopPropagation();
+				hapticFeedback('light');
 				queueManager.loadTrack(idx, true);
 			});
 		}
 		item.addEventListener('click', () => {
+			hapticFeedback('light');
 			queueManager.loadTrack(idx, true);
+		});
+	});
+
+	const SWIPE_THRESHOLD = 80;
+	const queueWrappers = document.querySelectorAll('.queue-item-wrapper');
+
+	queueWrappers.forEach((wrapper) => {
+		const item = wrapper.querySelector('.queue-item') as HTMLElement;
+		if (!item) return;
+
+		let startX = 0;
+		let currentX = 0;
+		let isSwiping = false;
+
+		wrapper.addEventListener(
+			'touchstart',
+			(e) => {
+				const touch = (e as TouchEvent).touches[0];
+				startX = touch.clientX;
+				currentX = startX;
+				isSwiping = true;
+			},
+			{ passive: true },
+		);
+
+		wrapper.addEventListener(
+			'touchmove',
+			(e) => {
+				if (!isSwiping) return;
+				const touch = (e as TouchEvent).touches[0];
+				currentX = touch.clientX;
+				const deltaX = currentX - startX;
+
+				if (Math.abs(deltaX) > 10) {
+					wrapper.classList.add('swiping');
+					const clampedDelta = Math.max(-SWIPE_THRESHOLD, Math.min(SWIPE_THRESHOLD, deltaX));
+					item.style.transform = `translateX(${clampedDelta}px)`;
+				}
+			},
+			{ passive: true },
+		);
+
+		wrapper.addEventListener('touchend', () => {
+			if (!isSwiping) return;
+			isSwiping = false;
+			wrapper.classList.remove('swiping');
+
+			const deltaX = currentX - startX;
+			const idx = parseInt(item.dataset.index || '0', 10);
+
+			if (deltaX > SWIPE_THRESHOLD) {
+				queueManager.loadTrack(idx, true);
+			}
+
+			item.style.transform = '';
+		});
+
+		wrapper.addEventListener('touchcancel', () => {
+			isSwiping = false;
+			wrapper.classList.remove('swiping');
+			item.style.transform = '';
 		});
 	});
 
@@ -667,6 +829,79 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 	updateGenreUI(initialGenre);
 	updateQueueListTheme(initialGenre);
+
+	if (elements.miniPlayer && elements.heroNowPlaying) {
+		const heroObserver = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						elements.miniPlayer?.classList.remove('visible');
+					} else {
+						elements.miniPlayer?.classList.add('visible');
+					}
+				});
+			},
+			{ threshold: 0.1 },
+		);
+		heroObserver.observe(elements.heroNowPlaying);
+
+		if (elements.miniPlayerPlay) {
+			elements.miniPlayerPlay.addEventListener('click', () => {
+				if (state.get('currentIndex') < 0) {
+					queueManager.loadTrack(0, true);
+				} else {
+					audioController.togglePlayPause();
+				}
+			});
+		}
+
+		if (elements.miniPlayerExpand) {
+			elements.miniPlayerExpand.addEventListener('click', () => {
+				elements.heroNowPlaying?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			});
+		}
+	}
+
+	const syncFullscreenLyrics = () => {
+		if (elements.lyricsFullscreenContent && elements.lyricsContent) {
+			elements.lyricsFullscreenContent.innerHTML = elements.lyricsContent.innerHTML;
+		}
+	};
+
+	const openFullscreenLyrics = () => {
+		if (elements.lyricsFullscreenOverlay) {
+			syncFullscreenLyrics();
+			const currentTrack = queueManager.getCurrentTrack();
+			if (elements.lyricsFullscreenTrack && currentTrack) {
+				elements.lyricsFullscreenTrack.textContent = currentTrack.title;
+			}
+			elements.lyricsFullscreenOverlay.classList.add('visible');
+			document.body.style.overflow = 'hidden';
+		}
+	};
+
+	const closeFullscreenLyrics = () => {
+		if (elements.lyricsFullscreenOverlay) {
+			elements.lyricsFullscreenOverlay.classList.remove('visible');
+			document.body.style.overflow = '';
+		}
+	};
+
+	if (elements.lyricsFullscreenBtn) {
+		elements.lyricsFullscreenBtn.addEventListener('click', openFullscreenLyrics);
+	}
+
+	if (elements.lyricsFullscreenClose) {
+		elements.lyricsFullscreenClose.addEventListener('click', closeFullscreenLyrics);
+	}
+
+	if (elements.lyricsFullscreenOverlay) {
+		elements.lyricsFullscreenOverlay.addEventListener('click', (e) => {
+			if (e.target === elements.lyricsFullscreenOverlay) {
+				closeFullscreenLyrics();
+			}
+		});
+	}
 
 	if (savedSettings.shuffleEnabled) {
 		queueManager.toggleShuffle();

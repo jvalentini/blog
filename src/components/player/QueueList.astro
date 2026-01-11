@@ -18,10 +18,52 @@ const { tracks, genres, defaultGenre } = Astro.props;
     <h3 class="queue-title" id="queue-title">Queue</h3>
     <div class="queue-header-right">
       <div class="genre-selector">
-        <!-- Genre Icon - generic icon for all genres -->
-        <div class="genre-icon" id="genre-icon">
-          <svg class="genre-icon-generic" id="genre-icon-generic" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Musical note icon -->
+        <!-- Genre Icon - changes based on genre -->
+        <div class="genre-icon" id="genre-icon" data-icon="generic">
+          <!-- Hip-hop: Turntable -->
+          <svg class="genre-icon-svg" data-icon-type="turntable" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+            <circle cx="16" cy="16" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+            <circle cx="16" cy="16" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <line x1="16" y1="6" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
+            <line x1="10" y1="16" x2="6" y2="20" stroke="currentColor" stroke-width="2"/>
+            <line x1="22" y1="16" x2="26" y2="20" stroke="currentColor" stroke-width="2"/>
+            <circle cx="16" cy="16" r="1" fill="currentColor"/>
+          </svg>
+          <!-- Country: Cowboy Hat -->
+          <svg class="genre-icon-svg" data-icon-type="cowboy-hat" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+            <polygon points="16,2 18.5,10 27,10 20,15 23,24 16,19 9,24 12,15 5,10 13.5,10" fill="currentColor"/>
+            <circle cx="16" cy="14" r="4" fill="currentColor" opacity="0.3"/>
+            <circle cx="16" cy="14" r="1.5" fill="currentColor" opacity="0.5"/>
+          </svg>
+          <!-- Rock: Electric Guitar -->
+          <svg class="genre-icon-svg" data-icon-type="guitar" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+            <path d="M8 8 L12 24 L20 24 L24 8" stroke="currentColor" stroke-width="2" fill="none"/>
+            <rect x="14" y="12" width="4" height="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <line x1="10" y1="20" x2="22" y2="20" stroke="currentColor" stroke-width="2"/>
+            <circle cx="12" cy="16" r="1.5" fill="currentColor"/>
+            <circle cx="20" cy="16" r="1.5" fill="currentColor"/>
+            <line x1="8" y1="8" x2="6" y2="6" stroke="currentColor" stroke-width="2"/>
+            <line x1="24" y1="8" x2="26" y2="6" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <!-- Weird: Spiral -->
+          <svg class="genre-icon-svg" data-icon-type="spiral" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+            <path d="M16 16 Q 20 12, 20 16 Q 20 20, 16 20 Q 12 20, 12 16 Q 12 12, 16 12 Q 18 10, 18 12 Q 18 14, 16 14 Q 14 14, 14 16 Q 14 18, 16 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="16" cy="16" r="1.5" fill="currentColor"/>
+          </svg>
+          <!-- Pop: Microphone -->
+          <svg class="genre-icon-svg" data-icon-type="microphone" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+            <rect x="10" y="4" width="12" height="16" rx="6" stroke="currentColor" stroke-width="2" fill="none"/>
+            <line x1="12" y1="8" x2="20" y2="8" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+            <line x1="12" y1="11" x2="20" y2="11" stroke="currentColor" stroke-width="1" opacity="0.8"/>
+            <line x1="12" y1="14" x2="20" y2="14" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+            <line x1="12" y1="17" x2="20" y2="17" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+            <line x1="16" y1="20" x2="16" y2="26" stroke="currentColor" stroke-width="2"/>
+            <line x1="10" y1="26" x2="22" y2="26" stroke="currentColor" stroke-width="2"/>
+            <path d="M6 10 Q4 12 6 14" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/>
+            <path d="M26 10 Q28 12 26 14" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/>
+          </svg>
+          <!-- Generic fallback -->
+          <svg class="genre-icon-svg" data-icon-type="generic" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 4 L12 20 C12 22.5 10 24.5 7.5 24.5 C5 24.5 3 22.5 3 20 C3 17.5 5 15.5 7.5 15.5 C8.5 15.5 9.5 15.8 10 16.2 L10 4 L12 4 Z" stroke="currentColor" stroke-width="2" fill="none"/>
             <path d="M20 4 L20 20 C20 22.5 22 24.5 24.5 24.5 C27 24.5 29 22.5 29 20 C29 17.5 27 15.5 24.5 15.5 C23.5 15.5 22.5 15.8 22 16.2 L22 4 L20 4 Z" stroke="currentColor" stroke-width="2" fill="none"/>
             <line x1="12" y1="4" x2="20" y2="4" stroke="currentColor" stroke-width="2"/>
@@ -69,9 +111,10 @@ const { tracks, genres, defaultGenre } = Astro.props;
   /* Queue Section */
   .queue-section {
     background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(20, 25, 30, 0.7) 100%);
-    border: 1px solid rgba(51, 255, 51, 0.2);
+    border: 1px solid var(--genre-base, rgba(51, 255, 51, 0.2));
     border-radius: 12px;
     padding: 1.5rem;
+    transition: border-color 0.3s ease;
   }
 
   .queue-header {
@@ -80,18 +123,19 @@ const { tracks, genres, defaultGenre } = Astro.props;
     align-items: center;
     margin-bottom: 1rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid var(--phosphor-dim);
+    border-bottom: 1px solid var(--genre-dim, var(--phosphor-dim));
     flex-wrap: wrap;
     gap: 0.75rem;
+    transition: border-color 0.3s ease;
   }
 
   .queue-title {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--phosphor-base);
+    color: var(--genre-base, var(--phosphor-base));
     margin: 0;
     transition: color 0.3s ease, text-shadow 0.3s ease;
-    text-shadow: 0 0 8px rgba(51, 255, 51, 0.3);
+    text-shadow: 0 0 8px currentColor;
   }
 
 
@@ -123,22 +167,31 @@ const { tracks, genres, defaultGenre } = Astro.props;
     transition: all 0.3s ease;
   }
 
-  /* Generic genre icon - green terminal glow */
-  .genre-icon-generic {
-    color: var(--phosphor-base, #33ff33);
-    filter: drop-shadow(0 0 4px rgba(51, 255, 51, 0.6))
-            drop-shadow(0 0 8px rgba(51, 255, 51, 0.3));
+  /* Genre icons - use genre colors */
+  .genre-icon-svg {
+    color: var(--genre-base, var(--phosphor-base, #33ff33));
+    filter: drop-shadow(0 0 4px currentColor)
+            drop-shadow(0 0 8px currentColor);
     animation: icon-pulse 2s ease-in-out infinite;
+    transition: all 0.3s ease;
+  }
+  
+  .genre-icon-svg[style*="display: none"] {
+    display: none !important;
+  }
+  
+  .genre-icon-svg:not([style*="display: none"]) {
+    display: block !important;
   }
 
   @keyframes icon-pulse {
     0%, 100% { 
-      filter: drop-shadow(0 0 4px rgba(51, 255, 51, 0.6))
-              drop-shadow(0 0 8px rgba(51, 255, 51, 0.3));
+      filter: drop-shadow(0 0 4px currentColor)
+              drop-shadow(0 0 8px currentColor);
     }
     50% { 
-      filter: drop-shadow(0 0 6px rgba(51, 255, 51, 0.8))
-              drop-shadow(0 0 12px rgba(51, 255, 51, 0.5));
+      filter: drop-shadow(0 0 6px currentColor)
+              drop-shadow(0 0 12px currentColor);
     }
   }
 
@@ -177,12 +230,12 @@ const { tracks, genres, defaultGenre } = Astro.props;
     background: rgba(255, 255, 255, 0.03);
   }
 
-  /* Generic active state - green phosphor */
+  /* Active state - uses genre colors */
   .genre-btn.active {
-    color: var(--phosphor-bright, #66ff66);
-    background: rgba(51, 255, 51, 0.12);
-    text-shadow: 0 0 8px rgba(51, 255, 51, 0.5);
-    box-shadow: inset 0 0 12px rgba(51, 255, 51, 0.1);
+    color: var(--genre-bright, var(--phosphor-bright, #66ff66));
+    background: var(--genre-dim, rgba(51, 255, 51, 0.12));
+    text-shadow: 0 0 8px currentColor;
+    box-shadow: inset 0 0 12px var(--genre-dim, rgba(51, 255, 51, 0.1));
   }
 
   .genre-btn-text {
@@ -198,8 +251,8 @@ const { tracks, genres, defaultGenre } = Astro.props;
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--phosphor-base, #33ff33), transparent);
-    box-shadow: 0 0 8px rgba(51, 255, 51, 0.6);
+    background: linear-gradient(90deg, transparent, var(--genre-base, var(--phosphor-base, #33ff33)), transparent);
+    box-shadow: 0 0 8px currentColor;
   }
 
   .queue-count {
@@ -218,7 +271,7 @@ const { tracks, genres, defaultGenre } = Astro.props;
     transition: all 0.3s ease;
     padding: 0.5rem;
     border-radius: 8px;
-    background: transparent;
+    background: var(--genre-dim, transparent);
   }
 
 
@@ -227,40 +280,44 @@ const { tracks, genres, defaultGenre } = Astro.props;
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem;
-    background: rgba(51, 255, 51, 0.03);
-    border: 1px solid rgba(51, 255, 51, 0.1);
+    background: var(--genre-dim, rgba(51, 255, 51, 0.03));
+    border: 1px solid var(--genre-base, rgba(51, 255, 51, 0.1));
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.15s ease;
   }
 
   .queue-item:hover {
-    background: rgba(51, 255, 51, 0.08);
-    border-color: rgba(51, 255, 51, 0.25);
+    background: var(--genre-dim, rgba(51, 255, 51, 0.08));
+    border-color: var(--genre-base, rgba(51, 255, 51, 0.25));
+    filter: brightness(1.2);
   }
 
   .queue-item.active {
-    background: rgba(51, 255, 51, 0.12);
-    border-color: rgba(51, 255, 51, 0.3);
+    background: var(--genre-dim, rgba(51, 255, 51, 0.12));
+    border-color: var(--genre-base, rgba(51, 255, 51, 0.3));
+    filter: brightness(1.3);
   }
 
   .queue-item-number {
     font-size: 0.7rem;
     font-weight: 700;
-    color: rgba(51, 255, 51, 0.5);
+    color: var(--genre-base, rgba(51, 255, 51, 0.5));
+    opacity: 0.5;
     min-width: 24px;
     text-align: center;
     transition: color 0.15s ease;
   }
 
   .queue-item.active .queue-item-number {
-    color: var(--phosphor-bright, #66ff66);
+    color: var(--genre-bright, var(--phosphor-bright, #66ff66));
+    opacity: 1;
   }
 
   .queue-item-title {
     flex: 1;
     font-size: 0.9rem;
-    color: rgba(51, 255, 51, 0.7);
+    color: var(--genre-base, rgba(51, 255, 51, 0.7));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -269,14 +326,14 @@ const { tracks, genres, defaultGenre } = Astro.props;
   }
 
   .queue-item-title:hover {
-    color: var(--phosphor-bright, #66ff66);
-    text-shadow: 0 0 10px rgba(51, 255, 51, 0.6);
+    color: var(--genre-bright, var(--phosphor-bright, #66ff66));
+    text-shadow: 0 0 10px currentColor;
   }
 
   .queue-item.active .queue-item-title {
-    color: var(--phosphor-bright, #66ff66);
+    color: var(--genre-bright, var(--phosphor-bright, #66ff66));
     font-weight: 600;
-    text-shadow: 0 0 10px rgba(51, 255, 51, 0.5);
+    text-shadow: 0 0 10px currentColor;
   }
 
   .queue-item-genre-badge {

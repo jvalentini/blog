@@ -2,18 +2,28 @@
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import Newsletter from '../components/Newsletter.astro';
 import NewsletterModal from '../components/NewsletterModal.astro';
+import RelatedPosts from '../components/RelatedPosts.astro';
 import SocialShare from '../components/SocialShare.astro';
 import Terminal from '../components/Terminal.astro';
+import { getPublishedPosts } from '../utils/posts';
+import { getRelatedPosts } from '../utils/related-posts';
 
-type Props = CollectionEntry<'blog'>['data'];
+type Props = CollectionEntry<'blog'>['data'] & {
+	id: string;
+};
 
 const { title, description, pubDate, updatedDate, heroImage, tags = [] } = Astro.props;
 const postUrl = Astro.url.href;
+
+const allPosts = await getPublishedPosts();
+const currentPost = allPosts.find(post => `/blog/${post.id}/` === Astro.url.pathname);
+const relatedPosts = currentPost ? getRelatedPosts(currentPost, allPosts) : [];
 ---
 
 <html lang="en">
@@ -30,6 +40,12 @@ const postUrl = Astro.url.href;
 		<Header />
 		<main>
 			<article>
+				<Breadcrumbs crumbs={[
+					{ label: 'Home', href: '/' },
+					{ label: 'Blog', href: '/blog' },
+					{ label: title }
+				]} />
+				
 				<header class="post-header">
 					<div class="post-meta">
 						<span class="meta-label">published:</span>
@@ -61,7 +77,7 @@ const postUrl = Astro.url.href;
 
 				{heroImage && typeof heroImage === 'string' ? (
 					<div class="hero-image">
-						<img src={heroImage} alt="" loading="eager" />
+						<img src={heroImage} alt="" loading="eager" fetchpriority="high" />
 					</div>
 				) : heroImage && typeof heroImage !== 'string' ? (
 					<div class="hero-image">
@@ -71,6 +87,7 @@ const postUrl = Astro.url.href;
 							src={heroImage}
 							alt=""
 							loading="eager"
+							fetchpriority="high"
 						/>
 					</div>
 				) : null}
@@ -85,6 +102,8 @@ const postUrl = Astro.url.href;
 					</div>
 					
 					<SocialShare title={title} url={postUrl} description={description} />
+					
+					<RelatedPosts posts={relatedPosts} />
 					
 					<Newsletter />
 					

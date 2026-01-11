@@ -1,0 +1,193 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+	posts: CollectionEntry<'blog'>[];
+}
+
+const { posts } = Astro.props;
+
+// Only render if we have related posts
+if (!posts || posts.length === 0) {
+	return null;
+}
+---
+
+<aside class="related-posts">
+	<div class="related-header">
+		<span class="prompt">$</span>
+		<span class="command">ls</span>
+		<span class="args">related_posts/</span>
+	</div>
+	
+	<ul class="posts-list">
+		{posts.map((post) => (
+			<li class="post-item">
+				<a href={`/blog/${post.id}/`} class="post-link">
+					<div class="post-info">
+						<h3 class="post-title">{post.data.title}</h3>
+						<p class="post-description">{post.data.description}</p>
+						<div class="post-meta">
+							<FormattedDate date={post.data.pubDate} />
+							{post.data.tags && post.data.tags.length > 0 && (
+								<span class="tags">
+									{post.data.tags.map((tag) => (
+										<span class="tag">#{tag}</span>
+									))}
+								</span>
+							)}
+						</div>
+					</div>
+					<span class="arrow">→</span>
+				</a>
+			</li>
+		))}
+	</ul>
+</aside>
+
+<style>
+	.related-posts {
+		margin-top: var(--space-3xl);
+		padding: var(--space-xl);
+		background-color: var(--bg-surface);
+		border: 1px solid var(--border-dim);
+		border-radius: 8px;
+	}
+
+	.related-header {
+		display: flex;
+		align-items: center;
+		gap: var(--space-sm);
+		margin-bottom: var(--space-lg);
+		font-family: var(--font-mono);
+		font-size: var(--font-size-base);
+	}
+
+	.prompt {
+		color: var(--phosphor-base);
+		font-weight: 600;
+	}
+
+	.command {
+		color: var(--amber-base);
+	}
+
+	.args {
+		color: var(--text-secondary);
+	}
+
+	.posts-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-md);
+	}
+
+	.post-item {
+		border-bottom: 1px solid var(--border-dim);
+		padding-bottom: var(--space-md);
+	}
+
+	.post-item:last-child {
+		border-bottom: none;
+		padding-bottom: 0;
+	}
+
+	.post-link {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--space-md);
+		text-decoration: none;
+		color: inherit;
+		transition: all var(--transition-fast);
+		padding: var(--space-sm);
+		margin: calc(-1 * var(--space-sm));
+		border-radius: 4px;
+	}
+
+	.post-link:hover {
+		background-color: var(--bg-deep);
+	}
+
+	.post-link:hover .post-title {
+		color: var(--phosphor-base);
+		text-shadow: var(--glow-sm);
+	}
+
+	.post-link:hover .arrow {
+		transform: translateX(4px);
+		color: var(--phosphor-base);
+	}
+
+	.post-info {
+		flex: 1;
+	}
+
+	.post-title {
+		font-size: var(--font-size-lg);
+		font-weight: 600;
+		margin: 0 0 var(--space-xs) 0;
+		color: var(--text-bright);
+		transition: all var(--transition-fast);
+	}
+
+	.post-description {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		margin: 0 0 var(--space-sm) 0;
+		line-height: 1.5;
+	}
+
+	.post-meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-sm);
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-xs);
+	}
+
+	.tag {
+		padding: 2px var(--space-xs);
+		background-color: var(--bg-deep);
+		border: 1px solid var(--border-dim);
+		border-radius: 3px;
+		color: var(--amber-base);
+		font-size: 10px;
+	}
+
+	.arrow {
+		flex-shrink: 0;
+		font-size: var(--font-size-xl);
+		color: var(--text-muted);
+		transition: all var(--transition-fast);
+	}
+
+	@media (max-width: 720px) {
+		.related-posts {
+			padding: var(--space-lg);
+		}
+
+		.post-title {
+			font-size: var(--font-size-base);
+		}
+
+		.post-description {
+			font-size: var(--font-size-xs);
+		}
+
+		.arrow {
+			display: none;
+		}
+	}
+</style>

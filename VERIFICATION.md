@@ -153,12 +153,12 @@ curl "https://api.cloudflare.com/client/v4/accounts/{account_id}/analytics_engin
 
 ```bash
 # Get view count for a page
-curl "https://jvalentini.pages.dev/api/track?path=/blog/building-worklog"
+curl "https://jvalentini.pages.dev/api/track?path=/blog/worklog"
 
 # Increment view count
 curl -X POST https://jvalentini.pages.dev/api/track \
   -H "Content-Type: application/json" \
-  -d '{"path": "/blog/building-worklog", "event": "pageview"}'
+  -d '{"path": "/blog/worklog", "event": "pageview"}'
 ```
 
 **Expected**: JSON with path and count

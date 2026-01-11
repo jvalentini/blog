@@ -248,7 +248,7 @@ Components import the state directly and stay in sync. Simple, no ceremony.
 
 ### The Familiar Stack
 
-Like [Worklog](/blog/building-worklog), I used:
+Like [Worklog](/blog/worklog), I used:
 
 - **Bun** for speed (runtime, package manager, everything)
 - **TypeScript** with strict mode for catching bugs at compile time

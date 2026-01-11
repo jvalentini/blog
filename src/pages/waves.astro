@@ -2,12 +2,13 @@
 import MusicPlayer from '../components/MusicPlayer.astro';
 import { SITE_TITLE } from '../consts';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import wavesHeroImage from '../assets/waves-hero.png';
 
 const pageTitle = 'waves';
 const pageDescription = 'A collection of original tracks and creative experiments.';
 ---
 
-<BaseLayout title={`${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image="/waves-hero.png" wide>
+<BaseLayout title={`${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image={wavesHeroImage} wide>
 	<section class="player-section">
 		<MusicPlayer />
 	</section>

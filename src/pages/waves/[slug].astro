@@ -3,6 +3,7 @@ import MusicPlayer from '../../components/MusicPlayer.astro';
 import { SITE_TITLE } from '../../consts';
 import tracksData from '../../data/tracks.json';
 import WavesLayout from '../../layouts/WavesLayout.astro';
+import wavesHeroImage from '../../assets/waves-hero.png';
 
 interface Song {
 	id: string;
@@ -45,7 +46,7 @@ const playerCard = {
 };
 ---
 
-<WavesLayout title={`${trackTitle} | ${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image="/waves-hero.png" playerCard={playerCard}>
+<WavesLayout title={`${trackTitle} | ${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image={wavesHeroImage} playerCard={playerCard}>
 	<section class="player-section">
 		<MusicPlayer />
 	</section>

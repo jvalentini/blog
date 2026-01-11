@@ -2,6 +2,8 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { Image } from 'astro:assets';
+import wavesHeroImage from '../assets/waves-hero.png';
 import tracksData from '../data/tracks.json';
 import { parseLyrics } from '../utils/lyrics-parser';
 import type { ParsedLyrics } from '../scripts/music-player/types';
@@ -83,7 +85,7 @@ const clientTracks = tracks.map((t) => ({
 <div class="music-player">
   <!-- Hero Banner with Two-Column Layout -->
   <div class="hero-now-playing">
-    <img src="/waves-hero.png" alt="" class="hero-bg" aria-hidden="true" />
+    <Image src={wavesHeroImage} alt="" class="hero-bg" aria-hidden="true" />
     <div class="hero-content">
       <audio id="audio-player" preload="metadata"></audio>
       

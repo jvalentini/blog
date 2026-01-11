@@ -13,6 +13,14 @@
 export type RepeatMode = 'off' | 'all' | 'one';
 
 /**
+ * Represents the shuffle mode options for the music player.
+ * - 'off': No shuffle, tracks play in order
+ * - 'tracks': Shuffle tracks only, keep current genre
+ * - 'tracks+genres': Shuffle tracks and randomly select genre for each track
+ */
+export type ShuffleMode = 'off' | 'tracks' | 'tracks+genres';
+
+/**
  * Represents a single line in parsed lyrics.
  * Supports both timestamped LRC format and plain text lyrics.
  */
@@ -66,8 +74,8 @@ export interface PlayerState {
 	currentIndex: number;
 	/** Currently selected genre for playback */
 	currentGenre: string;
-	/** Whether shuffle mode is enabled */
-	shuffleEnabled: boolean;
+	/** Current shuffle mode setting */
+	shuffleMode: ShuffleMode;
 	/** Current repeat mode setting */
 	repeatMode: RepeatMode;
 	/** Current volume level (0-1 range) */
@@ -93,8 +101,8 @@ export interface MusicPlayerState {
 	duration: string;
 	/** Current volume level (0-1 range) */
 	volume: number;
-	/** Whether shuffle mode is enabled */
-	shuffleEnabled: boolean;
+	/** Current shuffle mode setting */
+	shuffleMode: ShuffleMode;
 	/** Current repeat mode setting */
 	repeatMode: string;
 	/** Array of all track titles in the queue */

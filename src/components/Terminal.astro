@@ -77,7 +77,7 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
       currentTime: string;
       duration: string;
       volume: number;
-      shuffleEnabled: boolean;
+      shuffleMode: string;
       repeatMode: string;
       queueTitles: string[];
     };
@@ -397,7 +397,12 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
       if (hasMusicPlayer()) {
         window.musicPlayerAPI!.toggleShuffle();
         const state = window.musicPlayerAPI!.getState();
-        print(`Shuffle: ${state.shuffleEnabled ? 'on' : 'off'}`);
+        const modeLabels: Record<string, string> = {
+          'off': 'Off',
+          'tracks': 'Tracks',
+          'tracks+genres': 'Tracks + Genres',
+        };
+        print(`Shuffle: ${modeLabels[state.shuffleMode] || state.shuffleMode}`);
       } else {
         print('Music player not available. Try: cd waves');
       }
@@ -493,7 +498,12 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
           print(`   Position: ${state.currentIndex + 1}/${state.queueTitles.length}`);
           print(`   Time: ${state.currentTime}/${state.duration}`);
           print(`   Volume: ${Math.round(state.volume * 10)}/10`);
-          print(`   Shuffle: ${state.shuffleEnabled ? 'On' : 'Off'}`);
+          const shuffleLabels: Record<string, string> = {
+            'off': 'Off',
+            'tracks': 'Tracks',
+            'tracks+genres': 'Tracks + Genres',
+          };
+          print(`   Shuffle: ${shuffleLabels[state.shuffleMode] || state.shuffleMode}`);
           print(`   Repeat: ${state.repeatMode}`);
         } else {
           print('No track currently playing');

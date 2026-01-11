@@ -1,4 +1,5 @@
 export type RepeatMode = 'off' | 'all' | 'one';
+export type ShuffleMode = 'off' | 'tracks' | 'tracks+genres';
 
 export type Genre = string;
 
@@ -10,7 +11,7 @@ export interface LyricsLine {
 export interface PlayerState {
 	currentIndex: number;
 	currentGenre: Genre;
-	shuffleEnabled: boolean;
+	shuffleMode: ShuffleMode;
 	repeatMode: RepeatMode;
 	shuffledIndices: number[];
 
@@ -43,7 +44,7 @@ export type EventSubscriber = (data?: EventData) => void;
 const DEFAULT_STATE: PlayerState = {
 	currentIndex: -1,
 	currentGenre: 'hip-hop',
-	shuffleEnabled: false,
+	shuffleMode: 'off',
 	repeatMode: 'off',
 	shuffledIndices: [],
 	currentLyricsLines: [],

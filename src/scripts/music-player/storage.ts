@@ -1,4 +1,4 @@
-import type { Genre, RepeatMode } from './state';
+import type { Genre, RepeatMode, ShuffleMode } from './state';
 
 const STORAGE_KEY = 'waves-player-settings';
 
@@ -6,7 +6,7 @@ export interface PlayerSettings {
 	currentTrackId?: string;
 	currentGenre?: Genre;
 	volume?: number;
-	shuffleEnabled?: boolean;
+	shuffleMode?: ShuffleMode;
 	repeatMode?: RepeatMode;
 }
 

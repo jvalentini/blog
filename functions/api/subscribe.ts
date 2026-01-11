@@ -129,7 +129,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 		if (!errorCode && Array.isArray(errorData.error)) {
 			errorMessage = errorData.error.join(', ');
 		}
-	} catch (err) {
+	} catch (_err) {
 		const errorText = await buttondownResponse.text().catch(() => '');
 		console.log('Buttondown error (non-JSON):', errorText || '(empty body)');
 	}

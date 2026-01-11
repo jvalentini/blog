@@ -24,8 +24,7 @@ export class LyricsSyncManager {
 			this.currentLines = lyricsData.lines || [];
 			this.hasTimestamps = lyricsData.hasTimestamps || false;
 		} else {
-			this.container.innerHTML =
-				'<div class="lyrics-empty"><p>No lyrics available for this track</p></div>';
+			this.container.innerHTML = '<div class="lyrics-empty"><p>No lyrics available for this track</p></div>';
 		}
 	}
 
@@ -35,8 +34,7 @@ export class LyricsSyncManager {
 		this.activeLineIndex = -1;
 
 		if (this.container) {
-			this.container.innerHTML =
-				'<div class="lyrics-empty"><p>Select a track to view lyrics</p></div>';
+			this.container.innerHTML = '<div class="lyrics-empty"><p>Select a track to view lyrics</p></div>';
 		}
 
 		this.updateScrollProgress(0);
@@ -91,9 +89,7 @@ export class LyricsSyncManager {
 		});
 
 		if (this.activeLineIndex >= 0) {
-			const activeLine = this.container.querySelector(
-				`[data-index="${this.activeLineIndex}"]`
-			) as HTMLElement | null;
+			const activeLine = this.container.querySelector(`[data-index="${this.activeLineIndex}"]`) as HTMLElement | null;
 
 			if (activeLine) {
 				activeLine.classList.add('active');

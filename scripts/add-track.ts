@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
-import { promises as fs } from 'fs';
-import * as path from 'path';
-import { parseArgs } from 'util';
+import { promises as fs } from 'node:fs';
+import * as path from 'node:path';
+// @ts-expect-error - parseArgs is available in Node 18.3+ and Bun runtime
+import { parseArgs } from 'node:util';
 
 const MUSIC_DIR = 'public/assets/music';
 const LYRICS_DIR = 'src/content/lyrics';
@@ -52,7 +53,7 @@ async function loadTracks(): Promise<TracksMap> {
 }
 
 async function saveTracks(tracks: TracksMap): Promise<void> {
-	const content = JSON.stringify(tracks, null, 2) + '\n';
+	const content = `${JSON.stringify(tracks, null, 2)}\n`;
 	await fs.writeFile(TRACKS_JSON, content, 'utf-8');
 }
 

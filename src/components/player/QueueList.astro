@@ -1,13 +1,13 @@
 ---
 interface Props {
-  tracks: Array<{
-    id: number;
-    songId: string;
-    title: string;
-    versions: Record<string, string>;
-  }>;
-  genres: string[];
-  defaultGenre: string;
+	tracks: Array<{
+		id: number;
+		songId: string;
+		title: string;
+		versions: Record<string, string>;
+	}>;
+	genres: string[];
+	defaultGenre: string;
 }
 
 const { tracks, genres, defaultGenre } = Astro.props;

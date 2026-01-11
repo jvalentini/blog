@@ -996,48 +996,17 @@ const clientTracks = tracks.map(t => ({
          updateGenreUI(newGenre);
          break;
 
-       case 's': // Toggle shuffle
-       case 'S':
-         e.preventDefault();
-         toggleShuffle();
-         break;
+        case 's': // Toggle shuffle
+        case 'S':
+          e.preventDefault();
+          toggleShuffle();
+          break;
 
-       // Vim-style navigation hotkeys
-       case 'h': // Left - previous
-         e.preventDefault();
-         playPrevious();
-         break;
-
-       case 'j': // Down - next
-         e.preventDefault();
-         playNext();
-         break;
-
-       case 'k': // Up - previous
-         e.preventDefault();
-         playPrevious();
-         break;
-
-       case 'l': // Right - next
-         e.preventDefault();
-         playNext();
-         break;
-
-       case 'n': // Next
-         e.preventDefault();
-         playNext();
-         break;
-
-       case 'p': // Previous
-         e.preventDefault();
-         playPrevious();
-         break;
-        
-      case 'r': // Toggle repeat
-      case 'R':
-        e.preventDefault();
-        toggleRepeat();
-        break;
+        case 'r': // Toggle repeat
+        case 'R':
+          e.preventDefault();
+          toggleRepeat();
+          break;
         
       case '?': // Show hotkeys modal
         e.preventDefault();
@@ -1055,58 +1024,6 @@ const clientTracks = tracks.map(t => ({
         closeTerminal();
         break;
     }
-    
-    // Konami code detection
-    checkKonamiCode(e.key);
-  });
-  
-  // Konami code: ↑ ↑ ↓ ↓ ← → ← → B A
-  const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-  let konamiIndex = 0;
-  
-  function checkKonamiCode(key) {
-    const expected = konamiSequence[konamiIndex];
-    if (key === expected || key === expected.toUpperCase()) {
-      konamiIndex++;
-      if (konamiIndex === konamiSequence.length) {
-        konamiIndex = 0;
-        triggerKonamiEasterEgg();
-      }
-    } else {
-      konamiIndex = 0;
-    }
-  }
-  
-  function triggerKonamiEasterEgg() {
-    // 30 lives! Classic Contra reference
-    const overlay = document.createElement('div');
-    overlay.className = 'konami-overlay';
-    overlay.innerHTML = `
-      <div class="konami-content">
-        <div class="konami-text">+30 LIVES</div>
-        <div class="konami-subtext">↑↑↓↓←→←→BA</div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    
-    // Play all tracks in rapid succession preview
-    let previewIndex = 0;
-    const previewInterval = setInterval(() => {
-      if (previewIndex < queueItems.length) {
-        loadTrack(previewIndex, true);
-        previewIndex++;
-      } else {
-        clearInterval(previewInterval);
-      }
-    }, 300);
-    
-    setTimeout(() => {
-      overlay.classList.add('fade-out');
-      setTimeout(() => overlay.remove(), 500);
-      clearInterval(previewInterval);
-      loadTrack(0, true);
-    }, 2500);
-  }
   
   // Hotkeys modal functions
   function toggleHotkeysModal() {
@@ -3101,61 +3018,6 @@ const clientTracks = tracks.map(t => ({
   .terminal-line .neofetch-logo {
     color: var(--phosphor-bright, #66ff66);
     text-shadow: 0 0 8px rgba(51, 255, 51, 0.6);
-  }
-
-  /* Konami Code Easter Egg */
-  .konami-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    animation: konamiFadeIn 0.3s ease;
-  }
-
-  .konami-overlay.fade-out {
-    animation: konamiFadeOut 0.5s ease forwards;
-  }
-
-  @keyframes konamiFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes konamiFadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-  }
-
-  .konami-content {
-    text-align: center;
-  }
-
-  .konami-text {
-    font-family: var(--font-mono, monospace);
-    font-size: 4rem;
-    font-weight: 900;
-    color: var(--phosphor-bright, #66ff66);
-    text-shadow: 
-      0 0 20px rgba(51, 255, 51, 0.8),
-      0 0 40px rgba(51, 255, 51, 0.6),
-      0 0 60px rgba(51, 255, 51, 0.4);
-    animation: konamiPulse 0.5s ease infinite alternate;
-  }
-
-  .konami-subtext {
-    font-family: var(--font-mono, monospace);
-    font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.5);
-    margin-top: 1rem;
-    letter-spacing: 0.5rem;
-  }
-
-  @keyframes konamiPulse {
-    from { transform: scale(1); }
-    to { transform: scale(1.05); }
   }
 
   /* Destruction Overlay (Easter Egg) */

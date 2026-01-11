@@ -1,7 +1,23 @@
 ---
 // Terminal Component - Global terminal accessible from any page
 // Music player integration is optional - works standalone on non-music pages
+
+import { getCollection } from 'astro:content';
+import tracksData from '../data/tracks.json';
+
+// Fetch blog post slugs at build time
+const allPosts = await getCollection('blog');
+const blogSlugs = allPosts
+  .filter((post) => !post.data.draft)
+  .map((post) => post.id)
+  .sort();
+
+// Get song slugs from tracks data
+const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort();
 ---
+
+<!-- Terminal Data (injected at build time) -->
+<script id="terminal-data" type="application/json" set:html={JSON.stringify({ blogSlugs, songSlugs })}></script>
 
 <!-- Terminal Modal - Single Line Prompt -->
 <div class="terminal-modal" id="terminal-modal">
@@ -40,6 +56,12 @@
 <script>
   // Terminal Module - Works globally, integrates with music player when available
   
+  // Load dynamic data injected at build time
+  const terminalDataEl = document.getElementById('terminal-data');
+  const terminalData = terminalDataEl ? JSON.parse(terminalDataEl.textContent || '{}') : { blogSlugs: [], songSlugs: [] };
+  const blogSlugs: string[] = terminalData.blogSlugs || [];
+  const songSlugs: string[] = terminalData.songSlugs || [];
+
   interface MusicPlayerAPI {
     playNext: () => void;
     playPrevious: () => void;
@@ -173,9 +195,6 @@
 
     clearTerminalOutput();
 
-    // Known slugs
-    const blogSlugs = ['slop-slinger', 'introducing-bakery', 'building-speak-strong', 'building-tabgen', 'building-worklog', 'building-worksafe'];
-
     // === HELP ===
     if (trimmed === 'help') {
       print('<span class="cmd">cd</span> · <span class="cmd">ls</span> · <span class="cmd">cat</span> · <span class="cmd">open</span> · <span class="cmd">clear</span> · <span class="cmd">exit</span>');
@@ -204,16 +223,23 @@
     else if (trimmed === 'ls') {
       print('<span class="ls-dir">posts/</span>  <span class="ls-dir">waves/</span>  <span class="ls-file">about.txt</span>  <span class="ls-file">README.md</span>');
     } else if (trimmed === 'ls posts' || trimmed === 'ls posts/' || trimmed === 'ls blog' || trimmed === 'ls blog/') {
-      print('<span class="ls-file">slop-slinger.md</span>  <span class="ls-file">introducing-bakery.md</span>  <span class="ls-file">building-speak-strong.md</span>');
-      print('<span class="ls-file">building-tabgen.md</span>  <span class="ls-file">building-worklog.md</span>  <span class="ls-file">building-worksafe.md</span>');
+      // Dynamic blog post listing
+      const postFiles = blogSlugs.map(s => `<span class="ls-file">${s}.md</span>`);
+      for (let i = 0; i < postFiles.length; i += 3) {
+        print(postFiles.slice(i, i + 3).join('  '));
+      }
     } else if (trimmed === 'ls waves' || trimmed === 'ls waves/' || trimmed === 'ls music' || trimmed === 'ls music/') {
-      print('<span class="ls-file">slop-slinger.mp3</span>  <span class="ls-file">lose-yourself.mp3</span>  <span class="ls-file">without-me.mp3</span>');
+      // Dynamic song listing
+      const songFiles = songSlugs.map(s => `<span class="ls-file">${s}.mp3</span>`);
+      for (let i = 0; i < songFiles.length; i += 3) {
+        print(songFiles.slice(i, i + 3).join('  '));
+      }
     } else if (command === 'ls') {
       print(`ls: cannot access '${args}': No such file or directory`);
     }
     // === CAT ===
     else if (trimmed === 'cat about' || trimmed === 'cat about.txt') {
-      print('Hey, I\'m Justin. I build things with code and occasionally make music.');
+      navigate('/about', 'Opening about...');
     } else if (trimmed === 'cat readme.md' || trimmed === 'cat readme') {
       print('# justin.blog - Personal blog and music. Press / for terminal, ? for shortcuts.');
     } else if (trimmed === 'cat /etc/passwd') {
@@ -234,11 +260,37 @@
         'cat: /etc/shadow: Nice try reading the shadow file 😏'
       );
     } else if (command === 'cat') {
-      const catArg = args.replace(/\.md$/, '').replace(/^posts\//, '').replace(/^blog\//, '');
-      if (blogSlugs.includes(catArg)) {
-        navigate(`/blog/${catArg}`, `Opening ${catArg}...`);
-      } else {
-        print(`cat: ${args}: No such file or directory`);
+      // Handle cat posts/<slug> and cat waves/<slug>
+      let catArg = args;
+      
+      // Check for posts/ prefix
+      if (catArg.startsWith('posts/')) {
+        const slug = catArg.slice(6).replace(/\.md$/, '');
+        if (blogSlugs.includes(slug)) {
+          navigate(`/blog/${slug}`, `Opening ${slug}...`);
+        } else {
+          print(`cat: ${args}: No such file or directory`);
+        }
+      }
+      // Check for waves/ prefix
+      else if (catArg.startsWith('waves/')) {
+        const slug = catArg.slice(6).replace(/\.mp3$/, '');
+        if (songSlugs.includes(slug)) {
+          navigate(`/waves/${slug}`, `Opening ${slug}...`);
+        } else {
+          print(`cat: ${args}: No such file or directory`);
+        }
+      }
+      // Legacy: bare slug (check blog first, then waves)
+      else {
+        const slug = catArg.replace(/\.md$/, '').replace(/\.mp3$/, '');
+        if (blogSlugs.includes(slug)) {
+          navigate(`/blog/${slug}`, `Opening ${slug}...`);
+        } else if (songSlugs.includes(slug)) {
+          navigate(`/waves/${slug}`, `Opening ${slug}...`);
+        } else {
+          print(`cat: ${args}: No such file or directory`);
+        }
       }
     }
     // === OPEN ===
@@ -1129,43 +1181,131 @@
     }, 3200);
   }
 
-  // Tab completions
-  const tabCompletions: Record<string, string> = {
-    '': 'help', 'h': 'help', 'he': 'help', 'hel': 'help',
-    'c': 'cd ~', 'cd': 'cd ~',
-    'l': 'ls', 'ls': 'ls posts', 'ls ': 'ls posts', 'ls p': 'ls posts', 'ls w': 'ls waves',
-    'ca': 'cat about', 'cat': 'cat about', 'cat ': 'cat about', 'cat a': 'cat about', 'cat r': 'cat readme',
-    'cl': 'clear', 'cle': 'clear', 'clea': 'clear',
-    'n': 'next', 'ne': 'next', 'nex': 'next',
-    'pr': 'prev', 'pre': 'prev', 'prev': 'prev',
-    'pa': 'pause', 'pau': 'pause', 'paus': 'pause',
-    'pl': 'play', 'pla': 'play',
-    're': 'resume', 'res': 'resume', 'resu': 'resume', 'resum': 'resume',
-    'v': 'volume', 'vo': 'volume', 'vol': 'volume',
-    'sh': 'shuffle', 'shu': 'shuffle', 'shuf': 'shuffle',
-    'rep': 'repeat', 'repe': 'repeat', 'repea': 'repeat',
-    'q': 'queue', 'qu': 'queue', 'que': 'queue', 'queu': 'queue',
-    'np': 'nowplaying', 'now': 'nowplaying',
-    'mu': 'mute', 'mut': 'mute',
-    'loo': 'loop', 'loop': 'loop',
-    'in': 'info', 'inf': 'info', 'info': 'info',
-    'fs': 'fullscreen', 'ful': 'fullscreen',
-    'o': 'open ', 'op': 'open ', 'ope': 'open ', 'open': 'open ',
-    'w': 'whoami', 'wh': 'whoami', 'who': 'whoami',
-    'pw': 'pwd',
-    'd': 'date', 'da': 'date', 'dat': 'date',
-    'co': 'cowsay', 'cow': 'cowsay',
-    'm': 'matrix', 'ma': 'matrix', 'mat': 'matrix',
-    'neo': 'neofetch', 'neof': 'neofetch',
-    'sl': 'sl',
-    'e': 'echo ', 'ec': 'echo ', 'ech': 'echo ',
-    'ha': 'hack', 'hac': 'hack',
-    'hi': 'history', 'his': 'history', 'hist': 'history',
-    'su': 'sudo su', 'sud': 'sudo su', 'sudo': 'sudo su',
-  };
+  // Linux-style tab completion system
+  // Track double-tab for showing all options
+  let lastTabTime = 0;
+  let lastTabInput = '';
+  const DOUBLE_TAB_THRESHOLD = 500; // ms
 
-  function getTabCompletion(input: string): string | null {
-    return tabCompletions[input.toLowerCase()] || null;
+  // Base commands for completion
+  const baseCommands = [
+    'help', 'cd', 'ls', 'cat', 'open', 'clear', 'exit',
+    'play', 'pause', 'next', 'prev', 'volume', 'queue',
+    'shuffle', 'repeat', 'mute', 'loop', 'info', 'nowplaying',
+    'whoami', 'pwd', 'date', 'uptime', 'uname',
+    'cowsay', 'matrix', 'neofetch', 'sl', 'echo', 'hack', 'history',
+    'sudo', 'fortune', 'ping', 'man', 'top', 'ps', 'free', 'df',
+  ];
+
+  // Cat command completions: about, posts/, waves/
+  const catTargets = ['about', 'posts/', 'waves/'];
+
+  // Find longest common prefix among strings
+  function findCommonPrefix(strings: string[]): string {
+    if (strings.length === 0) return '';
+    if (strings.length === 1) return strings[0];
+    
+    let prefix = strings[0];
+    for (let i = 1; i < strings.length; i++) {
+      while (!strings[i].startsWith(prefix) && prefix.length > 0) {
+        prefix = prefix.slice(0, -1);
+      }
+    }
+    return prefix;
+  }
+
+  // Get completions for current input
+  function getCompletions(input: string): string[] {
+    const lower = input.toLowerCase();
+    const parts = lower.split(/\s+/);
+    const command = parts[0];
+    const args = parts.slice(1).join(' ');
+
+    // Empty or partial command - complete command name
+    if (parts.length === 1 && !lower.endsWith(' ')) {
+      return baseCommands.filter(cmd => cmd.startsWith(lower));
+    }
+
+    // cat command completions
+    if (command === 'cat') {
+      // "cat " or "cat <partial>"
+      if (args === '' || !args.includes('/')) {
+        // Show cat targets (about, posts/, waves/)
+        const matchingTargets = catTargets.filter(t => t.startsWith(args));
+        return matchingTargets.map(t => `cat ${t}`);
+      }
+      
+      // "cat posts/" or "cat posts/<partial>"
+      if (args.startsWith('posts/')) {
+        const partial = args.slice(6); // remove "posts/"
+        const matches = blogSlugs.filter(s => s.startsWith(partial));
+        return matches.map(s => `cat posts/${s}`);
+      }
+      
+      // "cat waves/" or "cat waves/<partial>"
+      if (args.startsWith('waves/')) {
+        const partial = args.slice(6); // remove "waves/"
+        const matches = songSlugs.filter(s => s.startsWith(partial));
+        return matches.map(s => `cat waves/${s}`);
+      }
+    }
+
+    // ls command completions
+    if (command === 'ls') {
+      const lsTargets = ['posts', 'waves'];
+      if (args === '') {
+        return lsTargets.map(t => `ls ${t}`);
+      }
+      const matches = lsTargets.filter(t => t.startsWith(args));
+      return matches.map(t => `ls ${t}`);
+    }
+
+    // cd command completions
+    if (command === 'cd') {
+      const cdTargets = ['~', 'posts', 'waves', 'about'];
+      if (args === '') {
+        return cdTargets.map(t => `cd ${t}`);
+      }
+      const matches = cdTargets.filter(t => t.startsWith(args));
+      return matches.map(t => `cd ${t}`);
+    }
+
+    // open command completions
+    if (command === 'open') {
+      const openTargets = ['about', 'blog', 'waves', 'home'];
+      if (args === '') {
+        return openTargets.map(t => `open ${t}`);
+      }
+      const matches = openTargets.filter(t => t.startsWith(args));
+      return matches.map(t => `open ${t}`);
+    }
+
+    return [];
+  }
+
+  // Handle tab completion - returns { completed: string, showOptions: boolean }
+  function handleTabCompletion(input: string, isDoubleTab: boolean): { completed: string; showOptions: string[] } {
+    const completions = getCompletions(input);
+    
+    if (completions.length === 0) {
+      return { completed: input, showOptions: [] };
+    }
+    
+    if (completions.length === 1) {
+      // Single match - complete it
+      return { completed: completions[0], showOptions: [] };
+    }
+    
+    // Multiple matches
+    const commonPrefix = findCommonPrefix(completions);
+    
+    if (isDoubleTab || commonPrefix === input) {
+      // Double tab or can't extend further - show all options
+      return { completed: commonPrefix, showOptions: completions };
+    }
+    
+    // Single tab with common prefix - extend to common prefix
+    return { completed: commonPrefix, showOptions: [] };
   }
 
   // Terminal input handling
@@ -1181,9 +1321,36 @@
         terminalInput.value = '';
       } else if (e.key === 'Tab') {
         e.preventDefault();
-        const completion = getTabCompletion(terminalInput.value);
-        if (completion) {
-          terminalInput.value = completion;
+        const now = Date.now();
+        const currentInput = terminalInput.value;
+        
+        // Check for double-tab
+        const isDoubleTab = (now - lastTabTime < DOUBLE_TAB_THRESHOLD) && (lastTabInput === currentInput);
+        lastTabTime = now;
+        lastTabInput = currentInput;
+        
+        const result = handleTabCompletion(currentInput, isDoubleTab);
+        
+        // Update input with completion
+        if (result.completed !== currentInput) {
+          terminalInput.value = result.completed;
+          lastTabInput = result.completed; // Update for next double-tab check
+        }
+        
+        // Show options if double-tab revealed them
+        if (result.showOptions.length > 0) {
+          clearTerminalOutput();
+          // Format options nicely - extract just the argument part for display
+          const options = result.showOptions.map(opt => {
+            const parts = opt.split(' ');
+            return parts.length > 1 ? parts.slice(1).join(' ') : opt;
+          });
+          // Display in columns
+          const perRow = 3;
+          for (let i = 0; i < options.length; i += perRow) {
+            const row = options.slice(i, i + perRow);
+            print(row.map(o => `<span class="ls-file">${o}</span>`).join('  '));
+          }
         }
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();

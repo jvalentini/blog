@@ -1,0 +1,438 @@
+---
+interface Props {
+  tracks: Array<{
+    id: number;
+    songId: string;
+    title: string;
+    versions: Record<string, string>;
+  }>;
+  genres: string[];
+  defaultGenre: string;
+}
+
+const { tracks, genres, defaultGenre } = Astro.props;
+---
+
+<div class="queue-section">
+  <div class="queue-header">
+    <h3 class="queue-title" id="queue-title">Queue</h3>
+    <div class="queue-header-right">
+      <div class="genre-selector">
+        <!-- Genre Icon - changes based on selection -->
+        <div class="genre-icon" id="genre-icon">
+          <!-- Hip-hop: Terminal Microphone (green phosphor) -->
+          <svg class="genre-icon-mic" id="genre-icon-mic" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Microphone head (mesh grid pattern) -->
+            <rect x="10" y="4" width="12" height="16" rx="6" stroke="currentColor" stroke-width="2" fill="none"/>
+            <!-- Terminal-style horizontal scan lines -->
+            <line x1="12" y1="8" x2="20" y2="8" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+            <line x1="12" y1="11" x2="20" y2="11" stroke="currentColor" stroke-width="1" opacity="0.8"/>
+            <line x1="12" y1="14" x2="20" y2="14" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+            <line x1="12" y1="17" x2="20" y2="17" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+            <!-- Stand -->
+            <line x1="16" y1="20" x2="16" y2="26" stroke="currentColor" stroke-width="2"/>
+            <!-- Base -->
+            <line x1="10" y1="26" x2="22" y2="26" stroke="currentColor" stroke-width="2"/>
+            <!-- Signal waves (terminal pulses) -->
+            <path d="M6 10 Q4 12 6 14" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/>
+            <path d="M26 10 Q28 12 26 14" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/>
+          </svg>
+          <!-- Country: Sheriff Star Badge -->
+          <svg class="genre-icon-lasso" id="genre-icon-lasso" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={defaultGenre === 'country' ? '' : 'display: none;'}>
+            <!-- 6-pointed sheriff star -->
+            <polygon 
+              points="16,2 18.5,10 27,10 20,15 23,24 16,19 9,24 12,15 5,10 13.5,10" 
+              fill="currentColor"
+            />
+            <!-- Inner circle detail -->
+            <circle cx="16" cy="14" r="4" fill="currentColor" opacity="0.3"/>
+            <!-- Center dot -->
+            <circle cx="16" cy="14" r="1.5" fill="currentColor" opacity="0.5"/>
+          </svg>
+        </div>
+        <!-- Genre Toggle Buttons -->
+        <div class="genre-toggle" id="genre-toggle">
+          <button 
+            class={`genre-btn ${defaultGenre === 'hip-hop' ? 'active' : ''}`} 
+            id="genre-btn-hip-hop" 
+            data-genre="hip-hop"
+          >
+            <span class="genre-btn-text">Hip-Hop</span>
+          </button>
+          <button 
+            class={`genre-btn ${defaultGenre === 'country' ? 'active' : ''}`} 
+            id="genre-btn-country" 
+            data-genre="country"
+          >
+            <span class="genre-btn-text">Country</span>
+          </button>
+        </div>
+      </div>
+      <span class="queue-count">{tracks.length} track{tracks.length !== 1 ? 's' : ''}</span>
+    </div>
+  </div>
+  <div class="queue-list" id="queue-list">
+    {tracks.map((track, idx) => (
+      <div 
+        class="queue-item" 
+        data-index={idx}
+        data-versions={JSON.stringify(track.versions)}
+        data-title={track.title}
+        data-song-id={track.songId}
+      >
+        <span class="queue-item-number">{idx + 1}</span>
+        <span class="queue-item-title">{track.title}</span>
+        <span class="queue-item-genre-badge" id={`genre-badge-${idx}`}></span>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  /* Queue Section */
+  .queue-section {
+    background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(20, 25, 30, 0.7) 100%);
+    border: 1px solid rgba(51, 255, 51, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .queue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--phosphor-dim);
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .queue-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--phosphor-base);
+    margin: 0;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+    text-shadow: 0 0 8px rgba(51, 255, 51, 0.3);
+  }
+
+  .queue-title.country-theme {
+    color: #e8b84a;
+    text-shadow: 0 0 8px rgba(212, 160, 58, 0.4);
+  }
+
+  .queue-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .genre-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* Genre Icon Container */
+  .genre-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .genre-icon svg {
+    width: 28px;
+    height: 28px;
+    transition: all 0.3s ease;
+  }
+
+  /* Hip-hop microphone - green terminal glow */
+  .genre-icon-mic {
+    color: var(--phosphor-base, #33ff33);
+    filter: drop-shadow(0 0 4px rgba(51, 255, 51, 0.6))
+            drop-shadow(0 0 8px rgba(51, 255, 51, 0.3));
+    animation: mic-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes mic-pulse {
+    0%, 100% { 
+      filter: drop-shadow(0 0 4px rgba(51, 255, 51, 0.6))
+              drop-shadow(0 0 8px rgba(51, 255, 51, 0.3));
+    }
+    50% { 
+      filter: drop-shadow(0 0 6px rgba(51, 255, 51, 0.8))
+              drop-shadow(0 0 12px rgba(51, 255, 51, 0.5));
+    }
+  }
+
+  /* Country cowboy hat - amber Oregon Trail style */
+  .genre-icon-lasso {
+    color: #d4a03a;
+    filter: drop-shadow(0 0 3px rgba(212, 160, 58, 0.5))
+            drop-shadow(0 0 6px rgba(212, 160, 58, 0.25));
+    animation: hat-tip 4s ease-in-out infinite;
+  }
+
+  @keyframes hat-tip {
+    0%, 100% { 
+      transform: rotate(0deg) translateY(0);
+      filter: drop-shadow(0 0 3px rgba(212, 160, 58, 0.5))
+              drop-shadow(0 0 6px rgba(212, 160, 58, 0.25));
+    }
+    50% { 
+      transform: rotate(-3deg) translateY(-1px);
+      filter: drop-shadow(0 0 5px rgba(212, 160, 58, 0.7))
+              drop-shadow(0 0 10px rgba(212, 160, 58, 0.4));
+    }
+  }
+
+  /* Genre Toggle Buttons */
+  .genre-toggle {
+    display: flex;
+    background: var(--bg-deep, #0a0c0e);
+    border: 1px solid var(--border-dim, rgba(51, 255, 51, 0.15));
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .genre-btn {
+    position: relative;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-family: var(--font-mono, monospace);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1;
+  }
+
+  .genre-btn:first-child {
+    border-right: 1px solid var(--border-dim, rgba(51, 255, 51, 0.15));
+  }
+
+  .genre-btn:hover:not(.active) {
+    color: var(--text-primary, rgba(255, 255, 255, 0.85));
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  /* Hip-hop active state - green phosphor */
+  .genre-btn[data-genre="hip-hop"].active {
+    color: var(--phosphor-bright, #66ff66);
+    background: rgba(51, 255, 51, 0.12);
+    text-shadow: 0 0 8px rgba(51, 255, 51, 0.5);
+    box-shadow: inset 0 0 12px rgba(51, 255, 51, 0.1);
+  }
+
+  /* Country active state - amber glow */
+  .genre-btn[data-genre="country"].active {
+    color: #e8b84a;
+    background: rgba(212, 160, 58, 0.12);
+    text-shadow: 0 0 8px rgba(212, 160, 58, 0.5);
+    box-shadow: inset 0 0 12px rgba(212, 160, 58, 0.1);
+  }
+
+  .genre-btn-text {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Active indicator bar */
+  .genre-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .genre-btn[data-genre="hip-hop"].active::after {
+    background: linear-gradient(90deg, transparent, var(--phosphor-base, #33ff33), transparent);
+    box-shadow: 0 0 8px rgba(51, 255, 51, 0.6);
+  }
+
+  .genre-btn[data-genre="country"].active::after {
+    background: linear-gradient(90deg, transparent, #d4a03a, transparent);
+    box-shadow: 0 0 8px rgba(212, 160, 58, 0.6);
+  }
+
+  .queue-count {
+    font-size: 0.75rem;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .queue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 8px;
+    background: transparent;
+  }
+
+  /* Country theme - amber glow styling */
+  .queue-list.country-theme {
+    background: rgba(255, 176, 0, 0.02);
+    box-shadow: 
+      0 0 12px rgba(255, 176, 0, 0.04),
+      inset 0 0 8px rgba(255, 176, 0, 0.02);
+  }
+
+  .queue-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(51, 255, 51, 0.03);
+    border: 1px solid rgba(51, 255, 51, 0.1);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .queue-list.country-theme .queue-item {
+    background: rgba(255, 176, 0, 0.03);
+    border: 1px solid rgba(255, 176, 0, 0.1);
+  }
+
+  .queue-item:hover {
+    background: rgba(51, 255, 51, 0.08);
+    border-color: rgba(51, 255, 51, 0.25);
+  }
+
+  .queue-list.country-theme .queue-item:hover {
+    background: rgba(255, 176, 0, 0.06);
+    border-color: rgba(255, 176, 0, 0.18);
+  }
+
+  .queue-item.active {
+    background: rgba(51, 255, 51, 0.12);
+    border-color: rgba(51, 255, 51, 0.3);
+  }
+
+  .queue-list.country-theme .queue-item.active {
+    background: rgba(255, 176, 0, 0.08);
+    border-color: rgba(255, 176, 0, 0.2);
+  }
+
+  .queue-item-number {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: rgba(51, 255, 51, 0.5);
+    min-width: 24px;
+    text-align: center;
+    transition: color 0.15s ease;
+  }
+
+  /* Hip-hop: active number is amber (complementary) */
+  .queue-item.active .queue-item-number {
+    color: #e8b84a;
+  }
+
+  /* Country: non-active number is amber, active is green */
+  .queue-list.country-theme .queue-item-number {
+    color: rgba(212, 160, 58, 0.5);
+  }
+
+  .queue-list.country-theme .queue-item.active .queue-item-number {
+    color: var(--phosphor-bright, #66ff66);
+  }
+
+  .queue-item-title {
+    flex: 1;
+    font-size: 0.9rem;
+    color: rgba(51, 255, 51, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.15s ease, text-shadow 0.15s ease;
+    cursor: pointer;
+  }
+
+  .queue-item-title:hover {
+    color: var(--phosphor-bright, #66ff66);
+    text-shadow: 0 0 10px rgba(51, 255, 51, 0.6);
+  }
+
+  /* Hip-hop: active title is amber (complementary) */
+  .queue-item.active .queue-item-title {
+    color: #e8b84a;
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(212, 160, 58, 0.5);
+  }
+
+  /* Country theme: non-active titles are amber */
+  .queue-list.country-theme .queue-item-title {
+    color: rgba(212, 160, 58, 0.7);
+  }
+
+  .queue-list.country-theme .queue-item-title:hover {
+    color: #e8b84a;
+    text-shadow: 0 0 10px rgba(212, 160, 58, 0.6);
+  }
+
+  /* Country: active title is green (complementary) */
+  .queue-list.country-theme .queue-item.active .queue-item-title {
+    color: var(--phosphor-bright, #66ff66);
+    text-shadow: 0 0 10px rgba(51, 255, 51, 0.5);
+  }
+
+  .queue-item-genre-badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* Scrollbar */
+  .queue-list::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .queue-list::-webkit-scrollbar-track {
+    background: var(--bg-surface);
+    border-radius: 3px;
+  }
+
+  .queue-list::-webkit-scrollbar-thumb {
+    background: var(--border-base);
+    border-radius: 3px;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .queue-section {
+      padding: 1rem;
+    }
+
+    .queue-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .queue-header-right {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .queue-list {
+      max-height: 300px;
+    }
+  }
+</style>

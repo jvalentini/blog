@@ -1,0 +1,42 @@
+---
+// No props - initialized to 0:00
+---
+
+<div class="progress-section">
+  <span class="time-display" id="progress-current">0:00</span>
+  <input type="range" id="progress-slider" class="progress-slider" min="0" max="100" value="0" />
+  <span class="time-display" id="progress-duration">0:00</span>
+</div>
+
+<style>
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .time-display {
+    font-size: 0.75rem;
+    color: var(--phosphor-base);
+    min-width: 35px;
+    text-align: center;
+  }
+
+  .progress-slider {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(51, 255, 51, 0.15);
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .progress-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--phosphor-base);
+    cursor: pointer;
+  }
+</style>

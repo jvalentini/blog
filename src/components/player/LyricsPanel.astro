@@ -1,0 +1,235 @@
+---
+// No props needed - content populated by JS
+---
+
+<div class="lyrics-panel">
+  <div class="lyrics-scroll-track">
+    <div class="lyrics-scroll-progress" id="lyrics-scroll-progress"></div>
+  </div>
+  <div class="lyrics-container" id="lyrics-content">
+    <div class="lyrics-empty">
+      <p>Select a track to view lyrics</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Lyrics Panel - Distinctive scrolling lyrics display */
+  .lyrics-panel {
+    position: relative;
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Vertical scroll progress track */
+  .lyrics-scroll-track {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: rgba(51, 255, 51, 0.1);
+    border-radius: 2px;
+    z-index: 2;
+  }
+
+  .lyrics-scroll-progress {
+    width: 100%;
+    background: linear-gradient(
+      180deg,
+      var(--phosphor-base) 0%,
+      var(--amber-base, #ffb000) 100%
+    );
+    border-radius: 2px;
+    transition: height 0.3s ease-out;
+    box-shadow: 0 0 8px rgba(51, 255, 51, 0.4);
+  }
+
+  .lyrics-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 0.75rem 1rem 1.25rem;
+    color: var(--text-primary);
+    line-height: 2;
+    font-size: 0.95rem;
+    scroll-behavior: smooth;
+    /* Fade edges for scroll indication */
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  /* Hide default scrollbar - using custom progress track */
+  .lyrics-container::-webkit-scrollbar {
+    width: 0;
+    display: none;
+  }
+
+  /* Lyrics empty state */
+  .lyrics-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-secondary);
+    font-style: italic;
+    opacity: 0.5;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+
+  /* Lyric line base styles */
+  .lyrics-panel :global(.lyrics-line) {
+    margin: 0.5rem 0;
+    padding: 0.35rem 0.75rem;
+    color: rgba(255, 255, 255, 0.45);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 2px solid transparent;
+    font-weight: 400;
+    border-radius: 0 4px 4px 0;
+    position: relative;
+  }
+
+  /* Upcoming lines - slightly brighter than passed */
+  .lyrics-panel :global(.lyrics-line:not(.active)) {
+    opacity: 0.7;
+  }
+
+  .lyrics-panel :global(.lyrics-line.lyrics-spacer) {
+    margin: 1.5rem 0;
+    height: 0;
+    padding: 0;
+    border-left: none;
+  }
+
+  .lyrics-panel :global(.lyrics-line.lyrics-header),
+  .lyrics-container :global(h3.lyrics-header) {
+    color: var(--amber-bright, #ffcc00);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+    border-left: none;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-shadow: 0 0 12px rgba(255, 176, 0, 0.5);
+    opacity: 1 !important;
+  }
+
+  /* Decorative line after section headers */
+  .lyrics-container :global(h3.lyrics-header::after) {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 176, 0, 0.5) 0%,
+      rgba(51, 255, 51, 0.15) 60%,
+      transparent 100%
+    );
+    box-shadow: 0 0 6px rgba(255, 176, 0, 0.25);
+  }
+
+  .lyrics-container :global(h3.lyrics-header:first-child) {
+    margin-top: 0;
+  }
+
+  .lyrics-container :global(h3) {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  /* Active lyric line - the star of the show */
+  .lyrics-panel :global(.lyrics-line.active) {
+    color: #ffffff;
+    font-weight: 500;
+    border-left-color: var(--phosphor-base, #33ff33);
+    background: linear-gradient(
+      90deg,
+      rgba(51, 255, 51, 0.12) 0%,
+      rgba(51, 255, 51, 0.04) 50%,
+      transparent 100%
+    );
+    text-shadow: 
+      0 0 20px rgba(51, 255, 51, 0.6),
+      0 0 40px rgba(51, 255, 51, 0.3);
+    transform: translateX(4px);
+    opacity: 1;
+    animation: lyricGlow 2s ease-in-out infinite;
+  }
+
+  /* Active header styling */
+  .lyrics-panel :global(.lyrics-header.active) {
+    color: var(--phosphor-bright, #66ff66) !important;
+    text-shadow: 
+      0 0 15px rgba(51, 255, 51, 0.7),
+      0 0 30px rgba(51, 255, 51, 0.4) !important;
+  }
+
+  /* Glow animation for active line */
+  @keyframes lyricGlow {
+    0%, 100% {
+      text-shadow: 
+        0 0 20px rgba(51, 255, 51, 0.6),
+        0 0 40px rgba(51, 255, 51, 0.3);
+    }
+    50% {
+      text-shadow: 
+        0 0 25px rgba(51, 255, 51, 0.8),
+        0 0 50px rgba(51, 255, 51, 0.4);
+    }
+  }
+
+  /* Responsive - Tablet: stack columns */
+  @media (max-width: 900px) {
+    .lyrics-panel {
+      height: 100%;
+    }
+
+    .lyrics-scroll-track {
+      left: 0;
+    }
+  }
+
+  /* Responsive - Mobile */
+  @media (max-width: 600px) {
+    .lyrics-panel {
+      position: static;
+      width: 100%;
+      max-height: 350px;
+      margin-top: 1.5rem;
+    }
+
+    .lyrics-container {
+      padding: 1rem;
+      line-height: 1.8;
+      font-size: 0.85rem;
+    }
+
+    .lyrics-container :global(h3.lyrics-header) {
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+  }
+</style>

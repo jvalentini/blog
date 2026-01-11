@@ -5,72 +5,74 @@ pubDate: 2026-01-11
 heroImage: "../../assets/waves-hero.png"
 ---
 
-I recently built a music player called **Waves** for my blog—a project that turned into something more ambitious than I initially planned. It's not just a simple audio player. It's a fully-featured interface that lets you switch between genre versions of the same track, navigate with keyboard shortcuts, and sync lyrics in real-time. Here's how it works.
+I built Waves, a music player for my blog. The main feature: toggle between hip-hop and country versions of the same song. No other player does this. It's original. Started simple, grew into more.
 
-## The Vision
+Press G or click genre buttons. Instantly switch. Audio reloads seamlessly. Keeps playback spot and lyrics sync.
 
-The player came from a simple observation: the same song can have dramatically different vibes depending on genre. What if you could hear "Lose Yourself" as a hip-hop anthem one moment and a country ballad the next? Waves lets you do exactly that.
+## The Idea
 
-The name reflects the aesthetic—there's a visual wave background, glowing green phosphor styling inspired by retro terminals, and a responsive two-column layout that adapts from desktop to mobile.
+Came from seeing songs transform by genre. "Lose Yourself" hip-hop to country. Waves makes it happen.
+
+Name fits the look—wave background, green phosphor like old terminals, responsive layout.
 
 ## Features
 
-### Multi-Genre Versions
+### Genre Switching
 
-Each track in Waves has multiple versions:
-- **Hip-Hop**: Slop Slinger, Lose Yourself, Without Me
-- **Country**: The same tracks reimagined with country instrumentation
+Core of Waves. Each track has two versions:
+- Hip-Hop: Slop Slinger, Lose Yourself, Without Me
+- Country: Same songs with country instruments
 
-You can toggle between genres instantly with the **G** key or click the genre buttons. When you switch, the player seamlessly reloads the audio while maintaining your playback position and lyrics sync.
+Switch instantly. Hit G key or click buttons. Player reloads audio without losing place. Lyrics stay synced.
 
 ### Keyboard Shortcuts
 
-I designed Waves to be fully keyboard-accessible. Here's the hotkey map:
+Waves works fully from keyboard. Here are the keys:
 
 | Key | Action |
 |-----|--------|
-| **Space** | Play/Pause |
-| **←** | Previous track (rewind if > 3s in) |
-| **→** | Next track |
-| **↑** | Volume up |
-| **↓** | Volume down |
-| **M** | Mute/unmute |
-| **S** | Toggle shuffle |
-| **R** | Cycle repeat modes (off → all → one) |
-| **G** | Switch genre |
-| **/** | Open terminal (if integrated) |
-| **?** | Show hotkeys modal |
-| **Esc** | Close modals |
+| Space | Play/Pause |
+| ← | Previous track (rewind if > 3s in) |
+| → | Next track |
+| ↑ | Volume up |
+| ↓ | Volume down |
+| M | Mute/unmute |
+| S | Toggle shuffle |
+| R | Cycle repeat modes (off → all → one) |
+| G | Switch genre |
+| / | Open terminal (if integrated) |
+| ? | Show hotkeys modal |
+| Esc | Close modals |
 
-The keyboard manager is smart about context—shortcuts only fire when you're not typing in an input field.
+Shortcuts ignore inputs. Only fire when not typing.
 
-### Synchronized Lyrics
+### Lyrics Sync
 
-The most ambitious feature: **real-time lyrics synchronization**. Each track can have multiple lyric files (one per genre) with LRC timestamp formatting. As the track plays, the lyrics panel scrolls and highlights the current line.
+Lyrics sync to playback. Each track has LRC files per genre. Panel scrolls and highlights lines.
 
-The lyrics parser understands LRC format with timestamps like `[00:12.34] Lyric text here`. If a track doesn't have timestamped lyrics, it displays them as a static block.
+Parser reads `[00:12.34] Lyric text`. No timestamps? Shows static block.
 
 ### Playback Modes
 
-- **Shuffle**: Randomizes the queue while respecting genre selection
-- **Repeat Modes**: Off → Repeat All → Repeat One (visual indicator updates as you cycle)
-- **Volume Control**: 10-level system with block visualization and click-to-set
+- Shuffle: Randomizes queue by genre
+- Repeat: Off → All → One (indicator changes)
+- Volume: 10 levels, blocks show level, click to set
 
-### Visual Feedback
+### UI Feedback
 
-The UI gives you constant feedback:
-- Current track title with glowing text shadow
-- Time display (current / total duration)
-- Progress slider with smooth dragging
-- Volume blocks that light up based on your level
-- Active queue item highlighting
-- Genre-specific theming (subtle styling changes when you switch)
+The interface shows:
+- Track title with glow
+- Time (current / total)
+- Progress bar, drag to seek
+- Volume blocks, light up by level
+- Queue highlights active track
+- Subtle genre styling
 
 ## Architecture
 
 ### Components
 
-The player is built with **Astro** and split into modular components:
+Built with Astro, components split:
 
 ```
 MusicPlayer.astro
@@ -82,91 +84,91 @@ MusicPlayer.astro
 └── HotkeysModal.astro         (keyboard shortcuts reference)
 ```
 
-### TypeScript State Management
+### TypeScript Logic
 
-The core logic lives in `src/scripts/music-player/` with modular TypeScript:
+Code in `src/scripts/music-player/`, TypeScript modules:
 
-- **index.ts**: Main initialization and event wiring
-- **state.ts**: Centralized reactive state store (current track, genre, volume, etc.)
-- **audio-controller.ts**: Wraps the HTML5 audio element with play/pause/seek/volume methods
-- **queue-manager.ts**: Handles track loading, shuffle, repeat modes, and genre switching
-- **lyrics-sync.ts**: Matches current playback time to lyric lines and updates DOM
-- **keyboard-shortcuts.ts**: Event dispatcher for all hotkey bindings
-- **types.ts**: TypeScript interfaces for type safety
+- index.ts: Setup and events
+- state.ts: Reactive store (track, genre, volume)
+- audio-controller.ts: Audio wrapper (play, seek, volume)
+- queue-manager.ts: Loading, shuffle, repeat, genre switch
+- lyrics-sync.ts: Match time to lines, update DOM
+- keyboard-shortcuts.ts: Key bindings
+- types.ts: Interfaces
 
 ### Data Flow
 
-1. **Configuration** (`tracks.json`) defines all songs with their genre versions and lyric files
-2. **Astro build** loads lyrics from markdown files, parses LRC timestamps, and passes data to the client
-3. **Client initialization** sets up state, audio element, and event listeners
-4. **User interaction** (clicks/keys) dispatches through keyboard/queue managers, updates state, and syncs DOM
-5. **Audio updates** trigger time updates, which drive lyrics sync and progress display
+1. tracks.json lists songs, genres, lyrics
+2. Astro build reads markdown lyrics, parses LRC, sends to client
+3. Client sets state, audio, listeners
+4. Interactions dispatch to managers, update state, sync DOM
+5. Audio events trigger time updates, drive lyrics and progress
 
 ## The Tracks
 
-Three tracks power the demo, each with hip-hop and country variants:
+Three tracks, each in hip-hop and country.
 
 ### Slop Slinger
-A quirky track with completely different feels between genres. The hip-hop version hits hard; the country version is laid-back and storytelling-focused.
+Quirky. Hip-hop hits hard. Country is relaxed, tells a story.
 
 ### Lose Yourself
-An iconic track that translates surprisingly well across genres. The hip-hop version is energetic; country reimagines it with acoustic instrumentation.
+Classic. Hip-hop energetic. Country uses acoustic sounds.
 
 ### Without Me
-A moody track that gains a different emotional weight depending on how it's produced. Genre switching here is particularly dramatic.
+Moody. Genre changes the feel. Switching feels big here.
 
-## Technical Highlights
+## Technical Details
 
-### Responsive Design
+### Responsive Layout
 
-The player uses CSS grid that adapts:
-- **Desktop**: Two-column layout (left: controls & info, right: lyrics)
-- **Tablet**: Stacked columns with fixed height on lyrics panel
-- **Mobile**: Single column with adjusted typography and button sizes
+CSS grid adapts:
+- Desktop: Two columns (controls left, lyrics right)
+- Tablet: Stacked, fixed lyrics height
+- Mobile: Single column, adjusted sizes
 
-### Astro & Streaming
+### Astro Build
 
-Built with **Astro** for SSG benefits:
-- Static HTML generation means fast initial load
-- Islands architecture for interactive components
-- File-system API for reading lyrics at build time
-- Hybrid approach: build-time data + client-side interactivity
+Uses Astro for static benefits:
+- Fast load from static HTML
+- Islands for interactivity
+- Reads lyrics at build via file API
+- Mix of build data and client logic
 
-### Audio State Persistence
+### State in URLs
 
-The player syncs URL state. Load `/waves/slop-slinger` and it automatically queues that track. Browser back/forward buttons work—useful for sharing links to specific songs.
+Syncs with URL. Go to /waves/slop-slinger, queues that track. Browser buttons work. Good for sharing.
 
-### Volume Persistence (Future)
+### Volume Save (Later)
 
-Currently defaults to 70%, but the architecture is set up for localStorage integration to remember user volume preferences.
+Starts at 70%. Ready for localStorage to save user prefs.
 
-## Styling Philosophy
+## Styling
 
-The aesthetic is intentional: green-on-black phosphor styling inspired by old CRT monitors and hacker terminals. Every element glows slightly. Shadows are deep. Text has text-shadow for the retro effect.
+Green on black, phosphor like CRTs and terminals. Elements glow. Deep shadows. Text shadows for effect.
 
-CSS variables drive the theme:
-- `--phosphor-base`: Main green (#33ff33)
-- `--phosphor-bright`: Lighter green for highlights
-- `--phosphor-glow`: Shadow color for the glow effect
-- Dark backgrounds with carefully tuned opacity
+CSS vars:
+- --phosphor-base: #33ff33
+- --phosphor-bright: Lighter for highlights
+- --phosphor-glow: Shadow for glow
+- Dark bg with opacity tweaks
 
-## What I Learned
+## Lessons
 
-1. **HTML5 Audio is capable**: With good state management, it can power genuinely sophisticated playback experiences
-2. **Keyboard accessibility matters**: Adding shortcuts made the player way more fun to use
-3. **Lyrics sync is complex**: Handling variable timestamp precision and edge cases taught me a lot about real-time media sync
-4. **Modular TypeScript scales**: Breaking the music player into focused modules made debugging and adding features straightforward
-5. **Genre switching is tricky**: Maintaining playback position and lyric sync across audio source changes requires careful state handling
+1. HTML5 audio works well with state handling. Powers complex playback.
+2. Keyboard shortcuts make it usable. Fun to use.
+3. Lyrics sync needs care. Handles timing edges.
+4. TypeScript modules help. Debug and add features easy.
+5. Genre switch tricky. Keeps position and sync across changes.
 
-## Future Ideas
+## Next Steps
 
-- Playlist support (save and load queues)
-- Keyboard-driven queue navigation
-- Visualizer (frequency bars synced to audio)
-- Track favoriting with localStorage
-- Embedded player for blog posts
-- WebGL background animation that responds to audio
+- Playlists (save/load)
+- Key queue navigation
+- Visualizer (bars to audio)
+- Favorites via localStorage
+- Embed for posts
+- WebGL bg that reacts to sound
 
-Waves started as "a player with two versions of each track" and evolved into a complete media control system. The modular architecture makes it easy to iterate. If you're building something with audio on the web, I'd recommend this approach: split concerns early, use TypeScript for confidence, and test keyboard shortcuts—they're surprisingly delightful.
+Waves began as genre variants. Became full player. Modular setup allows changes. For web audio, split early, use TypeScript, check shortcuts.
 
-Check it out live on the `/waves` page. Press **?** to see all shortcuts.
+Live at /waves. Hit ? for keys.

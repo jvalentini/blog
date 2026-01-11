@@ -1,18 +1,17 @@
 ---
 import MusicPlayer from '../components/MusicPlayer.astro';
-import { SITE_TITLE } from '../consts';
-import BaseLayout from '../layouts/BaseLayout.astro';
+import WavesLayout from '../layouts/WavesLayout.astro';
 import wavesHeroImage from '../assets/waves-hero.png';
 
 const pageTitle = 'waves';
 const pageDescription = 'A collection of original tracks and creative experiments.';
 ---
 
-<BaseLayout title={`${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image={wavesHeroImage} wide>
+<WavesLayout title={pageTitle} description={pageDescription} image={wavesHeroImage}>
 	<section class="player-section">
 		<MusicPlayer />
 	</section>
-</BaseLayout>
+</WavesLayout>
 
 <style is:global>
 	/* Hide scrollbar on waves page */

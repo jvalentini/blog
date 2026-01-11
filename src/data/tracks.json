@@ -1,42 +1,42 @@
 {
-  "songs": [
-    {
-      "id": "slop-slinger",
-      "title": "Slop Slinger",
-      "lyrics": {
-        "hip-hop": "hip-hop/slop-slinger.md",
-        "country": "country/slop-slinger.md"
-      },
-      "versions": {
-        "hip-hop": "hip-hop/slop-slinger.mp3",
-        "country": "country/slop-slinger.mp3"
-      }
-    },
-    {
-      "id": "lose-yourself",
-      "title": "Lose Yourself",
-      "lyrics": {
-        "hip-hop": "hip-hop/lose-yourself.md",
-        "country": "country/lose-yourself.md"
-      },
-      "versions": {
-        "hip-hop": "hip-hop/lose-yourself.mp3",
-        "country": "country/lose-yourself.mp3"
-      }
-    },
-    {
-      "id": "without-me",
-      "title": "Without Me",
-      "lyrics": {
-        "hip-hop": "hip-hop/without-me.md",
-        "country": "country/without-me.md"
-      },
-      "versions": {
-        "hip-hop": "hip-hop/without-me.mp3",
-        "country": "country/without-me.mp3"
-      }
-    }
-  ],
-  "genres": ["hip-hop", "country"],
-  "defaultGenre": "hip-hop"
+	"songs": [
+		{
+			"id": "slop-slinger",
+			"title": "Slop Slinger",
+			"lyrics": {
+				"hip-hop": "hip-hop/slop-slinger.md",
+				"country": "country/slop-slinger.md"
+			},
+			"versions": {
+				"hip-hop": "hip-hop/slop-slinger.mp3",
+				"country": "country/slop-slinger.mp3"
+			}
+		},
+		{
+			"id": "lose-yourself",
+			"title": "Lose Yourself",
+			"lyrics": {
+				"hip-hop": "hip-hop/lose-yourself.md",
+				"country": "country/lose-yourself.md"
+			},
+			"versions": {
+				"hip-hop": "hip-hop/lose-yourself.mp3",
+				"country": "country/lose-yourself.mp3"
+			}
+		},
+		{
+			"id": "without-me",
+			"title": "Without Me",
+			"lyrics": {
+				"hip-hop": "hip-hop/without-me.md",
+				"country": "country/without-me.md"
+			},
+			"versions": {
+				"hip-hop": "hip-hop/without-me.mp3",
+				"country": "country/without-me.mp3"
+			}
+		}
+	],
+	"genres": ["hip-hop", "country"],
+	"defaultGenre": "hip-hop"
 }

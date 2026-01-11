@@ -1,5 +1,6 @@
 # build output
 dist/
+
 # generated types
 .astro/
 
@@ -11,16 +12,37 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-
+bun-debug.log*
+*.log
 
 # environment variables
 .env
-.env.production
+.env.*
+!.env.example
 .dev.vars
 .wrangler
 
 # macOS-specific files
 .DS_Store
+.AppleDouble
+.LSOverride
 
-# jetbrains setting folder
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# editors
 .idea/
+*.swp
+*.swo
+*~
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# misc
+*.local
+.cache/
+.turbo/
+.vercel/
+.netlify/

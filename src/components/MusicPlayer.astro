@@ -5,16 +5,16 @@ import { fileURLToPath } from 'url';
 import tracksData from '../data/tracks.json';
 
 interface Song {
-  id: string;
-  title: string;
-  lyrics: Record<string, string>;
-  versions: Record<string, string>;
+	id: string;
+	title: string;
+	lyrics: Record<string, string>;
+	versions: Record<string, string>;
 }
 
 interface TracksConfig {
-  songs: Song[];
-  genres: string[];
-  defaultGenre: string;
+	songs: Song[];
+	genres: string[];
+	defaultGenre: string;
 }
 
 const config = tracksData as TracksConfig;
@@ -22,166 +22,163 @@ const { songs, genres, defaultGenre } = config;
 
 // Build track list with version URLs
 const tracks = songs.map((song, idx) => ({
-  id: idx,
-  songId: song.id,
-  title: song.title,
-  lyrics: song.lyrics,
-  versions: Object.fromEntries(
-    Object.entries(song.versions).map(([genre, filepath]) => [
-      genre,
-      `/assets/music/${filepath}`
-    ])
-  )
+	id: idx,
+	songId: song.id,
+	title: song.title,
+	lyrics: song.lyrics,
+	versions: Object.fromEntries(
+		Object.entries(song.versions).map(([genre, filepath]) => [genre, `/assets/music/${filepath}`]),
+	),
 }));
 
 // Load lyrics with LRC timestamp support
 const lyricsDirPath = fileURLToPath(new URL('../content/lyrics', import.meta.url));
 
 interface LyricLine {
-  time: number | null; // seconds, null if no timestamp
-  text: string;
-  isHeader: boolean;
-  isSpacer: boolean;
+	time: number | null; // seconds, null if no timestamp
+	text: string;
+	isHeader: boolean;
+	isSpacer: boolean;
 }
 
 interface ParsedLyrics {
-  lines: LyricLine[];
-  hasTimestamps: boolean;
-  html: string;
+	lines: LyricLine[];
+	hasTimestamps: boolean;
+	html: string;
 }
 
 const lyricsData: Record<string, Record<string, ParsedLyrics>> = {};
 
 const escapeHtml = (text: string): string => {
-  const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;'
-  };
-  return text.replace(/[&<>"']/g, (m) => map[m]);
+	const map: Record<string, string> = {
+		'&': '&amp;',
+		'<': '&lt;',
+		'>': '&gt;',
+		'"': '&quot;',
+		"'": '&#039;',
+	};
+	return text.replace(/[&<>"']/g, (m) => map[m]);
 };
 
 // Parse LRC timestamp [MM:SS.xx] or [MM:SS] - returns seconds
 const parseTimestamp = (timestamp: string): number => {
-  const match = timestamp.match(/(\d+):(\d+)(?:\.(\d+))?/);
-  if (!match) return 0;
-  const minutes = parseInt(match[1], 10);
-  const seconds = parseInt(match[2], 10);
-  const centiseconds = match[3] ? parseInt(match[3].padEnd(2, '0').slice(0, 2), 10) : 0;
-  return minutes * 60 + seconds + centiseconds / 100;
+	const match = timestamp.match(/(\d+):(\d+)(?:\.(\d+))?/);
+	if (!match) return 0;
+	const minutes = parseInt(match[1], 10);
+	const seconds = parseInt(match[2], 10);
+	const centiseconds = match[3] ? parseInt(match[3].padEnd(2, '0').slice(0, 2), 10) : 0;
+	return minutes * 60 + seconds + centiseconds / 100;
 };
 
 // Check if a bracket content is a timestamp vs section header
 const isTimestamp = (content: string): boolean => {
-  return /^\d+:\d+(?:\.\d+)?$/.test(content);
+	return /^\d+:\d+(?:\.\d+)?$/.test(content);
 };
 
 const parseLyrics = (content: string): ParsedLyrics => {
-  const lines: LyricLine[] = [];
-  let hasTimestamps = false;
-  
-  // LRC timestamp regex: [MM:SS.xx] or [MM:SS]
-  const timestampRegex = /^\[(\d+:\d+(?:\.\d+)?)\]/;
-  // Section header regex: [Section Name] (not a timestamp)
-  const sectionRegex = /^\[([^\]]+)\]$/;
-  
-  const rawLines = content.split('\n');
-  
-  for (const rawLine of rawLines) {
-    const trimmed = rawLine.trim();
-    
-    if (trimmed === '') {
-      lines.push({ time: null, text: '', isHeader: false, isSpacer: true });
-      continue;
-    }
-    
-    // Check for LRC timestamp at start of line
-    const timestampMatch = trimmed.match(timestampRegex);
-    if (timestampMatch) {
-      hasTimestamps = true;
-      const time = parseTimestamp(timestampMatch[1]);
-      let text = trimmed.slice(timestampMatch[0].length).trim();
-      
-      // Check if remaining text is a section header [Section Name]
-      const remainingSectionMatch = text.match(sectionRegex);
-      if (remainingSectionMatch && !isTimestamp(remainingSectionMatch[1])) {
-        lines.push({ time, text: remainingSectionMatch[1], isHeader: true, isSpacer: false });
-      } else {
-        lines.push({ time, text, isHeader: false, isSpacer: false });
-      }
-      continue;
-    }
-    
-    // Check for ## Header format
-    if (trimmed.startsWith('## ')) {
-      lines.push({ time: null, text: trimmed.slice(3), isHeader: true, isSpacer: false });
-      continue;
-    }
-    
-    // Check for [Section Name] format (not timestamp)
-    const sectionMatch = trimmed.match(sectionRegex);
-    if (sectionMatch && !isTimestamp(sectionMatch[1])) {
-      lines.push({ time: null, text: sectionMatch[1], isHeader: true, isSpacer: false });
-      continue;
-    }
-    
-    // Regular lyric line
-    lines.push({ time: null, text: trimmed, isHeader: false, isSpacer: false });
-  }
-  
-  // Generate HTML with data attributes for sync
-  let html = '';
-  lines.forEach((line, idx) => {
-    const timeAttr = line.time !== null ? `data-time="${line.time}"` : '';
-    const indexAttr = `data-index="${idx}"`;
-    
-    if (line.isSpacer) {
-      html += `<p class="lyrics-line lyrics-spacer" ${indexAttr}></p>`;
-    } else if (line.isHeader) {
-      html += `<h3 class="lyrics-header" ${timeAttr} ${indexAttr}>${escapeHtml(line.text)}</h3>`;
-    } else if (line.text) {
-      html += `<p class="lyrics-line" ${timeAttr} ${indexAttr}>${escapeHtml(line.text)}</p>`;
-    }
-  });
-  
-  return { lines, hasTimestamps, html };
+	const lines: LyricLine[] = [];
+	let hasTimestamps = false;
+
+	// LRC timestamp regex: [MM:SS.xx] or [MM:SS]
+	const timestampRegex = /^\[(\d+:\d+(?:\.\d+)?)\]/;
+	// Section header regex: [Section Name] (not a timestamp)
+	const sectionRegex = /^\[([^\]]+)\]$/;
+
+	const rawLines = content.split('\n');
+
+	for (const rawLine of rawLines) {
+		const trimmed = rawLine.trim();
+
+		if (trimmed === '') {
+			lines.push({ time: null, text: '', isHeader: false, isSpacer: true });
+			continue;
+		}
+
+		// Check for LRC timestamp at start of line
+		const timestampMatch = trimmed.match(timestampRegex);
+		if (timestampMatch) {
+			hasTimestamps = true;
+			const time = parseTimestamp(timestampMatch[1]);
+			const text = trimmed.slice(timestampMatch[0].length).trim();
+
+			// Check if remaining text is a section header [Section Name]
+			const remainingSectionMatch = text.match(sectionRegex);
+			if (remainingSectionMatch && !isTimestamp(remainingSectionMatch[1])) {
+				lines.push({ time, text: remainingSectionMatch[1], isHeader: true, isSpacer: false });
+			} else {
+				lines.push({ time, text, isHeader: false, isSpacer: false });
+			}
+			continue;
+		}
+
+		// Check for ## Header format
+		if (trimmed.startsWith('## ')) {
+			lines.push({ time: null, text: trimmed.slice(3), isHeader: true, isSpacer: false });
+			continue;
+		}
+
+		// Check for [Section Name] format (not timestamp)
+		const sectionMatch = trimmed.match(sectionRegex);
+		if (sectionMatch && !isTimestamp(sectionMatch[1])) {
+			lines.push({ time: null, text: sectionMatch[1], isHeader: true, isSpacer: false });
+			continue;
+		}
+
+		// Regular lyric line
+		lines.push({ time: null, text: trimmed, isHeader: false, isSpacer: false });
+	}
+
+	// Generate HTML with data attributes for sync
+	let html = '';
+	lines.forEach((line, idx) => {
+		const timeAttr = line.time !== null ? `data-time="${line.time}"` : '';
+		const indexAttr = `data-index="${idx}"`;
+
+		if (line.isSpacer) {
+			html += `<p class="lyrics-line lyrics-spacer" ${indexAttr}></p>`;
+		} else if (line.isHeader) {
+			html += `<h3 class="lyrics-header" ${timeAttr} ${indexAttr}>${escapeHtml(line.text)}</h3>`;
+		} else if (line.text) {
+			html += `<p class="lyrics-line" ${timeAttr} ${indexAttr}>${escapeHtml(line.text)}</p>`;
+		}
+	});
+
+	return { lines, hasTimestamps, html };
 };
 
 try {
-  let lyricsDir = lyricsDirPath;
-  try {
-    await fs.access(lyricsDir);
-  } catch {
-    lyricsDir = path.resolve(process.cwd(), 'src/content/lyrics');
-  }
-  
-  for (const song of songs) {
-    if (!song.lyrics) continue;
-    lyricsData[song.title] = {};
-    
-    // Load lyrics for each genre
-    for (const [genre, filepath] of Object.entries(song.lyrics)) {
-      try {
-        const filePath = path.join(lyricsDir, filepath);
-        const markdownContent = await fs.readFile(filePath, 'utf-8');
-        lyricsData[song.title][genre] = parseLyrics(markdownContent);
-      } catch (err) {
-        console.warn(`Failed to load lyrics for ${song.title} (${genre}):`, err);
-      }
-    }
-  }
+	let lyricsDir = lyricsDirPath;
+	try {
+		await fs.access(lyricsDir);
+	} catch {
+		lyricsDir = path.resolve(process.cwd(), 'src/content/lyrics');
+	}
+
+	for (const song of songs) {
+		if (!song.lyrics) continue;
+		lyricsData[song.title] = {};
+
+		// Load lyrics for each genre
+		for (const [genre, filepath] of Object.entries(song.lyrics)) {
+			try {
+				const filePath = path.join(lyricsDir, filepath);
+				const markdownContent = await fs.readFile(filePath, 'utf-8');
+				lyricsData[song.title][genre] = parseLyrics(markdownContent);
+			} catch (err) {
+				console.warn(`Failed to load lyrics for ${song.title} (${genre}):`, err);
+			}
+		}
+	}
 } catch (err) {
-  console.error('Failed to read lyrics directory:', err);
+	console.error('Failed to read lyrics directory:', err);
 }
 
 // Prepare data for client-side JS
-const clientTracks = tracks.map(t => ({
-  id: t.id,
-  songId: t.songId,
-  title: t.title,
-  versions: t.versions
+const clientTracks = tracks.map((t) => ({
+	id: t.id,
+	songId: t.songId,
+	title: t.title,
+	versions: t.versions,
 }));
 ---
 

@@ -2,29 +2,29 @@
 import tracksData from '../../data/tracks.json';
 
 interface Song {
-  id: string;
-  title: string;
-  lyrics: string;
-  versions: Record<string, string>;
+	id: string;
+	title: string;
+	lyrics: string;
+	versions: Record<string, string>;
 }
 
 interface TracksConfig {
-  songs: Song[];
-  genres: string[];
-  defaultGenre: string;
+	songs: Song[];
+	genres: string[];
+	defaultGenre: string;
 }
 
 export async function getStaticPaths() {
-  const config = tracksData as TracksConfig;
-  
-  return config.songs.map((song) => ({
-    params: { slug: song.id },
-    props: { 
-      trackTitle: song.title,
-      // Use the default genre's filename
-      filename: song.versions[config.defaultGenre] || Object.values(song.versions)[0]
-    }
-  }));
+	const config = tracksData as TracksConfig;
+
+	return config.songs.map((song) => ({
+		params: { slug: song.id },
+		props: {
+			trackTitle: song.title,
+			// Use the default genre's filename
+			filename: song.versions[config.defaultGenre] || Object.values(song.versions)[0],
+		},
+	}));
 }
 
 const { trackTitle, filename } = Astro.props;

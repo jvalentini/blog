@@ -10,7 +10,7 @@ import { getCollection } from 'astro:content';
 function isProduction(): boolean {
 	// Cloudflare Pages sets CF_PAGES_BRANCH
 	const branch = import.meta.env.CF_PAGES_BRANCH;
-	
+
 	// If CF_PAGES_BRANCH is 'master', it's production
 	// If it's set to something else, it's a preview deployment
 	// If not set at all (local dev), show drafts
@@ -26,7 +26,7 @@ function isProduction(): boolean {
 export async function getPublishedPosts() {
 	const allPosts = await getCollection('blog');
 	const showDrafts = !isProduction();
-	
+
 	return allPosts
 		.filter((post) => showDrafts || !post.data.draft)
 		.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());

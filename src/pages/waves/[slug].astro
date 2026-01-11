@@ -1,34 +1,34 @@
 ---
-import WavesLayout from '../../layouts/WavesLayout.astro';
 import MusicPlayer from '../../components/MusicPlayer.astro';
 import { SITE_TITLE } from '../../consts';
 import tracksData from '../../data/tracks.json';
+import WavesLayout from '../../layouts/WavesLayout.astro';
 
 interface Song {
-  id: string;
-  title: string;
-  lyrics: string;
-  versions: Record<string, string>;
+	id: string;
+	title: string;
+	lyrics: string;
+	versions: Record<string, string>;
 }
 
 interface TracksConfig {
-  songs: Song[];
-  genres: string[];
-  defaultGenre: string;
+	songs: Song[];
+	genres: string[];
+	defaultGenre: string;
 }
 
 export async function getStaticPaths() {
-  const config = tracksData as TracksConfig;
-  
-  return config.songs.map((song) => ({
-    params: { slug: song.id },
-    props: { 
-      trackTitle: song.title,
-      trackSlug: song.id,
-      // Use the default genre's filename for the embed
-      filename: song.versions[config.defaultGenre] || Object.values(song.versions)[0]
-    }
-  }));
+	const config = tracksData as TracksConfig;
+
+	return config.songs.map((song) => ({
+		params: { slug: song.id },
+		props: {
+			trackTitle: song.title,
+			trackSlug: song.id,
+			// Use the default genre's filename for the embed
+			filename: song.versions[config.defaultGenre] || Object.values(song.versions)[0],
+		},
+	}));
 }
 
 const { trackTitle, trackSlug, filename } = Astro.props;
@@ -37,11 +37,11 @@ const pageDescription = `Listen to ${trackTitle} - A collection of original trac
 
 const siteUrl = Astro.site?.origin ?? 'https://jvalentini.pages.dev';
 const playerCard = {
-  embedUrl: `${siteUrl}/embed/${trackSlug}`,
-  streamUrl: `${siteUrl}/assets/music/${filename}`,
-  slug: trackSlug,
-  width: 480,
-  height: 200
+	embedUrl: `${siteUrl}/embed/${trackSlug}`,
+	streamUrl: `${siteUrl}/assets/music/${filename}`,
+	slug: trackSlug,
+	width: 480,
+	height: 200,
 };
 ---
 

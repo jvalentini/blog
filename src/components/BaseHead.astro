@@ -17,7 +17,7 @@ interface Props {
 	title: string;
 	description: string;
 	image?: ImageMetadata | string;
-	playerCard?: PlayerCardProps;  // Optional: enables Twitter Player Card for audio
+	playerCard?: PlayerCardProps; // Optional: enables Twitter Player Card for audio
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);

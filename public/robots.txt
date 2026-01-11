@@ -1,0 +1,12 @@
+# Robots.txt for justin.valentini blog
+# Allow all crawlers to index the site
+
+User-agent: *
+Allow: /
+
+# Disallow low-value pages from indexing
+Disallow: /embed/
+Disallow: /oembed/
+
+# Sitemap location
+Sitemap: https://jvalentini.pages.dev/sitemap-index.xml

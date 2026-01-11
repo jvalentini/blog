@@ -3,7 +3,7 @@ import '../styles/global.css';
 import { getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import wavesHeroImage from '../assets/waves-hero.png';
-import { SITE_TITLE } from '../consts';
+import { SITE_TITLE, SITE_DESCRIPTION, AUTHOR_NAME, SOCIAL_LINKS } from '../consts';
 
 // Default OG image as ImageMetadata for optimization
 const DEFAULT_OG_IMAGE: ImageMetadata = wavesHeroImage;
@@ -16,16 +16,23 @@ interface PlayerCardProps {
 	height?: number;
 }
 
+interface ArticleData {
+	pubDate?: Date;
+	updatedDate?: Date;
+	tags?: string[];
+}
+
 interface Props {
 	title: string;
 	description: string;
 	image?: ImageMetadata | string;
 	playerCard?: PlayerCardProps; // Optional: enables Twitter Player Card for audio
+	article?: ArticleData; // Optional: enables Article schema for blog posts
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-const { title, description, image = DEFAULT_OG_IMAGE, playerCard } = Astro.props;
+const { title, description, image = DEFAULT_OG_IMAGE, playerCard, article } = Astro.props;
 
 // Handle both ImageMetadata and string URLs
 // For ImageMetadata, get the optimized image URL and construct full URL using site origin
@@ -93,4 +100,55 @@ const twitterCardType = playerCard ? 'player' : 'summary_large_image';
 			href={`${Astro.site?.origin ?? ''}/oembed/${playerCard.slug}.json`} 
 			title={title} />
 	</>
+)}
+
+<!-- Structured Data (JSON-LD) -->
+<script type="application/ld+json" set:html={JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "WebSite",
+	"name": SITE_TITLE,
+	"description": SITE_DESCRIPTION,
+	"url": Astro.site?.href,
+})} />
+
+<script type="application/ld+json" set:html={JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "Person",
+	"name": AUTHOR_NAME,
+	"url": Astro.site?.href,
+	"sameAs": [
+		SOCIAL_LINKS.linkedin,
+		SOCIAL_LINKS.github,
+	],
+	"email": SOCIAL_LINKS.email,
+})} />
+
+{article && (
+	<script type="application/ld+json" set:html={JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "Article",
+		"headline": title,
+		"description": description,
+		"image": imageUrl,
+		"datePublished": article.pubDate?.toISOString(),
+		"dateModified": article.updatedDate?.toISOString() ?? article.pubDate?.toISOString(),
+		"author": {
+			"@type": "Person",
+			"name": AUTHOR_NAME,
+			"url": Astro.site?.href,
+			"sameAs": [
+				SOCIAL_LINKS.linkedin,
+				SOCIAL_LINKS.github,
+			],
+		},
+		"publisher": {
+			"@type": "Person",
+			"name": AUTHOR_NAME,
+		},
+		"mainEntityOfPage": {
+			"@type": "WebPage",
+			"@id": canonicalURL.href,
+		},
+		"keywords": article.tags?.join(', '),
+	})} />
 )}

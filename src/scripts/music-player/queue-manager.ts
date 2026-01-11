@@ -1,8 +1,8 @@
-import type { RepeatMode, Track } from './types';
+import type { RepeatMode, ShuffleMode, Track } from './types';
 
 export type TrackLoadCallback = (index: number, autoplay: boolean) => void;
 export type GenreChangeCallback = (genre: string) => void;
-export type ShuffleChangeCallback = (enabled: boolean) => void;
+export type ShuffleChangeCallback = (mode: ShuffleMode) => void;
 export type RepeatModeChangeCallback = (mode: RepeatMode) => void;
 
 export interface QueueManagerCallbacks {
@@ -17,8 +17,9 @@ export class QueueManager {
 	private currentIndex: number = -1;
 	private currentGenre: string;
 	private defaultGenre: string;
-	private shuffleEnabled: boolean = false;
+	private shuffleMode: ShuffleMode = 'off';
 	private shuffledIndices: number[] = [];
+	private shuffledGenres: string[] = [];
 	private repeatMode: RepeatMode = 'off';
 	private callbacks: QueueManagerCallbacks;
 
@@ -54,11 +55,25 @@ export class QueueManager {
 
 		if (this.repeatMode === 'off' && isAtEnd) {
 			this.currentIndex = nextIndex;
+			// Set genre if in tracks+genres mode
+			if (this.shuffleMode === 'tracks+genres') {
+				const genre = this.getGenreForTrack(nextIndex);
+				if (genre) {
+					this.switchGenre(genre);
+				}
+			}
 			this.callbacks.onTrackLoad?.(nextIndex, false);
 			return false;
 		}
 
 		this.currentIndex = nextIndex;
+		// Set genre if in tracks+genres mode
+		if (this.shuffleMode === 'tracks+genres') {
+			const genre = this.getGenreForTrack(nextIndex);
+			if (genre) {
+				this.switchGenre(genre);
+			}
+		}
 		this.callbacks.onTrackLoad?.(nextIndex, true);
 		return true;
 	}
@@ -70,14 +85,28 @@ export class QueueManager {
 
 		const prevIndex = this.getPrevIndex();
 		this.currentIndex = prevIndex;
+		// Set genre if in tracks+genres mode
+		if (this.shuffleMode === 'tracks+genres') {
+			const genre = this.getGenreForTrack(prevIndex);
+			if (genre) {
+				this.switchGenre(genre);
+			}
+		}
 		this.callbacks.onTrackLoad?.(prevIndex, true);
 		return true;
 	}
 
-	toggleShuffle(): boolean {
-		this.shuffleEnabled = !this.shuffleEnabled;
+	toggleShuffle(): ShuffleMode {
+		// Cycle through modes: off -> tracks -> tracks+genres -> off
+		if (this.shuffleMode === 'off') {
+			this.shuffleMode = 'tracks';
+		} else if (this.shuffleMode === 'tracks') {
+			this.shuffleMode = 'tracks+genres';
+		} else {
+			this.shuffleMode = 'off';
+		}
 
-		if (this.shuffleEnabled) {
+		if (this.shuffleMode !== 'off') {
 			this.generateShuffledIndices();
 
 			if (this.currentIndex >= 0) {
@@ -87,14 +116,47 @@ export class QueueManager {
 					this.shuffledIndices.unshift(this.currentIndex);
 				}
 			}
+		} else {
+			// Clear shuffled data when turning off
+			this.shuffledIndices = [];
+			this.shuffledGenres = [];
 		}
 
-		this.callbacks.onShuffleChange?.(this.shuffleEnabled);
-		return this.shuffleEnabled;
+		this.callbacks.onShuffleChange?.(this.shuffleMode);
+		return this.shuffleMode;
+	}
+
+	getShuffleMode(): ShuffleMode {
+		return this.shuffleMode;
+	}
+
+	setShuffleMode(mode: ShuffleMode): void {
+		if (this.shuffleMode === mode) {
+			return;
+		}
+
+		this.shuffleMode = mode;
+
+		if (this.shuffleMode !== 'off') {
+			this.generateShuffledIndices();
+
+			if (this.currentIndex >= 0) {
+				const currentPos = this.shuffledIndices.indexOf(this.currentIndex);
+				if (currentPos > 0) {
+					this.shuffledIndices.splice(currentPos, 1);
+					this.shuffledIndices.unshift(this.currentIndex);
+				}
+			}
+		} else {
+			this.shuffledIndices = [];
+			this.shuffledGenres = [];
+		}
+
+		this.callbacks.onShuffleChange?.(this.shuffleMode);
 	}
 
 	isShuffleEnabled(): boolean {
-		return this.shuffleEnabled;
+		return this.shuffleMode !== 'off';
 	}
 
 	toggleRepeat(): RepeatMode {
@@ -196,6 +258,20 @@ export class QueueManager {
 		return this.getAvailableGenresForTrack(this.currentIndex);
 	}
 
+	getGenreForTrack(index: number): string | null {
+		if (this.shuffleMode !== 'tracks+genres') {
+			return null;
+		}
+
+		// Find the position of this track in the shuffled queue
+		const shufflePos = this.shuffledIndices.indexOf(index);
+		if (shufflePos >= 0 && shufflePos < this.shuffledGenres.length) {
+			return this.shuffledGenres[shufflePos];
+		}
+
+		return null;
+	}
+
 	private getNextIndex(): number {
 		if (this.tracks.length === 0) {
 			return -1;
@@ -205,7 +281,7 @@ export class QueueManager {
 			return 0;
 		}
 
-		if (this.shuffleEnabled) {
+		if (this.shuffleMode !== 'off') {
 			const currentShufflePos = this.shuffledIndices.indexOf(this.currentIndex);
 			const nextShufflePos = (currentShufflePos + 1) % this.shuffledIndices.length;
 			return this.shuffledIndices[nextShufflePos];
@@ -223,7 +299,7 @@ export class QueueManager {
 			return 0;
 		}
 
-		if (this.shuffleEnabled) {
+		if (this.shuffleMode !== 'off') {
 			const currentShufflePos = this.shuffledIndices.indexOf(this.currentIndex);
 			const prevShufflePos = currentShufflePos <= 0 ? this.shuffledIndices.length - 1 : currentShufflePos - 1;
 			return this.shuffledIndices[prevShufflePos];
@@ -237,7 +313,7 @@ export class QueueManager {
 			return true;
 		}
 
-		if (this.shuffleEnabled) {
+		if (this.shuffleMode !== 'off') {
 			const currentShufflePos = this.shuffledIndices.indexOf(this.currentIndex);
 			return currentShufflePos === this.shuffledIndices.length - 1;
 		}
@@ -252,6 +328,22 @@ export class QueueManager {
 		for (let i = this.shuffledIndices.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1));
 			[this.shuffledIndices[i], this.shuffledIndices[j]] = [this.shuffledIndices[j], this.shuffledIndices[i]];
+		}
+
+		// If in tracks+genres mode, also generate random genres for each track
+		if (this.shuffleMode === 'tracks+genres') {
+			this.shuffledGenres = this.shuffledIndices.map((trackIndex) => {
+				const track = this.tracks[trackIndex];
+				const availableGenres = Object.keys(track.versions);
+				if (availableGenres.length === 0) {
+					return this.defaultGenre;
+				}
+				// Randomly select one of the available genres
+				const randomIndex = Math.floor(Math.random() * availableGenres.length);
+				return availableGenres[randomIndex];
+			});
+		} else {
+			this.shuffledGenres = [];
 		}
 	}
 

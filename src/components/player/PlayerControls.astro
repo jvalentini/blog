@@ -3,11 +3,20 @@
 ---
 
 <div class="playback-buttons">
-  <button class="control-btn" id="btn-shuffle" title="Shuffle (S)">
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
-    </svg>
-  </button>
+  <div class="shuffle-control-wrapper">
+    <span class="shuffle-mode-label" id="shuffle-mode-label"></span>
+    <button class="control-btn" id="btn-shuffle" title="Shuffle: Off (S)">
+      <svg class="shuffle-icon shuffle-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+      </svg>
+      <svg class="shuffle-icon shuffle-tracks" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display: none;">
+        <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      <svg class="shuffle-icon shuffle-tracks-genres" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display: none;">
+        <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </button>
+  </div>
   <button class="control-btn" id="btn-previous" title="Previous">&#9198;</button>
   <button class="control-btn play-btn" id="btn-play" title="Play/Pause">
     <span class="play-icon">&#9654;</span>
@@ -72,22 +81,58 @@
     display: block;
   }
 
+  .shuffle-control-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .shuffle-mode-label {
+    font-size: 0.6rem;
+    color: color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 60%, transparent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    min-height: 0.75rem;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .shuffle-control-wrapper.has-mode .shuffle-mode-label {
+    opacity: 1;
+  }
+
   #btn-shuffle,
   #btn-repeat {
     padding: 0.6rem;
+    position: relative;
   }
 
-  .repeat-icon {
+  .repeat-icon,
+  .shuffle-icon {
     display: none;
   }
 
-  .repeat-icon.repeat-off {
+  .repeat-icon.repeat-off,
+  .shuffle-icon.shuffle-off {
     display: block;
   }
 
   #btn-repeat.active .repeat-off { display: none; }
   #btn-repeat.active .repeat-all { display: block; }
   #btn-repeat.active .repeat-one { display: none; }
+
+  #btn-shuffle.active .shuffle-off { display: none; }
+  
+  /* Show tracks icon when in tracks mode */
+  #btn-shuffle.active:not(.shuffle-tracks-genres) .shuffle-tracks { display: block; }
+  #btn-shuffle.active:not(.shuffle-tracks-genres) .shuffle-tracks-genres { display: none; }
+  
+  /* Show tracks+genres icon when in tracks+genres mode */
+  #btn-shuffle.active.shuffle-tracks-genres .shuffle-tracks { display: none; }
+  #btn-shuffle.active.shuffle-tracks-genres .shuffle-tracks-genres { display: block; }
 
   .play-btn {
     width: 56px;

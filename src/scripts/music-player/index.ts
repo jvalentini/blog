@@ -204,25 +204,48 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 		storage.save({ currentTrackId: songId });
 
-		// Check available genres for this track and adjust current genre if needed
-		const currentGenre = state.get('currentGenre');
-		const availableGenres = queueManager.getAvailableGenresForCurrentTrack();
+		// Check if we're in tracks+genres shuffle mode and get the assigned genre
+		const shuffleMode = queueManager.getShuffleMode();
+		let genreToUse: Genre;
 		
-		// If current genre is not available for this track, switch to first available
-		let genreToUse = currentGenre;
-		if (!availableGenres.includes(currentGenre) && availableGenres.length > 0) {
-			genreToUse = availableGenres[0] as Genre;
-			// Update state first
-			state.set('currentGenre', genreToUse);
-			// Update queue manager's internal genre (will be used by getTrackSrc)
-			queueManager.switchGenre(genreToUse);
+		if (shuffleMode === 'tracks+genres') {
+			// Get the pre-assigned genre for this track from shuffle
+			const assignedGenre = queueManager.getGenreForTrack(index);
+			if (assignedGenre) {
+				genreToUse = assignedGenre as Genre;
+				state.set('currentGenre', genreToUse);
+				queueManager.switchGenre(genreToUse);
+				updateGenreUI(genreToUse);
+			} else {
+				// Fallback to current genre logic
+				const currentGenre = state.get('currentGenre');
+				const availableGenres = queueManager.getAvailableGenresForCurrentTrack();
+				genreToUse = availableGenres.includes(currentGenre) ? currentGenre : (availableGenres[0] || currentGenre) as Genre;
+				if (genreToUse !== currentGenre) {
+					state.set('currentGenre', genreToUse);
+					queueManager.switchGenre(genreToUse);
+				}
+				updateGenreUI(genreToUse);
+			}
 		} else {
-			// Just update UI without switching genre
-			updateGenreUI(currentGenre);
+			// Normal genre selection logic
+			const currentGenre = state.get('currentGenre');
+			const availableGenres = queueManager.getAvailableGenresForCurrentTrack();
+			
+			// If current genre is not available for this track, switch to first available
+			if (!availableGenres.includes(currentGenre) && availableGenres.length > 0) {
+				genreToUse = availableGenres[0] as Genre;
+				state.set('currentGenre', genreToUse);
+				queueManager.switchGenre(genreToUse);
+				updateGenreUI(genreToUse);
+			} else {
+				genreToUse = currentGenre;
+				updateGenreUI(currentGenre);
+			}
 		}
 
 		// Now get the source with the correct genre and set it
-		const src = queueManager.getTrackSrc(index);
+		const src = queueManager.getTrackSrc(index, genreToUse);
 		if (src) {
 			audioController.setSrc(src);
 		}
@@ -341,8 +364,41 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		}
 	};
 
-	const updateShuffleUI = (enabled: boolean): void => {
-		elements.btnShuffle.classList.toggle('active', enabled);
+	const updateShuffleUI = (mode: string): void => {
+		const shuffleOff = elements.btnShuffle.querySelector('.shuffle-off') as HTMLElement | null;
+		const shuffleTracks = elements.btnShuffle.querySelector('.shuffle-tracks') as HTMLElement | null;
+		const shuffleTracksGenres = elements.btnShuffle.querySelector('.shuffle-tracks-genres') as HTMLElement | null;
+		const shuffleWrapper = elements.btnShuffle.closest('.shuffle-control-wrapper') as HTMLElement | null;
+		const shuffleLabel = shuffleWrapper?.querySelector('.shuffle-mode-label') as HTMLElement | null;
+
+		elements.btnShuffle.classList.toggle('active', mode !== 'off');
+		// Add/remove class to distinguish tracks+genres mode
+		elements.btnShuffle.classList.toggle('shuffle-tracks-genres', mode === 'tracks+genres');
+		
+		if (shuffleOff) shuffleOff.style.display = mode === 'off' ? 'block' : 'none';
+		if (shuffleTracks) shuffleTracks.style.display = mode === 'tracks' ? 'block' : 'none';
+		if (shuffleTracksGenres) shuffleTracksGenres.style.display = mode === 'tracks+genres' ? 'block' : 'none';
+
+		// Update label text above button
+		const labels: Record<string, string> = {
+			'off': '',
+			'tracks': 'Song',
+			'tracks+genres': 'Genre',
+		};
+		if (shuffleLabel) {
+			shuffleLabel.textContent = labels[mode] || '';
+		}
+		if (shuffleWrapper) {
+			shuffleWrapper.classList.toggle('has-mode', mode !== 'off');
+		}
+
+		// Update tooltip
+		const tooltips: Record<string, string> = {
+			'off': 'Shuffle: Off (S)',
+			'tracks': 'Shuffle: Tracks (S)',
+			'tracks+genres': 'Shuffle: Tracks + Genres (S)',
+		};
+		elements.btnShuffle.setAttribute('title', tooltips[mode] || 'Shuffle (S)');
 	};
 
 	const updateRepeatUI = (mode: string): void => {
@@ -381,10 +437,10 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				loadLyricsForTrack(currentIndex);
 			}
 		},
-		onShuffleChange: (enabled) => {
-			state.set('shuffleEnabled', enabled);
-			updateShuffleUI(enabled);
-			storage.save({ shuffleEnabled: enabled });
+		onShuffleChange: (mode) => {
+			state.set('shuffleMode', mode as any);
+			updateShuffleUI(mode);
+			storage.save({ shuffleMode: mode as any });
 		},
 		onRepeatModeChange: (mode) => {
 			state.set('repeatMode', mode);
@@ -871,8 +927,12 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		});
 	}
 
-	if (savedSettings.shuffleEnabled) {
-		queueManager.toggleShuffle();
+	// Handle migration from old shuffleEnabled to new shuffleMode
+	if (savedSettings.shuffleMode) {
+		queueManager.setShuffleMode(savedSettings.shuffleMode);
+	} else if ((savedSettings as any).shuffleEnabled) {
+		// Migrate old boolean to new mode (true -> 'tracks', false -> 'off')
+		queueManager.setShuffleMode((savedSettings as any).shuffleEnabled ? 'tracks' : 'off');
 	}
 
 	if (savedSettings.repeatMode) {
@@ -921,7 +981,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				currentTime: formatTime(state.get('currentTime')),
 				duration: formatTime(state.get('duration')),
 				volume: state.get('volume'),
-				shuffleEnabled: state.get('shuffleEnabled'),
+				shuffleMode: state.get('shuffleMode'),
 				repeatMode: state.get('repeatMode'),
 				queueTitles: queueManager.getAllTracks().map((t) => t.title),
 			};

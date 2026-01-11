@@ -175,7 +175,7 @@ const clientTracks = tracks.map((t) => ({
     min-height: 320px;
     box-shadow: 
       0 10px 40px rgba(0, 0, 0, 0.4),
-      0 0 60px var(--phosphor-glow);
+      0 0 60px var(--genre-base, var(--phosphor-glow));
   }
 
   .hero-bg {
@@ -218,7 +218,7 @@ const clientTracks = tracks.map((t) => ({
   .hero-title {
     font-size: 2.5rem;
     font-weight: 700;
-    color: var(--phosphor-base);
+    color: var(--genre-base, var(--phosphor-base));
     margin: 0;
     text-shadow: var(--glow-lg);
     letter-spacing: -1px;
@@ -226,7 +226,7 @@ const clientTracks = tracks.map((t) => ({
 
   .now-playing-info {
     background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(51, 255, 51, 0.2);
+    border: 1px solid color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 20%, transparent);
     border-radius: 8px;
     padding: 1rem 1.25rem;
   }
@@ -242,14 +242,14 @@ const clientTracks = tracks.map((t) => ({
   .track-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--phosphor-bright);
+    color: var(--genre-bright, var(--phosphor-bright));
     margin-bottom: 0.25rem;
-    text-shadow: 0 0 10px rgba(51, 255, 51, 0.3);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 30%, transparent);
   }
 
   .track-duration-display {
     font-size: 0.75rem;
-    color: rgba(51, 255, 51, 0.7);
+    color: color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 70%, transparent);
   }
 
   .hero-right {
@@ -257,7 +257,7 @@ const clientTracks = tracks.map((t) => ({
     flex-direction: column;
     min-height: 0;
     overflow: hidden;
-    border-left: 1px solid rgba(51, 255, 51, 0.15);
+    border-left: 1px solid color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 15%, transparent);
     padding-left: 2rem;
   }
 
@@ -277,7 +277,7 @@ const clientTracks = tracks.map((t) => ({
 
     .hero-right {
       border-left: none;
-      border-top: 1px solid rgba(51, 255, 51, 0.15);
+      border-top: 1px solid color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 15%, transparent);
       padding-left: 0;
       padding-top: 1.5rem;
       height: 280px;

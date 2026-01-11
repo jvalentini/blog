@@ -1,6 +1,7 @@
 // @ts-check
 
 import mdx from '@astrojs/mdx';
+import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 
@@ -10,8 +11,12 @@ export default defineConfig({
 	integrations: [
 		mdx(),
 		sitemap({
-			// Add lastmod timestamp to sitemap (build time)
 			lastmod: new Date(),
+		}),
+		partytown({
+			config: {
+				forward: ['dataLayer.push'],
+			},
 		}),
 	],
 	output: 'static',

@@ -1,7 +1,6 @@
 #!/usr/bin/env bun
 import { promises as fs } from 'node:fs';
 import * as path from 'node:path';
-// @ts-expect-error - parseArgs is available in Node 18.3+ and Bun runtime
 import { parseArgs } from 'node:util';
 
 const MUSIC_DIR = 'public/assets/music';

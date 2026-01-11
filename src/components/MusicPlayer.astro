@@ -68,8 +68,14 @@ try {
 				try {
 					markdownContent = await fs.readFile(filePath, 'utf-8');
 				} catch {
-					// Fallback to parent folder (e.g., "slop-slinger.md")
-					const fallbackPath = path.join(lyricsDir, path.basename(filepath));
+					// Fallback to parent folder, removing genre suffix from filename
+					// e.g., "without-me-pop.md" -> "without-me.md" (removing "-pop")
+					const basename = path.basename(filepath);
+					const genreSuffix = `-${genre}`;
+					const fallbackBasename = basename.endsWith(genreSuffix + path.extname(basename))
+						? basename.replace(genreSuffix + path.extname(basename), path.extname(basename))
+						: basename;
+					const fallbackPath = path.join(lyricsDir, fallbackBasename);
 					markdownContent = await fs.readFile(fallbackPath, 'utf-8');
 				}
 

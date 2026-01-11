@@ -3,6 +3,7 @@ import { KeyboardShortcutsManager } from './keyboard-shortcuts';
 import { LyricsSyncManager } from './lyrics-sync';
 import { QueueManager } from './queue-manager';
 import { createPlayerState, type Genre } from './state';
+import { PlayerStorage } from './storage';
 import type { MusicPlayerAPI, MusicPlayerState, ParsedLyrics, Track } from './types';
 
 export interface MusicPlayerConfig {
@@ -134,9 +135,15 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 	const { tracks, lyricsData, defaultGenre } = config;
 
+	const storage = new PlayerStorage();
+	const savedSettings = storage.load();
+
+	const initialGenre = (savedSettings.currentGenre as Genre) || defaultGenre;
+	const initialVolume = savedSettings.volume ?? 0.7;
+
 	const state = createPlayerState({
-		currentGenre: defaultGenre,
-		volume: 0.7,
+		currentGenre: initialGenre,
+		volume: initialVolume,
 	});
 
 	const audioController = createAudioController();
@@ -166,6 +173,8 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		if (window.location.pathname !== newURL) {
 			window.history.pushState({ songId }, '', newURL);
 		}
+
+		storage.save({ currentTrackId: songId });
 
 		loadLyricsForTrack(index);
 
@@ -239,12 +248,13 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	let pendingSeekTime: number | null = null;
 	let pendingAutoplay: boolean = false;
 
-	const queueManager = new QueueManager(tracks, defaultGenre, {
+	const queueManager = new QueueManager(tracks, initialGenre, {
 		onTrackLoad: loadTrackAtIndex,
 		onGenreChange: (genre) => {
 			state.set('currentGenre', genre as Genre);
 			updateGenreUI(genre as Genre);
 			updateQueueListTheme(genre as Genre);
+			storage.save({ currentGenre: genre as Genre });
 
 			const currentIndex = state.get('currentIndex');
 			if (currentIndex >= 0) {
@@ -252,7 +262,6 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				const currentTime = audioController.getCurrentTime();
 				const src = queueManager.getTrackSrc(currentIndex, genre);
 				if (src) {
-					// Store seek time and playing state for after metadata loads
 					pendingSeekTime = currentTime;
 					pendingAutoplay = wasPlaying;
 					audioController.setSrc(src);
@@ -264,10 +273,12 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		onShuffleChange: (enabled) => {
 			state.set('shuffleEnabled', enabled);
 			updateShuffleUI(enabled);
+			storage.save({ shuffleEnabled: enabled });
 		},
 		onRepeatModeChange: (mode) => {
 			state.set('repeatMode', mode);
 			updateRepeatUI(mode);
+			storage.save({ repeatMode: mode });
 		},
 	});
 
@@ -310,6 +321,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		audioController.setVolume(level);
 		state.set('volume', level / 10);
 		updateVolumeUI(level);
+		storage.save({ volume: level / 10 });
 	};
 
 	audioController.init(elements.audio, {
@@ -345,7 +357,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		},
 	});
 
-	audioController.setVolume(7);
+	const initialVolumeLevel = Math.round(initialVolume * 10);
+	audioController.setVolume(initialVolumeLevel);
+	updateVolumeUI(initialVolumeLevel);
 
 	const keyboardShortcuts = new KeyboardShortcutsManager({
 		onPlayPause: () => {
@@ -495,9 +509,16 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		}
 	});
 
-	updateGenreUI(defaultGenre);
-	updateQueueListTheme(defaultGenre);
-	updateVolumeUI(7);
+	updateGenreUI(initialGenre);
+	updateQueueListTheme(initialGenre);
+
+	if (savedSettings.shuffleEnabled) {
+		queueManager.toggleShuffle();
+	}
+
+	if (savedSettings.repeatMode) {
+		queueManager.setRepeatMode(savedSettings.repeatMode);
+	}
 
 	const urlMatch = window.location.pathname.match(/^\/waves\/(.+)$/);
 	if (urlMatch) {
@@ -507,6 +528,17 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				queueManager.loadTrack(idx, false);
 			}
 		});
+	} else if (savedSettings.currentTrackId) {
+		let foundSavedTrack = false;
+		elements.queueItems.forEach((item, idx) => {
+			if (item.dataset.songId === savedSettings.currentTrackId) {
+				queueManager.loadTrack(idx, false);
+				foundSavedTrack = true;
+			}
+		});
+		if (!foundSavedTrack && elements.queueItems.length > 0) {
+			queueManager.loadTrack(0, false);
+		}
 	} else if (elements.queueItems.length > 0) {
 		queueManager.loadTrack(0, false);
 	}

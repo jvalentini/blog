@@ -381,15 +381,17 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 		// Update label text above button
 		const labels: Record<string, string> = {
-			'off': '',
+			'off': 'None',
 			'tracks': 'Song',
 			'tracks+genres': 'Genre',
 		};
 		if (shuffleLabel) {
-			shuffleLabel.textContent = labels[mode] || '';
+			shuffleLabel.textContent = labels[mode] || 'None';
 		}
 		if (shuffleWrapper) {
+			// Always show the label, but style it differently when off
 			shuffleWrapper.classList.toggle('has-mode', mode !== 'off');
+			shuffleWrapper.classList.toggle('shuffle-off', mode === 'off');
 		}
 
 		// Update tooltip
@@ -405,11 +407,26 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		const repeatOff = elements.btnRepeat.querySelector('.repeat-off') as HTMLElement | null;
 		const repeatAll = elements.btnRepeat.querySelector('.repeat-all') as HTMLElement | null;
 		const repeatOne = elements.btnRepeat.querySelector('.repeat-one') as HTMLElement | null;
+		const repeatWrapper = elements.btnRepeat.closest('.repeat-control-wrapper') as HTMLElement | null;
+		const repeatLabel = repeatWrapper?.querySelector('.repeat-mode-label') as HTMLElement | null;
 
 		elements.btnRepeat.classList.toggle('active', mode !== 'off');
+		// Add/remove class to distinguish repeat-one mode
+		elements.btnRepeat.classList.toggle('repeat-one', mode === 'one');
+		
 		if (repeatOff) repeatOff.style.display = mode === 'off' ? 'block' : 'none';
 		if (repeatAll) repeatAll.style.display = mode === 'all' ? 'block' : 'none';
 		if (repeatOne) repeatOne.style.display = mode === 'one' ? 'block' : 'none';
+
+		// Update label text above button
+		const labels: Record<string, string> = {
+			'off': 'None',
+			'all': 'All',
+			'one': 'One',
+		};
+		if (repeatLabel) {
+			repeatLabel.textContent = labels[mode] || 'None';
+		}
 	};
 
 	let pendingSeekTime: number | null = null;
@@ -933,10 +950,16 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	} else if ((savedSettings as any).shuffleEnabled) {
 		// Migrate old boolean to new mode (true -> 'tracks', false -> 'off')
 		queueManager.setShuffleMode((savedSettings as any).shuffleEnabled ? 'tracks' : 'off');
+	} else {
+		// Initialize UI to show 'off' state
+		updateShuffleUI('off');
 	}
 
 	if (savedSettings.repeatMode) {
 		queueManager.setRepeatMode(savedSettings.repeatMode);
+	} else {
+		// Initialize UI to show 'off' state
+		updateRepeatUI('off');
 	}
 
 	const urlMatch = window.location.pathname.match(/^\/waves\/(.+)$/);

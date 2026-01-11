@@ -585,66 +585,51 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		return wasHoldSeek;
 	};
 
+	// Hold-to-seek: track touch state per button
+	let nextTouchActive = false;
+	let prevTouchActive = false;
+
 	elements.btnNext.addEventListener(
 		'touchstart',
-		(e) => {
-			e.preventDefault();
+		() => {
+			nextTouchActive = true;
 			startHoldSeek('forward');
 		},
-		{ passive: false },
+		{ passive: true },
 	);
 
-	elements.btnNext.addEventListener('touchend', () => {
+	elements.btnNext.addEventListener('touchend', (e) => {
+		if (!nextTouchActive) return;
+		nextTouchActive = false;
 		if (!stopHoldSeek()) {
+			// Tap, not hold - trigger action
+			e.preventDefault(); // Prevent duplicate click
+			hapticFeedback('light');
 			queueManager.playNext();
 		}
 	});
 
 	elements.btnNext.addEventListener('touchcancel', () => {
+		nextTouchActive = false;
 		stopHoldSeek();
 	});
 
 	elements.btnPrevious.addEventListener(
 		'touchstart',
-		(e) => {
-			e.preventDefault();
+		() => {
+			prevTouchActive = true;
 			startHoldSeek('backward');
 		},
-		{ passive: false },
-	);
-
-	elements.btnPrevious.addEventListener('touchend', () => {
-		if (!stopHoldSeek()) {
-			if (audioController.getCurrentTime() > 3) {
-				audioController.seek(0);
-			} else {
-				queueManager.playPrevious();
-			}
-		}
-	});
-
-	elements.btnPrevious.addEventListener('touchcancel', () => {
-		stopHoldSeek();
-	});
-
-	elements.btnNext.addEventListener('touchcancel', () => {
-		stopHoldSeek();
-	});
-
-	// Touch events for hold-to-seek on previous button
-	elements.btnPrevious.addEventListener(
-		'touchstart',
-		(e) => {
-			e.preventDefault();
-			startHoldSeek('backward');
-		},
-		{ passive: false },
+		{ passive: true },
 	);
 
 	elements.btnPrevious.addEventListener('touchend', (e) => {
-		const wasHoldSeek = stopHoldSeek();
-		if (!wasHoldSeek) {
-			// Was a tap, not a hold - trigger normal previous action
+		if (!prevTouchActive) return;
+		prevTouchActive = false;
+		if (!stopHoldSeek()) {
+			// Tap, not hold - trigger action
+			e.preventDefault(); // Prevent duplicate click
+			hapticFeedback('light');
 			if (audioController.getCurrentTime() > 3) {
 				audioController.seek(0);
 			} else {
@@ -654,6 +639,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	});
 
 	elements.btnPrevious.addEventListener('touchcancel', () => {
+		prevTouchActive = false;
 		stopHoldSeek();
 	});
 

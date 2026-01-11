@@ -373,6 +373,15 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		onNext: () => {
 			queueManager.playNext();
 		},
+		onSeekBackward: () => {
+			const currentTime = audioController.getCurrentTime();
+			audioController.seek(Math.max(0, currentTime - 5));
+		},
+		onSeekForward: () => {
+			const currentTime = audioController.getCurrentTime();
+			const duration = audioController.getDuration();
+			audioController.seek(Math.min(duration, currentTime + 5));
+		},
 		onMuteToggle: () => {
 			const currentVolume = audioController.getVolume();
 			if (currentVolume > 0) {

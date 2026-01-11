@@ -37,14 +37,6 @@ interface DOMElements {
 	hotkeysModal: HTMLElement;
 	playIcon: HTMLElement;
 	pauseIcon: HTMLElement;
-	miniPlayer: HTMLElement | null;
-	miniPlayerPlay: HTMLButtonElement | null;
-	miniPlayerTitle: HTMLElement | null;
-	miniPlayerProgressBar: HTMLElement | null;
-	miniPlayerExpand: HTMLButtonElement | null;
-	miniPlayIcon: HTMLElement | null;
-	miniPauseIcon: HTMLElement | null;
-	heroNowPlaying: HTMLElement | null;
 	lyricsFullscreenBtn: HTMLButtonElement | null;
 	lyricsFullscreenOverlay: HTMLElement | null;
 	lyricsFullscreenClose: HTMLButtonElement | null;
@@ -87,12 +79,6 @@ function getElements(): DOMElements | null {
 	const volumeBlocks = document.querySelectorAll('.volume-block') as NodeListOf<HTMLElement>;
 	const volumeSlider = document.getElementById('volume-slider') as HTMLInputElement | null;
 	const queueItems = document.querySelectorAll('.queue-item') as NodeListOf<HTMLElement>;
-	const miniPlayer = document.getElementById('mini-player');
-	const miniPlayerPlay = document.getElementById('mini-player-play') as HTMLButtonElement | null;
-	const miniPlayerTitle = document.getElementById('mini-player-title');
-	const miniPlayerProgressBar = document.getElementById('mini-player-progress-bar');
-	const miniPlayerExpand = document.getElementById('mini-player-expand') as HTMLButtonElement | null;
-	const heroNowPlaying = document.getElementById('hero-now-playing');
 	const lyricsFullscreenBtn = document.getElementById('lyrics-fullscreen-btn') as HTMLButtonElement | null;
 	const lyricsFullscreenOverlay = document.getElementById('lyrics-fullscreen-overlay');
 	const lyricsFullscreenClose = document.getElementById('lyrics-fullscreen-close') as HTMLButtonElement | null;
@@ -131,9 +117,6 @@ function getElements(): DOMElements | null {
 		return null;
 	}
 
-	const miniPlayIcon = miniPlayerPlay?.querySelector('.mini-play-icon') as HTMLElement | null;
-	const miniPauseIcon = miniPlayerPlay?.querySelector('.mini-pause-icon') as HTMLElement | null;
-
 	return {
 		audio,
 		btnPlay,
@@ -157,14 +140,6 @@ function getElements(): DOMElements | null {
 		hotkeysModal,
 		playIcon,
 		pauseIcon,
-		miniPlayer,
-		miniPlayerPlay,
-		miniPlayerTitle,
-		miniPlayerProgressBar,
-		miniPlayerExpand,
-		miniPlayIcon,
-		miniPauseIcon,
-		heroNowPlaying,
 		lyricsFullscreenBtn,
 		lyricsFullscreenOverlay,
 		lyricsFullscreenClose,
@@ -216,9 +191,6 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		state.set('currentIndex', index);
 		audioController.setSrc(src);
 		elements.currentTrackTitle.textContent = title;
-		if (elements.miniPlayerTitle) {
-			elements.miniPlayerTitle.textContent = title;
-		}
 
 		Array.from(elements.queueItems).forEach((el) => {
 			el.classList.remove('active');
@@ -389,15 +361,11 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	const showPlayIcon = (): void => {
 		elements.playIcon.style.display = 'inline';
 		elements.pauseIcon.style.display = 'none';
-		if (elements.miniPlayIcon) elements.miniPlayIcon.style.display = 'inline';
-		if (elements.miniPauseIcon) elements.miniPauseIcon.style.display = 'none';
 	};
 
 	const showPauseIcon = (): void => {
 		elements.playIcon.style.display = 'none';
 		elements.pauseIcon.style.display = 'inline';
-		if (elements.miniPlayIcon) elements.miniPlayIcon.style.display = 'none';
-		if (elements.miniPauseIcon) elements.miniPauseIcon.style.display = 'inline';
 	};
 
 	const updateTimeDisplay = (current: number, duration: number): void => {
@@ -411,9 +379,6 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 		if (duration > 0) {
 			elements.progressSlider.value = String((current / duration) * 100);
-			if (elements.miniPlayerProgressBar) {
-				elements.miniPlayerProgressBar.style.width = `${(current / duration) * 100}%`;
-			}
 		}
 	};
 
@@ -829,38 +794,6 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 	updateGenreUI(initialGenre);
 	updateQueueListTheme(initialGenre);
-
-	if (elements.miniPlayer && elements.heroNowPlaying) {
-		const heroObserver = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
-						elements.miniPlayer?.classList.remove('visible');
-					} else {
-						elements.miniPlayer?.classList.add('visible');
-					}
-				});
-			},
-			{ threshold: 0.1 },
-		);
-		heroObserver.observe(elements.heroNowPlaying);
-
-		if (elements.miniPlayerPlay) {
-			elements.miniPlayerPlay.addEventListener('click', () => {
-				if (state.get('currentIndex') < 0) {
-					queueManager.loadTrack(0, true);
-				} else {
-					audioController.togglePlayPause();
-				}
-			});
-		}
-
-		if (elements.miniPlayerExpand) {
-			elements.miniPlayerExpand.addEventListener('click', () => {
-				elements.heroNowPlaying?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-			});
-		}
-	}
 
 	const syncFullscreenLyrics = () => {
 		if (elements.lyricsFullscreenContent && elements.lyricsContent) {

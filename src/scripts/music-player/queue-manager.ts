@@ -184,6 +184,18 @@ export class QueueManager {
 		return track.versions[targetGenre] ?? track.versions[this.defaultGenre] ?? Object.values(track.versions)[0] ?? null;
 	}
 
+	getAvailableGenresForTrack(index: number): string[] {
+		const track = this.getTrack(index);
+		if (!track) {
+			return [];
+		}
+		return Object.keys(track.versions);
+	}
+
+	getAvailableGenresForCurrentTrack(): string[] {
+		return this.getAvailableGenresForTrack(this.currentIndex);
+	}
+
 	private getNextIndex(): number {
 		if (this.tracks.length === 0) {
 			return -1;

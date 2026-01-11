@@ -184,12 +184,10 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		const item = elements.queueItems[index];
 		const title = item.dataset.title;
 		const songId = item.dataset.songId;
-		const src = queueManager.getTrackSrc(index);
 
-		if (!src || !title || !songId) return;
+		if (!title || !songId) return;
 
 		state.set('currentIndex', index);
-		audioController.setSrc(src);
 		elements.currentTrackTitle.textContent = title;
 
 		Array.from(elements.queueItems).forEach((el) => {
@@ -205,6 +203,29 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		}
 
 		storage.save({ currentTrackId: songId });
+
+		// Check available genres for this track and adjust current genre if needed
+		const currentGenre = state.get('currentGenre');
+		const availableGenres = queueManager.getAvailableGenresForCurrentTrack();
+		
+		// If current genre is not available for this track, switch to first available
+		let genreToUse = currentGenre;
+		if (!availableGenres.includes(currentGenre) && availableGenres.length > 0) {
+			genreToUse = availableGenres[0] as Genre;
+			// Update state first
+			state.set('currentGenre', genreToUse);
+			// Update queue manager's internal genre (will be used by getTrackSrc)
+			queueManager.switchGenre(genreToUse);
+		} else {
+			// Just update UI without switching genre
+			updateGenreUI(currentGenre);
+		}
+
+		// Now get the source with the correct genre and set it
+		const src = queueManager.getTrackSrc(index);
+		if (src) {
+			audioController.setSrc(src);
+		}
 
 		loadLyricsForTrack(index);
 
@@ -248,11 +269,29 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	};
 
 	const updateGenreUI = (genre: Genre): void => {
+		const currentIndex = state.get('currentIndex');
+		const availableGenres = currentIndex >= 0 
+			? queueManager.getAvailableGenresForCurrentTrack()
+			: genres;
+		
 		// Update all genre buttons
 		const genreButtons = elements.genreToggle.querySelectorAll('.genre-btn');
 		genreButtons.forEach((btn) => {
 			const btnGenre = btn.getAttribute('data-genre');
-			btn.classList.toggle('active', btnGenre === genre);
+			const isAvailable = availableGenres.includes(btnGenre || '');
+			const isActive = btnGenre === genre;
+			
+			btn.classList.toggle('active', isActive);
+			btn.classList.toggle('disabled', !isAvailable);
+			(btn as HTMLButtonElement).disabled = !isAvailable;
+			
+			// Add tooltip for disabled buttons
+			if (!isAvailable) {
+				const availableCount = availableGenres.length;
+				btn.setAttribute('title', `This song only has ${availableCount} version${availableCount !== 1 ? 's' : ''} available`);
+			} else {
+				btn.removeAttribute('title');
+			}
 		});
 
 		// Update icon based on genre
@@ -496,10 +535,16 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			}
 		},
 		onGenreToggle: () => {
+			const currentIndex = state.get('currentIndex');
+			if (currentIndex < 0) return;
+			
+			const availableGenres = queueManager.getAvailableGenresForCurrentTrack();
+			if (availableGenres.length <= 1) return; // Don't toggle if only one genre available
+			
 			const currentGenre = state.get('currentGenre');
-			const currentIndex = genres.indexOf(currentGenre);
-			const nextIndex = (currentIndex + 1) % genres.length;
-			const newGenre = genres[nextIndex];
+			const currentAvailableIndex = availableGenres.indexOf(currentGenre);
+			const nextAvailableIndex = (currentAvailableIndex + 1) % availableGenres.length;
+			const newGenre = availableGenres[nextAvailableIndex];
 			queueManager.switchGenre(newGenre);
 		},
 		onShuffleToggle: () => {
@@ -679,7 +724,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	elements.genreToggle.addEventListener('click', (e) => {
 		const target = e.target as HTMLElement;
 		const genreBtn = target.closest('.genre-btn') as HTMLButtonElement | null;
-		if (genreBtn) {
+		if (genreBtn && !genreBtn.disabled) {
 			const genre = genreBtn.getAttribute('data-genre');
 			if (genre && state.get('currentGenre') !== genre) {
 				hapticFeedback('medium');

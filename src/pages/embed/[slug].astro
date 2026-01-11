@@ -192,6 +192,12 @@ const { trackTitle, trackId, versions, genres, defaultGenre } = Astro.props;
       box-shadow: 0 0 10px rgba(51, 255, 51, 0.2);
     }
 
+    .genre-controls :global(.genre-btn:disabled) {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     .branding {
       margin-top: 12px;
       text-align: center;
@@ -293,14 +299,24 @@ const { trackTitle, trackId, versions, genres, defaultGenre } = Astro.props;
     });
 
     // Initialize genre buttons
-    Object.keys(versions).forEach(genre => {
+    const availableGenres = Object.keys(versions);
+    availableGenres.forEach(genre => {
       const btn = document.createElement('button');
       btn.className = 'genre-btn' + (genre === currentGenre ? ' active' : '');
       btn.textContent = genre;
       btn.dataset.genre = genre;
       btn.addEventListener('click', () => loadGenre(genre));
+      
+      // Add tooltip if only one genre available
+      if (availableGenres.length === 1) {
+        btn.setAttribute('title', 'This song only has 1 version available');
+      }
+      
       genreControls.appendChild(btn);
     });
+    
+    // Disable genre switching hotkey if only one genre
+    const genreHotkeyEnabled = availableGenres.length > 1;
 
     // Load initial audio
     loadGenre(currentGenre);
@@ -342,8 +358,8 @@ const { trackTitle, trackId, versions, genres, defaultGenre } = Astro.props;
         e.preventDefault();
         playBtn.click();
       }
-      // G for genre switching
-      else if (e.key === 'g' || e.key === 'G') {
+      // G for genre switching (only if multiple genres available)
+      else if ((e.key === 'g' || e.key === 'G') && genreHotkeyEnabled) {
         const genres = Object.keys(versions);
         const currentIndex = genres.indexOf(currentGenre);
         const nextIndex = (currentIndex + 1) % genres.length;

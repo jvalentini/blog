@@ -277,9 +277,23 @@ const { tracks, genres, defaultGenre } = Astro.props;
     border-right: 1px solid var(--border-dim, rgba(51, 255, 51, 0.15));
   }
 
-  .genre-btn:hover:not(.active) {
+  .genre-btn:hover:not(.active):not(.disabled) {
     color: var(--text-primary, rgba(255, 255, 255, 0.85));
     background: rgba(255, 255, 255, 0.03);
+  }
+
+  /* Disabled state - for unavailable genres */
+  .genre-btn.disabled,
+  .genre-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .genre-btn.disabled:hover,
+  .genre-btn:disabled:hover {
+    color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+    background: transparent;
   }
 
   /* Active state - uses genre colors */

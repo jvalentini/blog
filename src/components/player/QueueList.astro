@@ -18,54 +18,31 @@ const { tracks, genres, defaultGenre } = Astro.props;
     <h3 class="queue-title" id="queue-title">Queue</h3>
     <div class="queue-header-right">
       <div class="genre-selector">
-        <!-- Genre Icon - changes based on selection -->
+        <!-- Genre Icon - generic icon for all genres -->
         <div class="genre-icon" id="genre-icon">
-          <!-- Hip-hop: Terminal Microphone (green phosphor) -->
-          <svg class="genre-icon-mic" id="genre-icon-mic" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Microphone head (mesh grid pattern) -->
-            <rect x="10" y="4" width="12" height="16" rx="6" stroke="currentColor" stroke-width="2" fill="none"/>
-            <!-- Terminal-style horizontal scan lines -->
-            <line x1="12" y1="8" x2="20" y2="8" stroke="currentColor" stroke-width="1" opacity="0.6"/>
-            <line x1="12" y1="11" x2="20" y2="11" stroke="currentColor" stroke-width="1" opacity="0.8"/>
-            <line x1="12" y1="14" x2="20" y2="14" stroke="currentColor" stroke-width="1" opacity="0.6"/>
-            <line x1="12" y1="17" x2="20" y2="17" stroke="currentColor" stroke-width="1" opacity="0.4"/>
-            <!-- Stand -->
-            <line x1="16" y1="20" x2="16" y2="26" stroke="currentColor" stroke-width="2"/>
-            <!-- Base -->
-            <line x1="10" y1="26" x2="22" y2="26" stroke="currentColor" stroke-width="2"/>
-            <!-- Signal waves (terminal pulses) -->
-            <path d="M6 10 Q4 12 6 14" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/>
-            <path d="M26 10 Q28 12 26 14" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/>
-          </svg>
-          <!-- Country: Sheriff Star Badge -->
-          <svg class="genre-icon-lasso" id="genre-icon-lasso" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={defaultGenre === 'country' ? '' : 'display: none;'}>
-            <!-- 6-pointed sheriff star -->
-            <polygon 
-              points="16,2 18.5,10 27,10 20,15 23,24 16,19 9,24 12,15 5,10 13.5,10" 
-              fill="currentColor"
-            />
-            <!-- Inner circle detail -->
-            <circle cx="16" cy="14" r="4" fill="currentColor" opacity="0.3"/>
-            <!-- Center dot -->
-            <circle cx="16" cy="14" r="1.5" fill="currentColor" opacity="0.5"/>
+          <svg class="genre-icon-generic" id="genre-icon-generic" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Musical note icon -->
+            <path d="M12 4 L12 20 C12 22.5 10 24.5 7.5 24.5 C5 24.5 3 22.5 3 20 C3 17.5 5 15.5 7.5 15.5 C8.5 15.5 9.5 15.8 10 16.2 L10 4 L12 4 Z" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M20 4 L20 20 C20 22.5 22 24.5 24.5 24.5 C27 24.5 29 22.5 29 20 C29 17.5 27 15.5 24.5 15.5 C23.5 15.5 22.5 15.8 22 16.2 L22 4 L20 4 Z" stroke="currentColor" stroke-width="2" fill="none"/>
+            <line x1="12" y1="4" x2="20" y2="4" stroke="currentColor" stroke-width="2"/>
           </svg>
         </div>
         <!-- Genre Toggle Buttons -->
         <div class="genre-toggle" id="genre-toggle">
-          <button 
-            class={`genre-btn ${defaultGenre === 'hip-hop' ? 'active' : ''}`} 
-            id="genre-btn-hip-hop" 
-            data-genre="hip-hop"
-          >
-            <span class="genre-btn-text">Hip-Hop</span>
-          </button>
-          <button 
-            class={`genre-btn ${defaultGenre === 'country' ? 'active' : ''}`} 
-            id="genre-btn-country" 
-            data-genre="country"
-          >
-            <span class="genre-btn-text">Country</span>
-          </button>
+          {genres.map((genre) => {
+            const genreDisplay = genre.split('-').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join('-');
+            return (
+              <button 
+                class={`genre-btn ${defaultGenre === genre ? 'active' : ''}`} 
+                id={`genre-btn-${genre}`} 
+                data-genre={genre}
+              >
+                <span class="genre-btn-text">{genreDisplay}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
       <span class="queue-count">{tracks.length} track{tracks.length !== 1 ? 's' : ''}</span>
@@ -117,10 +94,6 @@ const { tracks, genres, defaultGenre } = Astro.props;
     text-shadow: 0 0 8px rgba(51, 255, 51, 0.3);
   }
 
-  .queue-title.country-theme {
-    color: #e8b84a;
-    text-shadow: 0 0 8px rgba(212, 160, 58, 0.4);
-  }
 
   .queue-header-right {
     display: flex;
@@ -150,15 +123,15 @@ const { tracks, genres, defaultGenre } = Astro.props;
     transition: all 0.3s ease;
   }
 
-  /* Hip-hop microphone - green terminal glow */
-  .genre-icon-mic {
+  /* Generic genre icon - green terminal glow */
+  .genre-icon-generic {
     color: var(--phosphor-base, #33ff33);
     filter: drop-shadow(0 0 4px rgba(51, 255, 51, 0.6))
             drop-shadow(0 0 8px rgba(51, 255, 51, 0.3));
-    animation: mic-pulse 2s ease-in-out infinite;
+    animation: icon-pulse 2s ease-in-out infinite;
   }
 
-  @keyframes mic-pulse {
+  @keyframes icon-pulse {
     0%, 100% { 
       filter: drop-shadow(0 0 4px rgba(51, 255, 51, 0.6))
               drop-shadow(0 0 8px rgba(51, 255, 51, 0.3));
@@ -166,27 +139,6 @@ const { tracks, genres, defaultGenre } = Astro.props;
     50% { 
       filter: drop-shadow(0 0 6px rgba(51, 255, 51, 0.8))
               drop-shadow(0 0 12px rgba(51, 255, 51, 0.5));
-    }
-  }
-
-  /* Country cowboy hat - amber Oregon Trail style */
-  .genre-icon-lasso {
-    color: #d4a03a;
-    filter: drop-shadow(0 0 3px rgba(212, 160, 58, 0.5))
-            drop-shadow(0 0 6px rgba(212, 160, 58, 0.25));
-    animation: hat-tip 4s ease-in-out infinite;
-  }
-
-  @keyframes hat-tip {
-    0%, 100% { 
-      transform: rotate(0deg) translateY(0);
-      filter: drop-shadow(0 0 3px rgba(212, 160, 58, 0.5))
-              drop-shadow(0 0 6px rgba(212, 160, 58, 0.25));
-    }
-    50% { 
-      transform: rotate(-3deg) translateY(-1px);
-      filter: drop-shadow(0 0 5px rgba(212, 160, 58, 0.7))
-              drop-shadow(0 0 10px rgba(212, 160, 58, 0.4));
     }
   }
 
@@ -216,7 +168,7 @@ const { tracks, genres, defaultGenre } = Astro.props;
     z-index: 1;
   }
 
-  .genre-btn:first-child {
+  .genre-btn:not(:last-child) {
     border-right: 1px solid var(--border-dim, rgba(51, 255, 51, 0.15));
   }
 
@@ -225,20 +177,12 @@ const { tracks, genres, defaultGenre } = Astro.props;
     background: rgba(255, 255, 255, 0.03);
   }
 
-  /* Hip-hop active state - green phosphor */
-  .genre-btn[data-genre="hip-hop"].active {
+  /* Generic active state - green phosphor */
+  .genre-btn.active {
     color: var(--phosphor-bright, #66ff66);
     background: rgba(51, 255, 51, 0.12);
     text-shadow: 0 0 8px rgba(51, 255, 51, 0.5);
     box-shadow: inset 0 0 12px rgba(51, 255, 51, 0.1);
-  }
-
-  /* Country active state - amber glow */
-  .genre-btn[data-genre="country"].active {
-    color: #e8b84a;
-    background: rgba(212, 160, 58, 0.12);
-    text-shadow: 0 0 8px rgba(212, 160, 58, 0.5);
-    box-shadow: inset 0 0 12px rgba(212, 160, 58, 0.1);
   }
 
   .genre-btn-text {
@@ -254,16 +198,8 @@ const { tracks, genres, defaultGenre } = Astro.props;
     left: 0;
     right: 0;
     height: 2px;
-  }
-
-  .genre-btn[data-genre="hip-hop"].active::after {
     background: linear-gradient(90deg, transparent, var(--phosphor-base, #33ff33), transparent);
     box-shadow: 0 0 8px rgba(51, 255, 51, 0.6);
-  }
-
-  .genre-btn[data-genre="country"].active::after {
-    background: linear-gradient(90deg, transparent, #d4a03a, transparent);
-    box-shadow: 0 0 8px rgba(212, 160, 58, 0.6);
   }
 
   .queue-count {
@@ -285,13 +221,6 @@ const { tracks, genres, defaultGenre } = Astro.props;
     background: transparent;
   }
 
-  /* Country theme - amber glow styling */
-  .queue-list.country-theme {
-    background: rgba(255, 176, 0, 0.02);
-    box-shadow: 
-      0 0 12px rgba(255, 176, 0, 0.04),
-      inset 0 0 8px rgba(255, 176, 0, 0.02);
-  }
 
   .queue-item {
     display: flex;
@@ -305,29 +234,14 @@ const { tracks, genres, defaultGenre } = Astro.props;
     transition: all 0.15s ease;
   }
 
-  .queue-list.country-theme .queue-item {
-    background: rgba(255, 176, 0, 0.03);
-    border: 1px solid rgba(255, 176, 0, 0.1);
-  }
-
   .queue-item:hover {
     background: rgba(51, 255, 51, 0.08);
     border-color: rgba(51, 255, 51, 0.25);
   }
 
-  .queue-list.country-theme .queue-item:hover {
-    background: rgba(255, 176, 0, 0.06);
-    border-color: rgba(255, 176, 0, 0.18);
-  }
-
   .queue-item.active {
     background: rgba(51, 255, 51, 0.12);
     border-color: rgba(51, 255, 51, 0.3);
-  }
-
-  .queue-list.country-theme .queue-item.active {
-    background: rgba(255, 176, 0, 0.08);
-    border-color: rgba(255, 176, 0, 0.2);
   }
 
   .queue-item-number {
@@ -339,17 +253,7 @@ const { tracks, genres, defaultGenre } = Astro.props;
     transition: color 0.15s ease;
   }
 
-  /* Hip-hop: active number is amber (complementary) */
   .queue-item.active .queue-item-number {
-    color: #e8b84a;
-  }
-
-  /* Country: non-active number is amber, active is green */
-  .queue-list.country-theme .queue-item-number {
-    color: rgba(212, 160, 58, 0.5);
-  }
-
-  .queue-list.country-theme .queue-item.active .queue-item-number {
     color: var(--phosphor-bright, #66ff66);
   }
 
@@ -369,26 +273,9 @@ const { tracks, genres, defaultGenre } = Astro.props;
     text-shadow: 0 0 10px rgba(51, 255, 51, 0.6);
   }
 
-  /* Hip-hop: active title is amber (complementary) */
   .queue-item.active .queue-item-title {
-    color: #e8b84a;
-    font-weight: 600;
-    text-shadow: 0 0 10px rgba(212, 160, 58, 0.5);
-  }
-
-  /* Country theme: non-active titles are amber */
-  .queue-list.country-theme .queue-item-title {
-    color: rgba(212, 160, 58, 0.7);
-  }
-
-  .queue-list.country-theme .queue-item-title:hover {
-    color: #e8b84a;
-    text-shadow: 0 0 10px rgba(212, 160, 58, 0.6);
-  }
-
-  /* Country: active title is green (complementary) */
-  .queue-list.country-theme .queue-item.active .queue-item-title {
     color: var(--phosphor-bright, #66ff66);
+    font-weight: 600;
     text-shadow: 0 0 10px rgba(51, 255, 51, 0.5);
   }
 

@@ -35,6 +35,7 @@ export function createAudioController(): AudioController {
 	let handleTimeUpdate: (() => void) | null = null;
 	let handleEnded: (() => void) | null = null;
 	let handleLoadedMetadata: (() => void) | null = null;
+	let handleDurationChange: (() => void) | null = null;
 	let handlePlay: (() => void) | null = null;
 	let handlePause: (() => void) | null = null;
 
@@ -61,6 +62,10 @@ export function createAudioController(): AudioController {
 			audio.removeEventListener('pause', handlePause);
 			handlePause = null;
 		}
+		if (handleDurationChange) {
+			audio.removeEventListener('durationchange', handleDurationChange);
+			handleDurationChange = null;
+		}
 	}
 
 	function attachEventListeners(): void {
@@ -68,7 +73,9 @@ export function createAudioController(): AudioController {
 
 		handleTimeUpdate = () => {
 			if (callbacks.onTimeUpdate && audio) {
-				const duration = audio.duration || 0;
+				// For streaming audio, duration can be Infinity or NaN
+				// Pass the actual value (including Infinity) so Media Session can handle it
+				const duration = Number.isFinite(audio.duration) ? audio.duration : Infinity;
 				callbacks.onTimeUpdate(audio.currentTime, duration);
 			}
 		};
@@ -79,7 +86,17 @@ export function createAudioController(): AudioController {
 
 		handleLoadedMetadata = () => {
 			if (callbacks.onLoadedMetadata && audio) {
-				callbacks.onLoadedMetadata(audio.duration || 0);
+				const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+				callbacks.onLoadedMetadata(duration);
+			}
+		};
+
+		handleDurationChange = () => {
+			// For streaming audio, duration may change as more data loads
+			// Trigger a timeupdate-like callback to update position state
+			if (callbacks.onTimeUpdate && audio) {
+				const duration = Number.isFinite(audio.duration) ? audio.duration : Infinity;
+				callbacks.onTimeUpdate(audio.currentTime, duration);
 			}
 		};
 
@@ -94,6 +111,7 @@ export function createAudioController(): AudioController {
 		audio.addEventListener('timeupdate', handleTimeUpdate);
 		audio.addEventListener('ended', handleEnded);
 		audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+		audio.addEventListener('durationchange', handleDurationChange);
 		audio.addEventListener('play', handlePlay);
 		audio.addEventListener('pause', handlePause);
 	}

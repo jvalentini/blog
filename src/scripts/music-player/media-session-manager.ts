@@ -28,11 +28,19 @@ export class MediaSessionManager {
 	private lastPositionUpdate: number = 0;
 	private positionUpdateThrottle: number = 1000; // 1 second
 	private currentTrackId: string | number | null = null; // For race condition protection
+	private debug: boolean;
 
 	constructor() {
 		this.isSupported = 'mediaSession' in navigator;
+		// Enable debug mode if localStorage flag is set or in development
+		this.debug =
+			(typeof localStorage !== 'undefined' && localStorage.getItem('mediaSessionDebug') === 'true') ||
+			(typeof window !== 'undefined' && window.location.hostname === 'localhost');
+
 		if (!this.isSupported) {
 			console.warn('[MediaSessionManager] Media Session API not supported');
+		} else if (this.debug) {
+			console.log('[MediaSessionManager] Initialized, Media Session API available');
 		}
 	}
 
@@ -50,6 +58,9 @@ export class MediaSessionManager {
 			// Register action handlers with error handling
 			if (callbacks.onPlay) {
 				navigator.mediaSession.setActionHandler('play', () => {
+					if (this.debug) {
+						console.log('[MediaSessionManager] Play action triggered from notification');
+					}
 					try {
 						const result = callbacks.onPlay?.();
 						// Handle async callbacks
@@ -76,6 +87,9 @@ export class MediaSessionManager {
 
 			if (callbacks.onPreviousTrack) {
 				navigator.mediaSession.setActionHandler('previoustrack', () => {
+					if (this.debug) {
+						console.log('[MediaSessionManager] Previous track action triggered from notification');
+					}
 					try {
 						callbacks.onPreviousTrack?.();
 					} catch (error) {
@@ -86,6 +100,9 @@ export class MediaSessionManager {
 
 			if (callbacks.onNextTrack) {
 				navigator.mediaSession.setActionHandler('nexttrack', () => {
+					if (this.debug) {
+						console.log('[MediaSessionManager] Next track action triggered from notification');
+					}
 					try {
 						callbacks.onNextTrack?.();
 					} catch (error) {
@@ -151,6 +168,15 @@ export class MediaSessionManager {
 			if (trackId !== undefined) {
 				this.currentTrackId = trackId;
 			}
+
+			if (this.debug) {
+				console.log('[MediaSessionManager] Metadata updated:', {
+					title: metadata.title.trim(),
+					artist: metadata.artist || 'Unknown Artist',
+					album: metadata.album || 'Unknown Album',
+					trackId,
+				});
+			}
 		} catch (error) {
 			console.warn('[MediaSessionManager] Failed to update metadata:', error);
 		}
@@ -196,6 +222,15 @@ export class MediaSessionManager {
 				playbackRate,
 				position,
 			});
+
+			if (this.debug && Math.floor(position) % 5 === 0) {
+				// Log every 5 seconds to avoid spam
+				console.log('[MediaSessionManager] Position state updated:', {
+					position: Math.floor(position),
+					duration: Math.floor(duration),
+					playbackRate,
+				});
+			}
 		} catch (error) {
 			console.warn('[MediaSessionManager] Failed to update position state:', error);
 		}
@@ -236,9 +271,15 @@ export class MediaSessionManager {
 					navigator.mediaSession.setActionHandler('previoustrack', () => {
 						this.callbacks.onPreviousTrack?.();
 					});
+					if (this.debug) {
+						console.log('[MediaSessionManager] Previous track action enabled');
+					}
 				}
 			} else {
 				navigator.mediaSession.setActionHandler('previoustrack', null);
+				if (this.debug) {
+					console.log('[MediaSessionManager] Previous track action disabled');
+				}
 			}
 
 			// Enable/disable next track action
@@ -247,9 +288,15 @@ export class MediaSessionManager {
 					navigator.mediaSession.setActionHandler('nexttrack', () => {
 						this.callbacks.onNextTrack?.();
 					});
+					if (this.debug) {
+						console.log('[MediaSessionManager] Next track action enabled');
+					}
 				}
 			} else {
 				navigator.mediaSession.setActionHandler('nexttrack', null);
+				if (this.debug) {
+					console.log('[MediaSessionManager] Next track action disabled');
+				}
 			}
 		} catch (error) {
 			console.warn('[MediaSessionManager] Failed to update action availability:', error);

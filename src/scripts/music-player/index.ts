@@ -188,6 +188,11 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 		if (!title || !songId) return;
 
+		// Mark that we're changing tracks - this ensures we start at 0:00
+		isTrackChange = true;
+		// Clear any pending seek time when loading a new track
+		pendingSeekTime = null;
+
 		state.set('currentIndex', index);
 		elements.currentTrackTitle.textContent = title;
 
@@ -252,6 +257,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		const src = queueManager.getTrackSrc(index, genreToUse);
 		if (src) {
 			audioController.setSrc(src);
+			audioController.load();
 		}
 
 		loadLyricsForTrack(index);
@@ -436,6 +442,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 	let pendingSeekTime: number | null = null;
 	let pendingAutoplay: boolean = false;
+	let isTrackChange: boolean = false;
 
 	const queueManager = new QueueManager(tracks, initialGenre, {
 		onTrackLoad: loadTrackAtIndex,
@@ -451,8 +458,11 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				const currentTime = audioController.getCurrentTime();
 				const src = queueManager.getTrackSrc(currentIndex, genre);
 				if (src) {
-					pendingSeekTime = currentTime;
-					pendingAutoplay = wasPlaying;
+					// Only preserve seek time if we're not changing tracks (just changing genre)
+					if (!isTrackChange) {
+						pendingSeekTime = currentTime;
+						pendingAutoplay = wasPlaying;
+					}
 					audioController.setSrc(src);
 					audioController.load();
 				}
@@ -543,7 +553,12 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			state.set('duration', duration);
 			updateTimeDisplay(0, duration);
 
-			if (pendingSeekTime !== null && pendingSeekTime > 0 && pendingSeekTime < duration) {
+			// If we're changing tracks, always start at 0:00
+			// Only use pendingSeekTime if we're just changing genre (not changing tracks)
+			if (isTrackChange) {
+				audioController.seek(0);
+				isTrackChange = false;
+			} else if (pendingSeekTime !== null && pendingSeekTime > 0 && pendingSeekTime < duration) {
 				audioController.seek(pendingSeekTime);
 				pendingSeekTime = null;
 			}

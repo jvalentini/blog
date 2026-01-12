@@ -619,9 +619,12 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				}
 			}
 			// Update media session position state
-			if (duration > 0) {
+			// For streaming audio, duration might be Infinity initially
+			// Always try to update position state - MediaSessionManager will handle validation
+			// Only skip if duration is explicitly invalid (negative and finite)
+			if (duration >= 0 || !Number.isFinite(duration)) {
 				mediaSessionManager.updatePositionState({
-					duration,
+					duration: Number.isFinite(duration) && duration > 0 ? duration : Infinity,
 					playbackRate: 1,
 					position: currentTime,
 				});

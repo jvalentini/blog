@@ -185,6 +185,7 @@ export class MediaSessionManager {
 	/**
 	 * Update playback position state for progress indication
 	 * Throttled to avoid excessive API calls
+	 * Supports streaming audio where duration may be Infinity or unknown
 	 */
 	updatePositionState(positionState: MediaSessionPositionState): void {
 		if (!this.isSupported) {
@@ -194,14 +195,27 @@ export class MediaSessionManager {
 		// Validate position state values
 		const { duration, playbackRate, position } = positionState;
 
-		// Check for valid numbers
-		if (!Number.isFinite(duration) || !Number.isFinite(position) || !Number.isFinite(playbackRate)) {
+		// Position and playbackRate must be finite
+		if (!Number.isFinite(position) || !Number.isFinite(playbackRate)) {
 			return;
 		}
 
-		// Check for valid ranges
-		if (duration <= 0 || position < 0 || position > duration || playbackRate <= 0) {
+		// Position must be non-negative
+		if (position < 0 || playbackRate <= 0) {
 			return;
+		}
+
+		// For streaming audio, duration can be Infinity or NaN
+		// Media Session API doesn't support Infinity, so we need a workaround
+		// We'll use a very large finite number to represent "unknown duration"
+		const isStreaming = !Number.isFinite(duration) || duration === Infinity || duration <= 0;
+
+		// For non-streaming audio, validate duration and position
+		if (!isStreaming) {
+			if (position > duration) {
+				// Position exceeds duration, clamp it
+				return;
+			}
 		}
 
 		const now = Date.now();
@@ -217,8 +231,14 @@ export class MediaSessionManager {
 		this.lastPositionUpdate = now;
 
 		try {
+			// For streaming audio (duration is Infinity or unknown), use a large duration
+			// or omit duration. However, Media Session API requires a finite duration.
+			// For streaming, we'll use a very large duration value to indicate "unknown"
+			// and update position regularly so progress can be shown.
+			const effectiveDuration = isStreaming ? Number.MAX_SAFE_INTEGER : duration;
+
 			navigator.mediaSession.setPositionState({
-				duration,
+				duration: effectiveDuration,
 				playbackRate,
 				position,
 			});
@@ -227,8 +247,9 @@ export class MediaSessionManager {
 				// Log every 5 seconds to avoid spam
 				console.log('[MediaSessionManager] Position state updated:', {
 					position: Math.floor(position),
-					duration: Math.floor(duration),
+					duration: isStreaming ? 'streaming' : Math.floor(duration),
 					playbackRate,
+					isStreaming,
 				});
 			}
 		} catch (error) {

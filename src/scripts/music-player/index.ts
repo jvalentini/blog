@@ -697,11 +697,33 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		onSeekBackward: () => {
 			const currentTime = audioController.getCurrentTime();
 			audioController.seek(Math.max(0, currentTime - 5));
+			// Force immediate position state update after seek
+			const duration = audioController.getDuration();
+			if (duration > 0 || !Number.isFinite(duration)) {
+				mediaSessionManager.clearThrottle();
+				mediaSessionManager.updatePositionState({
+					duration: Number.isFinite(duration) && duration > 0 ? duration : Infinity,
+					playbackRate: 1,
+					position: Math.max(0, currentTime - 5),
+				});
+			}
 		},
 		onSeekForward: () => {
 			const currentTime = audioController.getCurrentTime();
 			const duration = audioController.getDuration();
-			audioController.seek(Math.min(duration, currentTime + 5));
+			// Allow seek even if duration is Infinity (streaming)
+			const seekTime =
+				Number.isFinite(duration) && duration > 0 ? Math.min(duration, currentTime + 5) : currentTime + 5;
+			audioController.seek(seekTime);
+			// Force immediate position state update after seek
+			if (duration > 0 || !Number.isFinite(duration)) {
+				mediaSessionManager.clearThrottle();
+				mediaSessionManager.updatePositionState({
+					duration: Number.isFinite(duration) && duration > 0 ? duration : Infinity,
+					playbackRate: 1,
+					position: seekTime,
+				});
+			}
 		},
 		onMuteToggle: () => {
 			const currentVolume = audioController.getVolume();
@@ -776,20 +798,39 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		onSeekBackward: () => {
 			const currentTime = audioController.getCurrentTime();
 			const duration = audioController.getDuration();
-			// Validate duration before seeking
-			if (!Number.isFinite(duration) || duration <= 0) {
+			// Allow seek even if duration is Infinity (streaming)
+			// Only block if duration is explicitly invalid (NaN or negative finite number)
+			if (Number.isFinite(duration) && duration <= 0) {
 				return;
 			}
-			audioController.seek(Math.max(0, currentTime - 10));
+			const seekTime = Math.max(0, currentTime - 10);
+			audioController.seek(seekTime);
+			// Force immediate position state update
+			mediaSessionManager.clearThrottle();
+			mediaSessionManager.updatePositionState({
+				duration: Number.isFinite(duration) && duration > 0 ? duration : Infinity,
+				playbackRate: 1,
+				position: seekTime,
+			});
 		},
 		onSeekForward: () => {
 			const currentTime = audioController.getCurrentTime();
 			const duration = audioController.getDuration();
-			// Validate duration before seeking
-			if (!Number.isFinite(duration) || duration <= 0) {
+			// Allow seek even if duration is Infinity (streaming)
+			// Only block if duration is explicitly invalid (NaN or negative finite number)
+			if (Number.isFinite(duration) && duration <= 0) {
 				return;
 			}
-			audioController.seek(Math.min(duration, currentTime + 10));
+			const seekTime =
+				Number.isFinite(duration) && duration > 0 ? Math.min(duration, currentTime + 10) : currentTime + 10;
+			audioController.seek(seekTime);
+			// Force immediate position state update
+			mediaSessionManager.clearThrottle();
+			mediaSessionManager.updatePositionState({
+				duration: Number.isFinite(duration) && duration > 0 ? duration : Infinity,
+				playbackRate: 1,
+				position: seekTime,
+			});
 		},
 	});
 
@@ -830,9 +871,29 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				const currentTime = audioController.getCurrentTime();
 				const duration = audioController.getDuration();
 				if (direction === 'forward') {
-					audioController.seek(Math.min(duration, currentTime + HOLD_SEEK_STEP_SECONDS));
+					// Allow seek even if duration is Infinity (streaming)
+					const seekTime =
+						Number.isFinite(duration) && duration > 0
+							? Math.min(duration, currentTime + HOLD_SEEK_STEP_SECONDS)
+							: currentTime + HOLD_SEEK_STEP_SECONDS;
+					audioController.seek(seekTime);
+					// Force immediate position state update
+					mediaSessionManager.clearThrottle();
+					mediaSessionManager.updatePositionState({
+						duration: Number.isFinite(duration) && duration > 0 ? duration : Infinity,
+						playbackRate: 1,
+						position: seekTime,
+					});
 				} else {
-					audioController.seek(Math.max(0, currentTime - HOLD_SEEK_STEP_SECONDS));
+					const seekTime = Math.max(0, currentTime - HOLD_SEEK_STEP_SECONDS);
+					audioController.seek(seekTime);
+					// Force immediate position state update
+					mediaSessionManager.clearThrottle();
+					mediaSessionManager.updatePositionState({
+						duration: Number.isFinite(duration) && duration > 0 ? duration : Infinity,
+						playbackRate: 1,
+						position: seekTime,
+					});
 				}
 			}, HOLD_SEEK_INTERVAL_MS);
 		}, HOLD_SEEK_DELAY_MS);
@@ -923,10 +984,27 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		queueManager.toggleRepeat();
 	});
 
-	elements.progressSlider.addEventListener('input', () => {
+	// Handle progress slider - use both input and change for better mobile support
+	const handleProgressSliderChange = () => {
 		const percent = parseFloat(elements.progressSlider.value);
 		audioController.seekPercent(percent);
-	});
+		// Force immediate position state update after seek
+		const currentTime = audioController.getCurrentTime();
+		const duration = audioController.getDuration();
+		if (duration > 0 || !Number.isFinite(duration)) {
+			// Clear throttle to allow immediate update
+			mediaSessionManager.clearThrottle();
+			mediaSessionManager.updatePositionState({
+				duration: Number.isFinite(duration) && duration > 0 ? duration : Infinity,
+				playbackRate: 1,
+				position: currentTime,
+			});
+		}
+	};
+
+	elements.progressSlider.addEventListener('input', handleProgressSliderChange);
+	// Also listen to change event for mobile (fires on touch end)
+	elements.progressSlider.addEventListener('change', handleProgressSliderChange);
 
 	elements.volumeBlocks.forEach((block) => {
 		block.addEventListener('click', () => {
@@ -1166,14 +1244,51 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	window.musicPlayerAPI = api;
 
 	// Cleanup on page unload to prevent memory leaks
+	// Store handler references to allow removal if player is re-initialized
+	let cleanupBeforeUnload: (() => void) | null = null;
+	let cleanupPageHide: (() => void) | null = null;
+
 	const cleanup = (): void => {
 		mediaSessionManager.destroy();
 	};
 
-	// Register cleanup handlers
+	// Type for cleanup handlers registry
+	interface CleanupHandlers {
+		beforeunload: () => void;
+		pagehide: () => void;
+	}
+
+	// Extend Window interface for cleanup handlers registry
+	interface WindowWithCleanupHandlers extends Window {
+		__musicPlayerCleanupHandlers?: CleanupHandlers;
+	}
+
+	// Remove old cleanup handlers if they exist (for hot reload/SPA navigation)
 	if (typeof window !== 'undefined') {
-		window.addEventListener('beforeunload', cleanup);
-		window.addEventListener('pagehide', cleanup);
+		const win = window as WindowWithCleanupHandlers;
+		// Try to remove any existing handlers (they might be from previous initialization)
+		// We can't directly access old handlers, but we can use a global registry
+		if (win.__musicPlayerCleanupHandlers) {
+			const oldHandlers = win.__musicPlayerCleanupHandlers;
+			if (oldHandlers.beforeunload) {
+				window.removeEventListener('beforeunload', oldHandlers.beforeunload);
+			}
+			if (oldHandlers.pagehide) {
+				window.removeEventListener('pagehide', oldHandlers.pagehide);
+			}
+		}
+
+		// Register new cleanup handlers
+		cleanupBeforeUnload = cleanup;
+		cleanupPageHide = cleanup;
+		window.addEventListener('beforeunload', cleanupBeforeUnload);
+		window.addEventListener('pagehide', cleanupPageHide);
+
+		// Store handlers globally so they can be removed on re-initialization
+		win.__musicPlayerCleanupHandlers = {
+			beforeunload: cleanupBeforeUnload,
+			pagehide: cleanupPageHide,
+		};
 	}
 
 	return api;

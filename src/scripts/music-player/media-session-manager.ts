@@ -278,6 +278,14 @@ export class MediaSessionManager {
 	}
 
 	/**
+	 * Clear throttle to allow immediate position state update
+	 * Useful after seek operations to update position state immediately
+	 */
+	clearThrottle(): void {
+		this.lastPositionUpdate = 0;
+	}
+
+	/**
 	 * Update action availability based on queue state
 	 */
 	updateActionAvailability(options: { canGoPrevious: boolean; canGoNext: boolean; repeatMode: RepeatMode }): void {
@@ -358,7 +366,7 @@ export class MediaSessionManager {
 			.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
 			.join('-');
 
-		return formatted.length > maxLength ? formatted.substring(0, maxLength) + '...' : formatted;
+		return formatted.length > maxLength ? `${formatted.substring(0, maxLength)}...` : formatted;
 	}
 
 	/**

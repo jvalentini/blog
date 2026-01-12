@@ -321,6 +321,31 @@ export class QueueManager {
 		return this.currentIndex === this.tracks.length - 1;
 	}
 
+	/**
+	 * Check if we're at the start of the queue (for Media Session API)
+	 * Takes shuffle mode into account
+	 */
+	isAtStartOfQueue(): boolean {
+		if (this.tracks.length === 0 || this.currentIndex < 0) {
+			return true;
+		}
+
+		if (this.shuffleMode !== 'off') {
+			const currentShufflePos = this.shuffledIndices.indexOf(this.currentIndex);
+			return currentShufflePos === 0;
+		}
+
+		return this.currentIndex === 0;
+	}
+
+	/**
+	 * Check if we're at the end of the queue (for Media Session API)
+	 * Takes shuffle mode into account
+	 */
+	isAtEndOfQueuePublic(): boolean {
+		return this.isAtEndOfQueue();
+	}
+
 	/** Fisher-Yates shuffle algorithm */
 	private generateShuffledIndices(): void {
 		this.shuffledIndices = Array.from({ length: this.tracks.length }, (_, i) => i);

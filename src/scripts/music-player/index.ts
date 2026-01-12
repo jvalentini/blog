@@ -1,6 +1,7 @@
 import { createAudioController } from './audio-controller';
 import { KeyboardShortcutsManager } from './keyboard-shortcuts';
 import { LyricsSyncManager } from './lyrics-sync';
+import { MediaSessionManager } from './media-session-manager';
 import { QueueManager } from './queue-manager';
 import { createPlayerState, type Genre } from './state';
 import { PlayerStorage } from './storage';
@@ -262,6 +263,10 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 		loadLyricsForTrack(index);
 
+		// Update media session metadata
+		updateMediaSessionMetadata();
+		updateMediaSessionActionAvailability();
+
 		if (autoplay) {
 			audioController.play().then(() => {
 				state.set('isPlaying', true);
@@ -467,21 +472,89 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 					audioController.load();
 				}
 				loadLyricsForTrack(currentIndex);
+				// Update media session metadata when genre changes
+				updateMediaSessionMetadata();
 			}
 		},
 		onShuffleChange: (mode) => {
 			state.set('shuffleMode', mode);
 			updateShuffleUI(mode);
 			storage.save({ shuffleMode: mode });
+			// Update action availability when shuffle mode changes
+			updateMediaSessionActionAvailability();
 		},
 		onRepeatModeChange: (mode) => {
 			state.set('repeatMode', mode);
 			updateRepeatUI(mode);
 			storage.save({ repeatMode: mode });
+			// Update action availability when repeat mode changes
+			updateMediaSessionActionAvailability();
 		},
 	});
 
 	const lyricsSync = new LyricsSyncManager('lyrics-content');
+
+	const mediaSessionManager = new MediaSessionManager();
+
+	// Helper function to check if we can go to previous track
+	const canGoPrevious = (): boolean => {
+		const repeatMode = state.get('repeatMode');
+
+		// Always allow if repeat mode is enabled
+		if (repeatMode !== 'off') {
+			return true;
+		}
+
+		// Use QueueManager's method which handles shuffle mode correctly
+		return !queueManager.isAtStartOfQueue();
+	};
+
+	// Helper function to check if we can go to next track
+	const canGoNext = (): boolean => {
+		const repeatMode = state.get('repeatMode');
+
+		// Always allow if repeat mode is enabled
+		if (repeatMode !== 'off') {
+			return true;
+		}
+
+		// Use QueueManager's method which handles shuffle mode correctly
+		return !queueManager.isAtEndOfQueuePublic();
+	};
+
+	// Helper function to update media session metadata
+	const updateMediaSessionMetadata = (): void => {
+		const currentTrack = queueManager.getCurrentTrack();
+		if (!currentTrack) {
+			return;
+		}
+
+		const currentGenre = state.get('currentGenre');
+		const formattedGenre = MediaSessionManager.formatGenre(currentGenre);
+		// Use track ID for race condition protection
+		const trackId = currentTrack.songId || currentTrack.id;
+		const title = `${currentTrack.title || 'Unknown Track'} (${formattedGenre} Version)`;
+
+		mediaSessionManager.updateMetadata(
+			{
+				title,
+				artist: 'jvalentini',
+				album: 'waves',
+			},
+			trackId,
+		);
+	};
+
+	// Helper function to update media session action availability
+	const updateMediaSessionActionAvailability = (): void => {
+		const repeatMode = state.get('repeatMode');
+
+		mediaSessionManager.updateActionAvailability({
+			canGoPrevious: canGoPrevious(),
+			canGoNext: canGoNext(),
+			repeatMode,
+		});
+	};
 
 	let previousVolume = 0.7;
 
@@ -545,8 +618,17 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 					});
 				}
 			}
+			// Update media session position state
+			if (duration > 0) {
+				mediaSessionManager.updatePositionState({
+					duration,
+					playbackRate: 1,
+					position: currentTime,
+				});
+			}
 		},
 		onEnded: () => {
+			mediaSessionManager.clearPositionState();
 			queueManager.playNext();
 		},
 		onLoadedMetadata: (duration) => {
@@ -575,6 +657,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		onPause: () => {
 			state.set('isPlaying', false);
 			showPlayIcon();
+			// Don't clear position state on pause - keep it to show where user paused
 		},
 	});
 
@@ -664,6 +747,48 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	});
 
 	keyboardShortcuts.init();
+
+	// Initialize Media Session Manager
+	mediaSessionManager.init({
+		onPlay: async () => {
+			if (state.get('currentIndex') < 0) {
+				queueManager.loadTrack(0, true);
+			} else {
+				await audioController.play();
+			}
+		},
+		onPause: () => {
+			audioController.pause();
+		},
+		onPreviousTrack: () => {
+			if (audioController.getCurrentTime() > 3) {
+				audioController.seek(0);
+			} else {
+				queueManager.playPrevious();
+			}
+		},
+		onNextTrack: () => {
+			queueManager.playNext();
+		},
+		onSeekBackward: () => {
+			const currentTime = audioController.getCurrentTime();
+			const duration = audioController.getDuration();
+			// Validate duration before seeking
+			if (!Number.isFinite(duration) || duration <= 0) {
+				return;
+			}
+			audioController.seek(Math.max(0, currentTime - 10));
+		},
+		onSeekForward: () => {
+			const currentTime = audioController.getCurrentTime();
+			const duration = audioController.getDuration();
+			// Validate duration before seeking
+			if (!Number.isFinite(duration) || duration <= 0) {
+				return;
+			}
+			audioController.seek(Math.min(duration, currentTime + 10));
+		},
+	});
 
 	elements.btnPlay.addEventListener('click', () => {
 		hapticFeedback('medium');
@@ -1036,6 +1161,17 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	};
 
 	window.musicPlayerAPI = api;
+
+	// Cleanup on page unload to prevent memory leaks
+	const cleanup = (): void => {
+		mediaSessionManager.destroy();
+	};
+
+	// Register cleanup handlers
+	if (typeof window !== 'undefined') {
+		window.addEventListener('beforeunload', cleanup);
+		window.addEventListener('pagehide', cleanup);
+	}
 
 	return api;
 }

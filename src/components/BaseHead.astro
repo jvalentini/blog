@@ -4,7 +4,7 @@ import { getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import type { Article, BreadcrumbList, FAQPage, HowTo, Person, WebSite, WithContext } from 'schema-dts';
 import wavesHeroImage from '../assets/waves-hero.png';
-import { SITE_TITLE, SITE_DESCRIPTION, AUTHOR_NAME, SOCIAL_LINKS } from '../consts';
+import { AUTHOR_NAME, SITE_DESCRIPTION, SITE_TITLE, SOCIAL_LINKS } from '../consts';
 
 const GA_MEASUREMENT_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-XXXXXXXXXX';
 
@@ -74,68 +74,77 @@ const personSchema: WithContext<Person> = {
 	email: SOCIAL_LINKS.email,
 };
 
-const articleSchema: WithContext<Article> | null = article ? {
-	'@context': 'https://schema.org',
-	'@type': 'Article',
-	headline: title,
-	description: description,
-	image: imageUrl,
-	datePublished: article.pubDate?.toISOString(),
-	dateModified: article.updatedDate?.toISOString() ?? article.pubDate?.toISOString(),
-	author: {
-		'@type': 'Person',
-		name: AUTHOR_NAME,
-		url: Astro.site?.href,
-		sameAs: [SOCIAL_LINKS.linkedin, SOCIAL_LINKS.github],
-	},
-	publisher: {
-		'@type': 'Person',
-		name: AUTHOR_NAME,
-	},
-	mainEntityOfPage: {
-		'@type': 'WebPage',
-		'@id': canonicalURL.href,
-	},
-	keywords: article.tags?.join(', '),
-} : null;
+const articleSchema: WithContext<Article> | null = article
+	? {
+			'@context': 'https://schema.org',
+			'@type': 'Article',
+			headline: title,
+			description: description,
+			image: imageUrl,
+			datePublished: article.pubDate?.toISOString(),
+			dateModified: article.updatedDate?.toISOString() ?? article.pubDate?.toISOString(),
+			author: {
+				'@type': 'Person',
+				name: AUTHOR_NAME,
+				url: Astro.site?.href,
+				sameAs: [SOCIAL_LINKS.linkedin, SOCIAL_LINKS.github],
+			},
+			publisher: {
+				'@type': 'Person',
+				name: AUTHOR_NAME,
+			},
+			mainEntityOfPage: {
+				'@type': 'WebPage',
+				'@id': canonicalURL.href,
+			},
+			keywords: article.tags?.join(', '),
+		}
+	: null;
 
-const breadcrumbSchema: WithContext<BreadcrumbList> | null = breadcrumbs ? {
-	'@context': 'https://schema.org',
-	'@type': 'BreadcrumbList',
-	itemListElement: breadcrumbs.map((crumb, index) => ({
-		'@type': 'ListItem',
-		position: index + 1,
-		name: crumb.label,
-		item: crumb.url,
-	})),
-} : null;
+const breadcrumbSchema: WithContext<BreadcrumbList> | null = breadcrumbs
+	? {
+			'@context': 'https://schema.org',
+			'@type': 'BreadcrumbList',
+			itemListElement: breadcrumbs.map((crumb, index) => ({
+				'@type': 'ListItem',
+				position: index + 1,
+				name: crumb.label,
+				item: crumb.url,
+			})),
+		}
+	: null;
 
-const howToSchema: WithContext<HowTo> | null = howTo ? {
-	'@context': 'https://schema.org',
-	'@type': 'HowTo',
-	name: title,
-	description: description,
-	totalTime: howTo.totalTime,
-	step: howTo.steps.map((step, index) => ({
-		'@type': 'HowToStep',
-		position: index + 1,
-		name: step.name,
-		text: step.text,
-	})),
-} : null;
+const howToSchema: WithContext<HowTo> | null = howTo
+	? {
+			'@context': 'https://schema.org',
+			'@type': 'HowTo',
+			name: title,
+			description: description,
+			totalTime: howTo.totalTime,
+			step: howTo.steps.map((step, index) => ({
+				'@type': 'HowToStep',
+				position: index + 1,
+				name: step.name,
+				text: step.text,
+			})),
+		}
+	: null;
 
-const faqSchema: WithContext<FAQPage> | null = faq && faq.length > 0 ? {
-	'@context': 'https://schema.org',
-	'@type': 'FAQPage',
-	mainEntity: faq.map((item) => ({
-		'@type': 'Question',
-		name: item.question,
-		acceptedAnswer: {
-			'@type': 'Answer',
-			text: item.answer,
-		},
-	})),
-} : null;
+const faqSchema: WithContext<FAQPage> | null =
+	faq && faq.length > 0
+		? {
+				'@context': 'https://schema.org',
+				'@type': 'FAQPage',
+				mainEntity: faq.map((item) => ({
+					'@type': 'Question',
+					name: item.question,
+					acceptedAnswer: {
+						'@type': 'Answer',
+						text: item.answer,
+					},
+				})),
+			}
+		: null;
 ---
 
 <!-- Global Metadata -->

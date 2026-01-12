@@ -41,7 +41,7 @@ async function generateMusic(lyricsFile: string, style?: string) {
 
 	// Read style if it's a file path (starts with @)
 	let styleText = style;
-	if (styleText && styleText.startsWith('@')) {
+	if (styleText?.startsWith('@')) {
 		const styleFile = styleText.slice(1);
 		try {
 			styleText = await fs.readFile(styleFile, 'utf-8');
@@ -123,7 +123,7 @@ async function generateMusic(lyricsFile: string, style?: string) {
 	console.log('🎵 Generating music from lyrics...');
 	console.log(`Lyrics file: ${lyricsFile}`);
 	console.log(`Title: ${title}`);
-	if (styleText) console.log(`Style: ${styleText.length > 50 ? styleText.slice(0, 50) + '...' : styleText}`);
+	if (styleText) console.log(`Style: ${styleText.length > 50 ? `${styleText.slice(0, 50)}...` : styleText}`);
 
 	try {
 		const response = await fetch('https://studio-api.prod.suno.com/api/generate/v2-web/', {

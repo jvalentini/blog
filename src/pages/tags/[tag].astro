@@ -1,13 +1,13 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getPublishedPosts } from '../../utils/posts';
 
 export async function getStaticPaths() {
 	const posts = await getPublishedPosts();
-	
+
 	const tagMap = new Map<string, typeof posts>();
-	
+
 	for (const post of posts) {
 		const tags = post.data.tags || [];
 		for (const tag of tags) {
@@ -17,7 +17,7 @@ export async function getStaticPaths() {
 			tagMap.get(tag)!.push(post);
 		}
 	}
-	
+
 	return Array.from(tagMap.entries()).map(([tag, tagPosts]) => ({
 		params: { tag },
 		props: { tag, posts: tagPosts },

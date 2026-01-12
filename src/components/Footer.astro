@@ -39,7 +39,7 @@ const currentYear = new Date().getFullYear();
 <script>
 	const dateEl = document.getElementById('session-date');
 	if (dateEl) {
-		dateEl.textContent = new Date().toISOString().split('T')[0];
+		dateEl.textContent = new Date().toISOString().split('T')[0] ?? '';
 	}
 </script>
 

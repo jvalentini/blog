@@ -1,0 +1,39 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:recommended"],
+	"schedule": ["before 9am on Monday"],
+	"rangeStrategy": "bump",
+	"packageRules": [
+		{
+			"matchPackagePatterns": ["^@astrojs/", "^astro$"],
+			"groupName": "Astro core packages",
+			"automerge": true,
+			"automergeType": "pr",
+			"matchUpdateTypes": ["minor", "patch"]
+		},
+		{
+			"matchPackagePatterns": ["^@biomejs/", "^oxlint$"],
+			"groupName": "Linting tools",
+			"automerge": true,
+			"matchUpdateTypes": ["minor", "patch"]
+		},
+		{
+			"matchPackagePatterns": ["^typescript$", "^@types/"],
+			"groupName": "TypeScript and type definitions",
+			"automerge": true,
+			"matchUpdateTypes": ["minor", "patch"]
+		},
+		{
+			"matchDepTypes": ["devDependencies"],
+			"matchUpdateTypes": ["patch"],
+			"automerge": true
+		}
+	],
+	"vulnerabilityAlerts": {
+		"enabled": true,
+		"automerge": true
+	},
+	"labels": ["dependencies"],
+	"assignees": [],
+	"reviewers": []
+}

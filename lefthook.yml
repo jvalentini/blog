@@ -1,0 +1,33 @@
+# Lefthook configuration for git hooks
+# https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true
+  commands:
+    biome-check:
+      glob: "*.{ts,js,mjs,astro,json}"
+      run: biome check --fix {staged_files}
+      stage_fixed: true
+      fail_text: "Biome found issues. Please review and commit again."
+    
+    oxlint:
+      glob: "*.{ts,js,mjs,astro}"
+      run: oxlint --fix {staged_files}
+      stage_fixed: true
+      fail_text: "Oxlint found issues. Please review and commit again."
+    
+    astro-check:
+      glob: "*.{ts,astro}"
+      run: astro check --minimumSeverity warning
+      fail_text: "Astro type check failed. Fix errors before committing."
+    
+    seo-check:
+      glob: "src/content/blog/*.{md,mdx}"
+      run: bun run seo:check
+      fail_text: "SEO validation failed. Check frontmatter in blog posts."
+
+pre-push:
+  commands:
+    build-test:
+      run: bun run build
+      fail_text: "Build failed. Fix errors before pushing."

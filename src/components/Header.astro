@@ -77,8 +77,9 @@ const pathDisplay = segments.length > 0 ? segments.join('/') : 'home';
 		}
 	});
 
-	terminalPrompt?.addEventListener('keydown', (e) => {
-		if (e.key === 'Enter' || e.key === ' ') {
+	terminalPrompt?.addEventListener('keydown', (e: Event) => {
+		const keyboardEvent = e as KeyboardEvent;
+		if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
 			e.preventDefault();
 			if (typeof window.terminalAPI !== 'undefined') {
 				window.terminalAPI.open();

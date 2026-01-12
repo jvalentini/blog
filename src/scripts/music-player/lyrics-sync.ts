@@ -54,7 +54,7 @@ export class LyricsSyncManager {
 		let newActiveIndex = -1;
 		for (let i = this.currentLines.length - 1; i >= 0; i--) {
 			const line = this.currentLines[i];
-			if (line.time !== null && line.time <= currentTime) {
+			if (line && line.time !== null && line.time <= currentTime) {
 				newActiveIndex = i;
 				break;
 			}

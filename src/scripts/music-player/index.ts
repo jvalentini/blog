@@ -460,9 +460,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			}
 		},
 		onShuffleChange: (mode) => {
-			state.set('shuffleMode', mode as any);
+			state.set('shuffleMode', mode);
 			updateShuffleUI(mode);
-			storage.save({ shuffleMode: mode as any });
+			storage.save({ shuffleMode: mode });
 		},
 		onRepeatModeChange: (mode) => {
 			state.set('repeatMode', mode);
@@ -953,12 +953,12 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		});
 	}
 
-	// Handle migration from old shuffleEnabled to new shuffleMode
+	const legacySettings = savedSettings as Record<string, unknown>;
 	if (savedSettings.shuffleMode) {
 		queueManager.setShuffleMode(savedSettings.shuffleMode);
-	} else if ((savedSettings as any).shuffleEnabled) {
+	} else if (legacySettings.shuffleEnabled) {
 		// Migrate old boolean to new mode (true -> 'tracks', false -> 'off')
-		queueManager.setShuffleMode((savedSettings as any).shuffleEnabled ? 'tracks' : 'off');
+		queueManager.setShuffleMode(legacySettings.shuffleEnabled ? 'tracks' : 'off');
 	} else {
 		// Initialize UI to show 'off' state
 		updateShuffleUI('off');

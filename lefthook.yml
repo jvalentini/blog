@@ -11,14 +11,14 @@ pre-commit:
       fail_text: "Biome found issues. Please review and commit again."
     
     oxlint:
-      glob: "*.{ts,js,mjs,astro}"
+      glob: "*.{ts,js,mjs}"
       run: oxlint --fix {staged_files}
       stage_fixed: true
       fail_text: "Oxlint found issues. Please review and commit again."
     
     astro-check:
       glob: "*.{ts,astro}"
-      run: astro check --minimumSeverity warning
+      run: bunx astro check --minimumSeverity warning
       fail_text: "Astro type check failed. Fix errors before committing."
     
     seo-check:

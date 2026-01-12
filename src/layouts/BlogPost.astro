@@ -22,7 +22,7 @@ const { title, description, pubDate, updatedDate, heroImage, tags = [], howTo, f
 const postUrl = Astro.url.href;
 
 const allPosts = await getPublishedPosts();
-const currentPost = allPosts.find(post => `/blog/${post.id}/` === Astro.url.pathname);
+const currentPost = allPosts.find((post) => `/blog/${post.id}/` === Astro.url.pathname);
 const relatedPosts = currentPost ? getRelatedPosts(currentPost, allPosts) : [];
 
 const breadcrumbData = [

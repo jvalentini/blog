@@ -26,7 +26,7 @@ export const escapeHtml = (text: string): string => {
 		'"': '&quot;',
 		"'": '&#039;',
 	};
-	return text.replace(/[&<>"']/g, (m) => map[m]);
+	return text.replace(/[&<>"']/g, (m) => map[m]!);
 };
 
 /**
@@ -44,8 +44,8 @@ export const escapeHtml = (text: string): string => {
 export const parseTimestamp = (timestamp: string): number => {
 	const match = timestamp.match(/(\d+):(\d+)(?:\.(\d+))?/);
 	if (!match) return 0;
-	const minutes = parseInt(match[1], 10);
-	const seconds = parseInt(match[2], 10);
+	const minutes = parseInt(match[1]!, 10);
+	const seconds = parseInt(match[2]!, 10);
 	const centiseconds = match[3] ? parseInt(match[3].padEnd(2, '0').slice(0, 2), 10) : 0;
 	return minutes * 60 + seconds + centiseconds / 100;
 };
@@ -114,13 +114,13 @@ export const parseLyrics = (content: string): ParsedLyrics => {
 		const timestampMatch = trimmed.match(timestampRegex);
 		if (timestampMatch) {
 			hasTimestamps = true;
-			const time = parseTimestamp(timestampMatch[1]);
-			const text = trimmed.slice(timestampMatch[0].length).trim();
+			const time = parseTimestamp(timestampMatch[1]!);
+			const text = trimmed.slice(timestampMatch[0]!.length).trim();
 
 			// Check if remaining text is a section header [Section Name]
 			const remainingSectionMatch = text.match(sectionRegex);
-			if (remainingSectionMatch && !isTimestamp(remainingSectionMatch[1])) {
-				lines.push({ time, text: remainingSectionMatch[1], isHeader: true, isSpacer: false });
+			if (remainingSectionMatch && !isTimestamp(remainingSectionMatch[1]!)) {
+				lines.push({ time, text: remainingSectionMatch[1]!, isHeader: true, isSpacer: false });
 			} else {
 				lines.push({ time, text, isHeader: false, isSpacer: false });
 			}
@@ -135,8 +135,8 @@ export const parseLyrics = (content: string): ParsedLyrics => {
 
 		// Check for [Section Name] format (not timestamp)
 		const sectionMatch = trimmed.match(sectionRegex);
-		if (sectionMatch && !isTimestamp(sectionMatch[1])) {
-			lines.push({ time: null, text: sectionMatch[1], isHeader: true, isSpacer: false });
+		if (sectionMatch && !isTimestamp(sectionMatch[1]!)) {
+			lines.push({ time: null, text: sectionMatch[1]!, isHeader: true, isSpacer: false });
 			continue;
 		}
 

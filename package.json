@@ -15,7 +15,8 @@
 		"check": "astro check",
 		"seo:check": "bun run scripts/seo-check.ts",
 		"links:check": "linkinator ./dist --recurse --skip '^(?!http://localhost)' --skip 'https?://(?!jval\\.dev)' --verbosity error",
-		"prebuild": "bun run seo:check"
+		"prebuild": "bun run seo:check",
+		"prepare": "lefthook install"
 	},
 	"dependencies": {
 		"@astrojs/mdx": "^4.3.13",
@@ -39,6 +40,7 @@
 		"@biomejs/biome": "^2.3.11",
 		"@cloudflare/workers-types": "^4.20260101.0",
 		"front-matter": "^4.0.2",
+		"lefthook": "^2.0.13",
 		"linkinator": "^7.5.3",
 		"oxlint": "^1.38.0",
 		"schema-dts": "^1.1.5",

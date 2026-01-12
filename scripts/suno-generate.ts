@@ -193,6 +193,9 @@ function parseArgs() {
 // Main execution
 async function main() {
 	const { lyricsFile, style } = parseArgs();
+	if (!lyricsFile) {
+		throw new Error('Lyrics file is required');
+	}
 	await generateMusic(lyricsFile, style);
 }
 

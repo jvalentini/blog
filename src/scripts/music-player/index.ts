@@ -182,6 +182,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		if (index < 0 || index >= elements.queueItems.length) return;
 
 		const item = elements.queueItems[index];
+		if (!item) return;
 		const title = item.dataset.title;
 		const songId = item.dataset.songId;
 
@@ -193,8 +194,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		Array.from(elements.queueItems).forEach((el) => {
 			el.classList.remove('active');
 		});
-		if (index >= 0 && index < elements.queueItems.length) {
-			elements.queueItems[index].classList.add('active');
+		const activeItem = elements.queueItems[index];
+		if (activeItem) {
+			activeItem.classList.add('active');
 		}
 
 		const newURL = `/waves/${songId}`;
@@ -207,7 +209,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		// Check if we're in tracks+genres shuffle mode and get the assigned genre
 		const shuffleMode = queueManager.getShuffleMode();
 		let genreToUse: Genre;
-		
+
 		if (shuffleMode === 'tracks+genres') {
 			// Get the pre-assigned genre for this track from shuffle
 			const assignedGenre = queueManager.getGenreForTrack(index);
@@ -220,7 +222,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				// Fallback to current genre logic
 				const currentGenre = state.get('currentGenre');
 				const availableGenres = queueManager.getAvailableGenresForCurrentTrack();
-				genreToUse = availableGenres.includes(currentGenre) ? currentGenre : (availableGenres[0] || currentGenre) as Genre;
+				genreToUse = availableGenres.includes(currentGenre)
+					? currentGenre
+					: ((availableGenres[0] || currentGenre) as Genre);
 				if (genreToUse !== currentGenre) {
 					state.set('currentGenre', genreToUse);
 					queueManager.switchGenre(genreToUse);
@@ -231,7 +235,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			// Normal genre selection logic
 			const currentGenre = state.get('currentGenre');
 			const availableGenres = queueManager.getAvailableGenresForCurrentTrack();
-			
+
 			// If current genre is not available for this track, switch to first available
 			if (!availableGenres.includes(currentGenre) && availableGenres.length > 0) {
 				genreToUse = availableGenres[0] as Genre;
@@ -293,25 +297,26 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 	const updateGenreUI = (genre: Genre): void => {
 		const currentIndex = state.get('currentIndex');
-		const availableGenres = currentIndex >= 0 
-			? queueManager.getAvailableGenresForCurrentTrack()
-			: genres;
-		
+		const availableGenres = currentIndex >= 0 ? queueManager.getAvailableGenresForCurrentTrack() : genres;
+
 		// Update all genre buttons
 		const genreButtons = elements.genreToggle.querySelectorAll('.genre-btn');
 		genreButtons.forEach((btn) => {
 			const btnGenre = btn.getAttribute('data-genre');
 			const isAvailable = availableGenres.includes(btnGenre || '');
 			const isActive = btnGenre === genre;
-			
+
 			btn.classList.toggle('active', isActive);
 			btn.classList.toggle('disabled', !isAvailable);
 			(btn as HTMLButtonElement).disabled = !isAvailable;
-			
+
 			// Add tooltip for disabled buttons
 			if (!isAvailable) {
 				const availableCount = availableGenres.length;
-				btn.setAttribute('title', `This song only has ${availableCount} version${availableCount !== 1 ? 's' : ''} available`);
+				btn.setAttribute(
+					'title',
+					`This song only has ${availableCount} version${availableCount !== 1 ? 's' : ''} available`,
+				);
 			} else {
 				btn.removeAttribute('title');
 			}
@@ -374,15 +379,15 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		elements.btnShuffle.classList.toggle('active', mode !== 'off');
 		// Add/remove class to distinguish tracks+genres mode
 		elements.btnShuffle.classList.toggle('shuffle-tracks-genres', mode === 'tracks+genres');
-		
+
 		if (shuffleOff) shuffleOff.style.display = mode === 'off' ? 'block' : 'none';
 		if (shuffleTracks) shuffleTracks.style.display = mode === 'tracks' ? 'block' : 'none';
 		if (shuffleTracksGenres) shuffleTracksGenres.style.display = mode === 'tracks+genres' ? 'block' : 'none';
 
 		// Update label text above button
 		const labels: Record<string, string> = {
-			'off': 'None',
-			'tracks': 'Song',
+			off: 'None',
+			tracks: 'Song',
 			'tracks+genres': 'Genre',
 		};
 		if (shuffleLabel) {
@@ -396,8 +401,8 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 		// Update tooltip
 		const tooltips: Record<string, string> = {
-			'off': 'Shuffle: Off (S)',
-			'tracks': 'Shuffle: Tracks (S)',
+			off: 'Shuffle: Off (S)',
+			tracks: 'Shuffle: Tracks (S)',
 			'tracks+genres': 'Shuffle: Tracks + Genres (S)',
 		};
 		elements.btnShuffle.setAttribute('title', tooltips[mode] || 'Shuffle (S)');
@@ -413,16 +418,16 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		elements.btnRepeat.classList.toggle('active', mode !== 'off');
 		// Add/remove class to distinguish repeat-one mode
 		elements.btnRepeat.classList.toggle('repeat-one', mode === 'one');
-		
+
 		if (repeatOff) repeatOff.style.display = mode === 'off' ? 'block' : 'none';
 		if (repeatAll) repeatAll.style.display = mode === 'all' ? 'block' : 'none';
 		if (repeatOne) repeatOne.style.display = mode === 'one' ? 'block' : 'none';
 
 		// Update label text above button
 		const labels: Record<string, string> = {
-			'off': 'None',
-			'all': 'All',
-			'one': 'One',
+			off: 'None',
+			all: 'All',
+			one: 'One',
 		};
 		if (repeatLabel) {
 			repeatLabel.textContent = labels[mode] || 'None';
@@ -517,7 +522,6 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			updateTimeDisplay(currentTime, duration);
 			lyricsSync.syncLyrics(currentTime, duration);
 			if (elements.lyricsFullscreenOverlay?.classList.contains('visible') && elements.lyricsContent) {
-				const activeLines = elements.lyricsContent.querySelectorAll('.lyrics-line.active');
 				const fullscreenLines = elements.lyricsFullscreenContent?.querySelectorAll('.lyrics-line');
 				if (fullscreenLines) {
 					fullscreenLines.forEach((line, idx) => {
@@ -610,15 +614,17 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		onGenreToggle: () => {
 			const currentIndex = state.get('currentIndex');
 			if (currentIndex < 0) return;
-			
+
 			const availableGenres = queueManager.getAvailableGenresForCurrentTrack();
 			if (availableGenres.length <= 1) return; // Don't toggle if only one genre available
-			
+
 			const currentGenre = state.get('currentGenre');
 			const currentAvailableIndex = availableGenres.indexOf(currentGenre);
 			const nextAvailableIndex = (currentAvailableIndex + 1) % availableGenres.length;
 			const newGenre = availableGenres[nextAvailableIndex];
-			queueManager.switchGenre(newGenre);
+			if (newGenre) {
+				queueManager.switchGenre(newGenre);
+			}
 		},
 		onShuffleToggle: () => {
 			queueManager.toggleShuffle();
@@ -836,9 +842,11 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			'touchstart',
 			(e) => {
 				const touch = (e as TouchEvent).touches[0];
-				startX = touch.clientX;
-				currentX = startX;
-				isSwiping = true;
+				if (touch) {
+					startX = touch.clientX;
+					currentX = startX;
+					isSwiping = true;
+				}
 			},
 			{ passive: true },
 		);
@@ -848,6 +856,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			(e) => {
 				if (!isSwiping) return;
 				const touch = (e as TouchEvent).touches[0];
+				if (!touch) return;
 				currentX = touch.clientX;
 				const deltaX = currentX - startX;
 

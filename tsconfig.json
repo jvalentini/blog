@@ -4,6 +4,22 @@
 	"exclude": ["dist"],
 	"compilerOptions": {
 		"strictNullChecks": true,
-		"types": ["@cloudflare/workers-types/2023-07-01", "bun"]
+		"strictFunctionTypes": true,
+		"strictBindCallApply": true,
+		"strictPropertyInitialization": true,
+		"noImplicitThis": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"types": ["@cloudflare/workers-types/2023-07-01", "bun"],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"],
+			"@components/*": ["src/components/*"],
+			"@layouts/*": ["src/layouts/*"],
+			"@content/*": ["src/content/*"]
+		}
 	}
 }

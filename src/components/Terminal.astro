@@ -62,33 +62,7 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
   const blogSlugs: string[] = terminalData.blogSlugs || [];
   const songSlugs: string[] = terminalData.songSlugs || [];
 
-  interface MusicPlayerAPI {
-    playNext: () => void;
-    playPrevious: () => void;
-    pauseAudio: () => void;
-    playAudio: () => void;
-    setVolume: (level: number) => void;
-    toggleShuffle: () => void;
-    toggleRepeat: () => void;
-    getState: () => {
-      currentIndex: number;
-      currentGenre: string;
-      currentTrackTitle: string | null;
-      currentTime: string;
-      duration: string;
-      volume: number;
-      shuffleMode: string;
-      repeatMode: string;
-      queueTitles: string[];
-    };
-  }
-  
-  // Global music player API - set by MusicPlayer component when present
-  declare global {
-    interface Window {
-      musicPlayerAPI?: MusicPlayerAPI;
-    }
-  }
+  // Music player types imported from types.ts via global declaration
 
   const terminalModal = document.getElementById('terminal-modal');
   const terminalInput = document.getElementById('terminal-input') as HTMLInputElement | null;
@@ -180,12 +154,7 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
     return typeof window.musicPlayerAPI !== 'undefined';
   }
 
-  function formatTime(seconds: number): string {
-    if (!isFinite(seconds)) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return mins + ':' + secs.toString().padStart(2, '0');
-  }
+
 
   function processCommand(cmd: string) {
     const trimmed = cmd.trim().toLowerCase();
@@ -911,7 +880,7 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
         '"Deleted code is debugged code." - Jeff Sickel',
         '"If debugging is the process of removing bugs, then programming must be the process of putting them in."'
       ];
-      print(fortunes[Math.floor(Math.random() * fortunes.length)]);
+      print(fortunes[Math.floor(Math.random() * fortunes.length)]!);
     } else if (command === 'ping') {
       const host = args || 'localhost';
       const ip = host === 'localhost' || host === '127.0.0.1' ? '127.0.0.1' : `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
@@ -1068,16 +1037,17 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       ctx.fillStyle = '#0f0';
-      ctx.font = fontSize + 'px monospace';
+      ctx.font = `${fontSize}px monospace`;
       
       for (let i = 0; i < drops.length; i++) {
-        const char = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+        const char = chars[Math.floor(Math.random() * chars.length)]!;
+        const dropY = drops[i]!;
+        ctx.fillText(char, i * fontSize, dropY * fontSize);
         
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        if (dropY * fontSize > canvas.height && Math.random() > 0.975) {
           drops[i] = 0;
         }
-        drops[i]++;
+        drops[i] = dropY + 1;
       }
       
       frameCount++;
@@ -1164,7 +1134,7 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
       const loadingInterval = setInterval(() => {
         if (step < loadingSteps.length && biosLoading) {
           const line = document.createElement('p');
-          line.textContent = loadingSteps[step];
+          line.textContent = loadingSteps[step] ?? '';
           biosLoading.appendChild(line);
           step++;
         } else {
@@ -1200,7 +1170,6 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
   // Menu-complete cycling state
   let cycleCompletions: string[] = [];
   let cycleIndex = -1;
-  let cycleOriginalInput = '';
 
   // Visual bell for no completions
   function triggerVisualBell() {
@@ -1215,7 +1184,6 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
   function resetCycleState() {
     cycleCompletions = [];
     cycleIndex = -1;
-    cycleOriginalInput = '';
   }
 
   // Core commands (always available)
@@ -1246,11 +1214,12 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
   // Find longest common prefix among strings
   function findCommonPrefix(strings: string[]): string {
     if (strings.length === 0) return '';
-    if (strings.length === 1) return strings[0];
+    if (strings.length === 1) return strings[0]!;
     
-    let prefix = strings[0];
+    let prefix = strings[0]!;
     for (let i = 1; i < strings.length; i++) {
-      while (!strings[i].startsWith(prefix) && prefix.length > 0) {
+      const current = strings[i]!;
+      while (!current.startsWith(prefix) && prefix.length > 0) {
         prefix = prefix.slice(0, -1);
       }
     }
@@ -1361,8 +1330,8 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
     if (completions.length === 1) {
       // Single match - complete it
       // Add trailing space unless it ends with / (directory) so user can continue typing
-      const completed = completions[0];
-      const withSpace = completed.endsWith('/') ? completed : completed + ' ';
+      const completed = completions[0]!;
+      const withSpace = completed.endsWith('/') ? completed : `${completed} `;
       return { completed: withSpace, showOptions: [] };
     }
     
@@ -1403,8 +1372,8 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
         if (cycleCompletions.length > 1 && currentInput === cycleCompletions[cycleIndex]) {
           // Cycle to next completion
           cycleIndex = (cycleIndex + 1) % cycleCompletions.length;
-          terminalInput.value = cycleCompletions[cycleIndex];
-          lastTabInput = cycleCompletions[cycleIndex];
+          terminalInput.value = cycleCompletions[cycleIndex]!;
+          lastTabInput = cycleCompletions[cycleIndex]!;
           return;
         }
         
@@ -1429,11 +1398,10 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
           // Set up cycling state for menu-complete
           cycleCompletions = result.showOptions;
           cycleIndex = 0;
-          cycleOriginalInput = currentInput;
           
           // Set input to first completion for cycling
-          terminalInput.value = cycleCompletions[0];
-          lastTabInput = cycleCompletions[0];
+          terminalInput.value = cycleCompletions[0]!;
+          lastTabInput = cycleCompletions[0]!;
           
           clearTerminalOutput();
           // Format options nicely - extract just the relevant part for display
@@ -1515,7 +1483,7 @@ const songSlugs = tracksData.songs.map((song: { id: string }) => song.id).sort()
 
   function checkKonamiCode(key: string) {
     const expected = konamiSequence[konamiIndex];
-    if (key === expected || key === expected.toUpperCase()) {
+    if (expected && (key === expected || key === expected.toUpperCase())) {
       konamiIndex++;
       if (konamiIndex === konamiSequence.length) {
         konamiIndex = 0;

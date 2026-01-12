@@ -203,7 +203,7 @@ export class QueueManager {
 		if (!this.isValidIndex(this.currentIndex)) {
 			return null;
 		}
-		return this.tracks[this.currentIndex];
+		return this.tracks[this.currentIndex] ?? null;
 	}
 
 	getCurrentIndex(): number {
@@ -218,7 +218,7 @@ export class QueueManager {
 		if (!this.isValidIndex(index)) {
 			return null;
 		}
-		return this.tracks[index];
+		return this.tracks[index] ?? null;
 	}
 
 	getAllTracks(): Track[] {
@@ -266,7 +266,7 @@ export class QueueManager {
 		// Find the position of this track in the shuffled queue
 		const shufflePos = this.shuffledIndices.indexOf(index);
 		if (shufflePos >= 0 && shufflePos < this.shuffledGenres.length) {
-			return this.shuffledGenres[shufflePos];
+			return this.shuffledGenres[shufflePos] ?? null;
 		}
 
 		return null;
@@ -284,7 +284,7 @@ export class QueueManager {
 		if (this.shuffleMode !== 'off') {
 			const currentShufflePos = this.shuffledIndices.indexOf(this.currentIndex);
 			const nextShufflePos = (currentShufflePos + 1) % this.shuffledIndices.length;
-			return this.shuffledIndices[nextShufflePos];
+			return this.shuffledIndices[nextShufflePos] ?? -1;
 		}
 
 		return (this.currentIndex + 1) % this.tracks.length;
@@ -302,7 +302,7 @@ export class QueueManager {
 		if (this.shuffleMode !== 'off') {
 			const currentShufflePos = this.shuffledIndices.indexOf(this.currentIndex);
 			const prevShufflePos = currentShufflePos <= 0 ? this.shuffledIndices.length - 1 : currentShufflePos - 1;
-			return this.shuffledIndices[prevShufflePos];
+			return this.shuffledIndices[prevShufflePos] ?? -1;
 		}
 
 		return this.currentIndex <= 0 ? this.tracks.length - 1 : this.currentIndex - 1;
@@ -327,20 +327,22 @@ export class QueueManager {
 
 		for (let i = this.shuffledIndices.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1));
-			[this.shuffledIndices[i], this.shuffledIndices[j]] = [this.shuffledIndices[j], this.shuffledIndices[i]];
+			const temp = this.shuffledIndices[i]!;
+			this.shuffledIndices[i] = this.shuffledIndices[j]!;
+			this.shuffledIndices[j] = temp;
 		}
 
 		// If in tracks+genres mode, also generate random genres for each track
 		if (this.shuffleMode === 'tracks+genres') {
 			this.shuffledGenres = this.shuffledIndices.map((trackIndex) => {
-				const track = this.tracks[trackIndex];
+				const track = this.tracks[trackIndex]!;
 				const availableGenres = Object.keys(track.versions);
 				if (availableGenres.length === 0) {
 					return this.defaultGenre;
 				}
 				// Randomly select one of the available genres
 				const randomIndex = Math.floor(Math.random() * availableGenres.length);
-				return availableGenres[randomIndex];
+				return availableGenres[randomIndex]!;
 			});
 		} else {
 			this.shuffledGenres = [];

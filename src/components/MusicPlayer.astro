@@ -78,7 +78,7 @@ try {
 					markdownContent = await fs.readFile(fallbackPath, 'utf-8');
 				}
 
-				lyricsData[song.title][genre] = parseLyrics(markdownContent);
+				lyricsData[song.title]![genre] = parseLyrics(markdownContent);
 			} catch (err) {
 				console.warn(`Failed to load lyrics for ${song.title} (${genre}):`, err);
 			}

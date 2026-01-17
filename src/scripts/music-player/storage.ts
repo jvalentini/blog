@@ -5,6 +5,7 @@ const STORAGE_KEY = 'waves-player-settings';
 export interface PlayerSettings {
 	currentTrackId?: string;
 	currentGenre?: Genre;
+	currentPlaylist?: string;
 	volume?: number;
 	shuffleMode?: ShuffleMode;
 	repeatMode?: RepeatMode;

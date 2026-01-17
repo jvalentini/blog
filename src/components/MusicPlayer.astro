@@ -11,6 +11,7 @@ import { parseLyrics } from '../utils/lyrics-parser';
 import HotkeysModal from './player/HotkeysModal.astro';
 import LyricsPanel from './player/LyricsPanel.astro';
 import PlayerControls from './player/PlayerControls.astro';
+import PlaylistSelector from './player/PlaylistSelector.astro';
 import ProgressBar from './player/ProgressBar.astro';
 import QueueList from './player/QueueList.astro';
 import VolumeControl from './player/VolumeControl.astro';
@@ -18,24 +19,34 @@ import VolumeControl from './player/VolumeControl.astro';
 interface Song {
 	id: string;
 	title: string;
+	playlist: string;
 	lyrics: Record<string, string>;
 	versions: Record<string, string>;
 }
 
+interface Playlist {
+	id: string;
+	name: string;
+	visible: boolean;
+}
+
 interface TracksConfig {
+	playlists: Record<string, Playlist>;
 	songs: Song[];
 	genres: string[];
 	defaultGenre: string;
+	defaultPlaylist: string;
 }
 
-const config = tracksData as TracksConfig;
-const { songs, genres, defaultGenre } = config;
+const config = tracksData as unknown as TracksConfig;
+const { songs, genres, defaultGenre, defaultPlaylist, playlists } = config;
 
 // Build track list with version URLs
 const tracks = songs.map((song, idx) => ({
 	id: idx,
 	songId: song.id,
 	title: song.title,
+	playlist: song.playlist,
 	lyrics: song.lyrics,
 	versions: Object.fromEntries(
 		Object.entries(song.versions).map(([genre, filepath]) => [genre, `/assets/music/${filepath}`]),
@@ -93,6 +104,8 @@ const clientTracks = tracks.map((t) => ({
 	id: t.id,
 	songId: t.songId,
 	title: t.title,
+	playlist: t.playlist,
+	lyrics: t.lyrics,
 	versions: t.versions,
 }));
 ---
@@ -130,17 +143,20 @@ const clientTracks = tracks.map((t) => ({
     </div>
   </div>
 
-  <QueueList tracks={clientTracks} genres={genres} defaultGenre={defaultGenre} />
+			<PlaylistSelector playlists={playlists} defaultPlaylist={defaultPlaylist} />
+			<QueueList tracks={clientTracks} genres={genres} defaultGenre={defaultGenre} />
 </div>
 
 <HotkeysModal />
 
-<script define:vars={{ lyricsData, clientTracks, defaultGenre, genres, genreColors: genreColorsData }}>
+<script define:vars={{ lyricsData, clientTracks, defaultGenre, defaultPlaylist, genres, playlists, genreColors: genreColorsData }}>
   // Store data globally for the music player module to access
   window.__MUSIC_PLAYER_CONFIG__ = {
     tracks: clientTracks,
     lyricsData: lyricsData,
     defaultGenre: defaultGenre,
+    defaultPlaylist: defaultPlaylist,
+    playlists: playlists,
     genres: genres,
     genreColors: genreColors
   };
@@ -157,6 +173,8 @@ const clientTracks = tracks.map((t) => ({
         tracks: config.tracks,
         lyricsData: config.lyricsData,
         defaultGenre: config.defaultGenre,
+        defaultPlaylist: config.defaultPlaylist,
+        playlists: config.playlists,
         genres: config.genres,
         genreColors: config.genreColors
       });

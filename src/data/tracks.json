@@ -1,8 +1,26 @@
 {
+	"playlists": {
+		"ai": {
+			"id": "ai",
+			"name": "AI",
+			"visible": true
+		},
+		"scott-adams": {
+			"id": "scott-adams",
+			"name": "Scott Adams",
+			"visible": true
+		},
+		"politics": {
+			"id": "politics",
+			"name": "Politics",
+			"visible": false
+		}
+	},
 	"songs": [
 		{
 			"id": "slop-slinger",
 			"title": "Slop Slinger",
+			"playlist": "ai",
 			"lyrics": {
 				"hip-hop": "hip-hop/slop-slinger-hip-hop.md",
 				"country": "country/slop-slinger-country.md",
@@ -23,6 +41,7 @@
 		{
 			"id": "lose-yourself",
 			"title": "Lose Yourself",
+			"playlist": "ai",
 			"lyrics": {
 				"hip-hop": "hip-hop/lose-yourself-hip-hop.md",
 				"country": "country/lose-yourself-country.md",
@@ -43,6 +62,7 @@
 		{
 			"id": "without-me",
 			"title": "Without Me",
+			"playlist": "ai",
 			"lyrics": {
 				"hip-hop": "hip-hop/without-me-hip-hop.md",
 				"country": "country/without-me-country.md",
@@ -63,6 +83,7 @@
 		{
 			"id": "ai-why-do-you-lie",
 			"title": "AI, why do you lie?",
+			"playlist": "ai",
 			"lyrics": {
 				"hip-hop": "ai-why-do-you-lie.md"
 			},
@@ -72,5 +93,6 @@
 		}
 	],
 	"genres": ["hip-hop", "country", "rock", "weird", "pop", "bluegrass"],
-	"defaultGenre": "hip-hop"
+	"defaultGenre": "hip-hop",
+	"defaultPlaylist": "ai"
 }

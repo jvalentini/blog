@@ -13,7 +13,8 @@ export interface QueueManagerCallbacks {
 }
 
 export class QueueManager {
-	private tracks: Track[];
+	private allTracks: Track[];
+	private currentPlaylist: string;
 	private currentIndex: number = -1;
 	private currentGenre: string;
 	private defaultGenre: string;
@@ -23,11 +24,21 @@ export class QueueManager {
 	private repeatMode: RepeatMode = 'off';
 	private callbacks: QueueManagerCallbacks;
 
-	constructor(tracks: Track[], defaultGenre: string = 'hip-hop', callbacks: QueueManagerCallbacks = {}) {
-		this.tracks = tracks;
+	constructor(
+		tracks: Track[],
+		defaultGenre: string = 'hip-hop',
+		defaultPlaylist: string = 'ai',
+		callbacks: QueueManagerCallbacks = {},
+	) {
+		this.allTracks = tracks;
 		this.defaultGenre = defaultGenre;
 		this.currentGenre = defaultGenre;
+		this.currentPlaylist = defaultPlaylist;
 		this.callbacks = callbacks;
+	}
+
+	private get tracks(): Track[] {
+		return this.allTracks.filter((track) => track.playlist === this.currentPlaylist);
 	}
 
 	loadTrack(index: number, autoplay: boolean = false): boolean {
@@ -223,6 +234,30 @@ export class QueueManager {
 
 	getAllTracks(): Track[] {
 		return [...this.tracks];
+	}
+
+	getCurrentPlaylist(): string {
+		return this.currentPlaylist;
+	}
+
+	switchPlaylist(playlistId: string): boolean {
+		if (playlistId === this.currentPlaylist) {
+			return false;
+		}
+
+		const playlistTracks = this.allTracks.filter((track) => track.playlist === playlistId);
+		if (playlistTracks.length === 0) {
+			return false;
+		}
+
+		this.currentPlaylist = playlistId;
+		this.currentIndex = -1;
+
+		if (this.shuffleMode !== 'off') {
+			this.generateShuffledIndices();
+		}
+
+		return true;
 	}
 
 	getCurrentTrackSrc(): string | null {

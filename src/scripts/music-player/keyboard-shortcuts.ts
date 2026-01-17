@@ -13,6 +13,7 @@ export interface KeyboardShortcutCallbacks {
 	onShowHotkeys: () => void;
 	onOpenTerminal: () => void;
 	onCloseModals: () => void;
+	onPlaylistReveal?: () => void;
 }
 
 export class KeyboardShortcutsManager {
@@ -103,6 +104,20 @@ export class KeyboardShortcutsManager {
 			case '?':
 				e.preventDefault();
 				this.callbacks.onShowHotkeys();
+				break;
+
+			case 't':
+			case 'T':
+				e.preventDefault();
+				this.callbacks.onOpenTerminal();
+				break;
+
+			case 'p':
+			case 'P':
+				if (this.callbacks.onPlaylistReveal) {
+					e.preventDefault();
+					this.callbacks.onPlaylistReveal();
+				}
 				break;
 
 			case '/':

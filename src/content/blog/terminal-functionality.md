@@ -1,6 +1,6 @@
 ---
 title: 'Building a Global Terminal for My Blog'
-description: 'How I built a keyboard-accessible terminal interface that lets visitors navigate my blog, control the music player, and explore content using familiar Unix commands—complete with tab completion, history, and an easter egg.'
+description: 'A keyboard-accessible terminal interface for navigating my blog, controlling the music player, and exploring content using Unix commands.'
 pubDate: 'Jan 15 2026'
 tags: ['web', 'astro', 'typescript', 'ux']
 ---

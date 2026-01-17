@@ -49,6 +49,19 @@ export interface ParsedLyrics {
 }
 
 /**
+ * Represents a playlist configuration.
+ * Defines metadata for a music playlist including visibility settings.
+ */
+export interface Playlist {
+	/** Unique identifier for the playlist (kebab-case, used in URLs) */
+	id: string;
+	/** Display name for the playlist */
+	name: string;
+	/** Whether the playlist is visible by default (hidden playlists require hotkey) */
+	visible: boolean;
+}
+
+/**
  * Represents a playable track in the music player.
  * Each track can have multiple versions (genres) and lyrics variants.
  */
@@ -59,6 +72,8 @@ export interface Track {
 	songId: string;
 	/** Display title of the track */
 	title: string;
+	/** ID of the playlist this track belongs to */
+	playlist: string;
 	/** Map of genre to lyrics file path (e.g., { 'hip-hop': 'song-hiphop.lrc' }) */
 	lyrics: Record<string, string>;
 	/** Map of genre to audio file URL (e.g., { 'hip-hop': '/assets/music/song-hiphop.mp3' }) */
@@ -74,6 +89,8 @@ export interface PlayerState {
 	currentIndex: number;
 	/** Currently selected genre for playback */
 	currentGenre: string;
+	/** Currently active playlist ID */
+	currentPlaylist: string;
 	/** Current shuffle mode setting */
 	shuffleMode: ShuffleMode;
 	/** Current repeat mode setting */
@@ -93,6 +110,8 @@ export interface MusicPlayerState {
 	currentIndex: number;
 	/** Currently selected genre for playback */
 	currentGenre: string;
+	/** Currently active playlist ID */
+	currentPlaylist: string;
 	/** Title of the current track, null if no track selected */
 	currentTrackTitle: string | null;
 	/** Formatted current playback time (e.g., "2:35") */

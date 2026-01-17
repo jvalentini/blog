@@ -1,0 +1,229 @@
+---
+interface Playlist {
+	id: string;
+	name: string;
+	visible: boolean;
+}
+
+interface Props {
+	playlists: Record<string, Playlist>;
+	defaultPlaylist: string;
+}
+
+const { playlists, defaultPlaylist } = Astro.props;
+const playlistArray = Object.values(playlists);
+---
+
+<div class="playlist-selector">
+	<div class="playlist-icon">
+		<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path d="M3 3h18v5H3V3zm0 7h18v11H3V10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+			<path d="M7 6h2M11 6h2M7 14h10M7 17h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+		</svg>
+	</div>
+	<div class="playlist-toggle" role="radiogroup" aria-label="Select playlist">
+		{playlistArray.map((playlist) => (
+			<button
+				class="playlist-btn"
+				data-playlist-id={playlist.id}
+				data-visible={playlist.visible}
+				role="radio"
+				aria-checked={playlist.id === defaultPlaylist ? 'true' : 'false'}
+				aria-label={`${playlist.name} playlist`}
+			>
+				{playlist.name}
+			</button>
+		))}
+	</div>
+	<div class="playlist-reveal-indicator" role="status" aria-live="polite" aria-atomic="true"></div>
+</div>
+
+<style>
+/* ========================================
+   PLAYLIST SELECTOR COMPONENT
+   ======================================== */
+
+.playlist-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid rgba(51, 255, 51, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 8px rgba(51, 255, 51, 0.1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.playlist-selector:hover {
+  border-color: rgba(51, 255, 51, 0.4);
+  box-shadow: 0 0 12px rgba(51, 255, 51, 0.2);
+}
+
+/* ========================================
+   PLAYLIST ICON
+   ======================================== */
+.playlist-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.playlist-icon svg {
+  width: 24px;
+  height: 24px;
+  color: var(--phosphor-base, #33ff33);
+  filter: drop-shadow(0 0 4px currentColor);
+  transition: all 0.3s ease;
+  animation: icon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes icon-pulse {
+  0%, 100% { 
+    filter: drop-shadow(0 0 4px currentColor);
+  }
+  50% { 
+    filter: drop-shadow(0 0 6px currentColor)
+            drop-shadow(0 0 10px currentColor);
+  }
+}
+
+/* ========================================
+   BUTTON GROUP CONTAINER
+   ======================================== */
+.playlist-toggle {
+  display: flex;
+  background: var(--bg-deep, #0a0c0e);
+  border: 1px solid rgba(51, 255, 51, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ========================================
+   PLAYLIST BUTTONS - BASE STYLES
+   ======================================== */
+.playlist-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-right: 1px solid rgba(51, 255, 51, 0.1);
+}
+
+.playlist-btn:last-child {
+  border-right: none;
+}
+
+.playlist-btn[data-visible="false"] {
+  display: none;
+}
+
+.playlist-btn[data-visible="false"].revealed {
+  display: block;
+  animation: playlist-reveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.playlist-btn:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(51, 255, 51, 0.05);
+}
+
+.playlist-btn:focus-visible {
+  outline: 2px solid rgba(51, 255, 51, 0.5);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.playlist-btn[aria-checked="true"] {
+  color: var(--phosphor-base, #33ff33);
+  background: rgba(51, 255, 51, 0.1);
+  box-shadow: 
+    0 0 8px rgba(51, 255, 51, 0.3),
+    inset 0 -2px 0 0 rgba(51, 255, 51, 0.6);
+}
+
+@keyframes playlist-reveal {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.9);
+    filter: blur(4px);
+  }
+  40% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+  50%, 70% {
+    box-shadow: 0 0 20px rgba(51, 255, 51, 0.8);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+
+.playlist-reveal-indicator {
+  position: absolute;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/* ========================================
+   RESPONSIVE - MOBILE
+   ======================================== */
+@media (max-width: 768px) {
+  .playlist-selector {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .playlist-icon {
+    align-self: center;
+  }
+
+  .playlist-toggle {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .playlist-btn {
+    min-width: 44px;
+    min-height: 44px;
+    flex: 1 1 calc(50% - 4px);
+    border-right: none;
+    border-bottom: 1px solid rgba(51, 255, 51, 0.1);
+  }
+
+  .playlist-btn:last-child {
+    border-bottom: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playlist-icon svg {
+    animation: none;
+  }
+  .playlist-btn[data-visible="false"].revealed {
+    animation: none;
+  }
+  .playlist-btn {
+    transition: none;
+  }
+}
+</style>

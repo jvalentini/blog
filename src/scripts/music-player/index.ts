@@ -2,15 +2,18 @@ import { createAudioController } from './audio-controller';
 import { KeyboardShortcutsManager } from './keyboard-shortcuts';
 import { LyricsSyncManager } from './lyrics-sync';
 import { MediaSessionManager } from './media-session-manager';
+import { PlaylistState } from './playlist-state';
 import { QueueManager } from './queue-manager';
 import { createPlayerState, type Genre } from './state';
 import { PlayerStorage } from './storage';
-import type { MusicPlayerAPI, MusicPlayerState, ParsedLyrics, Track } from './types';
+import type { MusicPlayerAPI, MusicPlayerState, ParsedLyrics, Playlist, RepeatMode, ShuffleMode, Track } from './types';
 
 export interface MusicPlayerConfig {
 	tracks: Track[];
 	lyricsData: Record<string, Record<string, ParsedLyrics>>;
 	defaultGenre: Genre;
+	defaultPlaylist: string;
+	playlists: Record<string, Playlist>;
 	genres: string[];
 	genreColors: Record<string, { base: string; bright: string; dim: string }>;
 }
@@ -33,6 +36,7 @@ interface DOMElements {
 	volumeBlocks: NodeListOf<HTMLElement>;
 	queueItems: NodeListOf<HTMLElement>;
 	queueTitle: HTMLElement;
+	playlistToggle: HTMLElement | null;
 	genreToggle: HTMLElement;
 	genreIcon: HTMLElement;
 	hotkeysModal: HTMLElement;
@@ -74,6 +78,7 @@ function getElements(): DOMElements | null {
 	const currentTrackTitle = document.getElementById('current-track-title');
 	const volumePercent = document.getElementById('volume-percent');
 	const queueTitle = document.getElementById('queue-title');
+	const playlistToggle = document.querySelector('.playlist-toggle') as HTMLElement | null;
 	const genreToggle = document.getElementById('genre-toggle');
 	const genreIcon = document.getElementById('genre-icon');
 	const hotkeysModal = document.getElementById('hotkeys-modal');
@@ -136,6 +141,7 @@ function getElements(): DOMElements | null {
 		volumeBlocks,
 		queueItems,
 		queueTitle,
+		playlistToggle,
 		genreToggle,
 		genreIcon,
 		hotkeysModal,
@@ -164,12 +170,13 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	const elements = getElements();
 	if (!elements) return null;
 
-	const { tracks, lyricsData, defaultGenre, genres, genreColors } = config;
+	const { tracks, lyricsData, defaultGenre, defaultPlaylist, playlists, genres, genreColors } = config;
 
 	const storage = new PlayerStorage();
 	const savedSettings = storage.load();
 
 	const initialGenre = (savedSettings.currentGenre as Genre) || defaultGenre;
+	const initialPlaylist = savedSettings.currentPlaylist || defaultPlaylist;
 	const initialVolume = savedSettings.volume ?? 0.7;
 
 	const state = createPlayerState({
@@ -449,9 +456,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	let pendingAutoplay: boolean = false;
 	let isTrackChange: boolean = false;
 
-	const queueManager = new QueueManager(tracks, initialGenre, {
+	const queueManager = new QueueManager(tracks, initialGenre, initialPlaylist, {
 		onTrackLoad: loadTrackAtIndex,
-		onGenreChange: (genre) => {
+		onGenreChange: (genre: string) => {
 			state.set('currentGenre', genre as Genre);
 			updateGenreUI(genre as Genre);
 			updateQueueListTheme(genre as Genre);
@@ -476,14 +483,14 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				updateMediaSessionMetadata();
 			}
 		},
-		onShuffleChange: (mode) => {
+		onShuffleChange: (mode: ShuffleMode) => {
 			state.set('shuffleMode', mode);
 			updateShuffleUI(mode);
 			storage.save({ shuffleMode: mode });
 			// Update action availability when shuffle mode changes
 			updateMediaSessionActionAvailability();
 		},
-		onRepeatModeChange: (mode) => {
+		onRepeatModeChange: (mode: RepeatMode) => {
 			state.set('repeatMode', mode);
 			updateRepeatUI(mode);
 			storage.save({ repeatMode: mode });
@@ -769,6 +776,32 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				window.terminalAPI.close();
 			}
 		},
+		onPlaylistReveal: () => {
+			const hiddenPlaylist = playlistsArray.find((p) => !p.visible);
+			if (!hiddenPlaylist || !elements.playlistToggle) return;
+
+			const isCurrentlyVisible = playlistState.isPlaylistVisible(hiddenPlaylist);
+			playlistState.togglePlaylistVisibility(hiddenPlaylist.id);
+
+			const btn = elements.playlistToggle.querySelector(`[data-playlist-id="${hiddenPlaylist.id}"]`);
+			if (btn) {
+				if (!isCurrentlyVisible) {
+					btn.classList.add('revealed');
+					btn.removeAttribute('data-visible');
+					const indicator = document.querySelector('.playlist-reveal-indicator');
+					if (indicator) {
+						indicator.textContent = `${hiddenPlaylist.name} playlist revealed`;
+						setTimeout(() => {
+							indicator.textContent = '';
+						}, 2000);
+					}
+				} else {
+					btn.classList.remove('revealed');
+					btn.setAttribute('data-visible', 'false');
+				}
+			}
+			hapticFeedback('light');
+		},
 	});
 
 	keyboardShortcuts.init();
@@ -1023,15 +1056,68 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 	elements.genreToggle.addEventListener('click', (e) => {
 		const target = e.target as HTMLElement;
-		const genreBtn = target.closest('.genre-btn') as HTMLButtonElement | null;
-		if (genreBtn && !genreBtn.disabled) {
-			const genre = genreBtn.getAttribute('data-genre');
-			if (genre && state.get('currentGenre') !== genre) {
-				hapticFeedback('medium');
-				queueManager.switchGenre(genre);
-			}
+		const btn = target.closest('.genre-btn') as HTMLButtonElement;
+		if (btn?.dataset.genre) {
+			hapticFeedback('light');
+			const genre = btn.dataset.genre;
+			queueManager.switchGenre(genre);
 		}
 	});
+
+	const playlistState = new PlaylistState();
+	const playlistsArray = Object.values(playlists);
+
+	if (elements.playlistToggle) {
+		elements.playlistToggle.addEventListener('click', (e) => {
+			const target = e.target as HTMLElement;
+			const btn = target.closest('.playlist-btn') as HTMLButtonElement;
+			if (btn?.dataset.playlistId) {
+				hapticFeedback('light');
+				const playlistId = btn.dataset.playlistId;
+				const success = queueManager.switchPlaylist(playlistId);
+				if (success) {
+					storage.save({ currentPlaylist: playlistId });
+					updatePlaylistUI(playlistId);
+					rebuildQueue();
+				}
+			}
+		});
+
+		const updatePlaylistUI = (activePlaylistId: string) => {
+			const buttons = elements.playlistToggle!.querySelectorAll('.playlist-btn');
+			buttons.forEach((btn) => {
+				const isActive = btn.getAttribute('data-playlist-id') === activePlaylistId;
+				btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+			});
+		};
+
+		playlistsArray.forEach((playlist) => {
+			const btn = elements.playlistToggle!.querySelector(`[data-playlist-id="${playlist.id}"]`);
+			if (btn && playlistState.isPlaylistVisible(playlist)) {
+				btn.classList.toggle('revealed', !playlist.visible);
+			}
+		});
+
+		updatePlaylistUI(initialPlaylist);
+	}
+
+	const rebuildQueue = () => {
+		const tracks = queueManager.getAllTracks();
+		const currentGenre = state.get('currentGenre');
+		elements.queueItems.forEach((item, idx) => {
+			if (idx < tracks.length) {
+				const track = tracks[idx];
+				if (!track) return;
+				const titleEl = item.querySelector('.queue-item-title');
+				const genreBadge = item.querySelector('.genre-badge');
+				if (titleEl) titleEl.textContent = track.title;
+				if (genreBadge) genreBadge.textContent = currentGenre;
+				item.style.display = '';
+			} else {
+				item.style.display = 'none';
+			}
+		});
+	};
 
 	elements.queueItems.forEach((item, idx) => {
 		const titleEl = item.querySelector('.queue-item-title');
@@ -1230,6 +1316,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			return {
 				currentIndex,
 				currentGenre: state.get('currentGenre'),
+				currentPlaylist: queueManager.getCurrentPlaylist(),
 				currentTrackTitle: currentTrack?.title ?? null,
 				currentTime: formatTime(state.get('currentTime')),
 				duration: formatTime(state.get('duration')),

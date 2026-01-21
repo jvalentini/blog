@@ -20,7 +20,10 @@ export class QueueManager {
 	private defaultGenre: string;
 	private shuffleMode: ShuffleMode = 'off';
 	private shuffledIndices: number[] = [];
-	private shuffledGenres: string[] = [];
+	private shuffleDeck: Array<{ trackIndex: number; genre: string }> = [];
+	private shuffleDeckPos: number = -1;
+	private shuffleDeckPlayed: Set<number> = new Set();
+	private currentShuffleGenre: string | null = null;
 	private repeatMode: RepeatMode = 'off';
 	private callbacks: QueueManagerCallbacks;
 
@@ -46,7 +49,19 @@ export class QueueManager {
 			return false;
 		}
 
-		this.currentIndex = index;
+		if (this.shuffleMode === 'tracks+genres') {
+			this.ensureShuffleDeck();
+			const deckPos = this.findDeckPosForTrack(index);
+			if (deckPos !== null) {
+				this.setDeckPosition(deckPos, true);
+			} else {
+				this.currentShuffleGenre = null;
+				this.currentIndex = index;
+			}
+		} else {
+			this.currentIndex = index;
+		}
+
 		this.callbacks.onTrackLoad?.(index, autoplay);
 		return true;
 	}
@@ -61,30 +76,38 @@ export class QueueManager {
 			return true;
 		}
 
+		if (this.shuffleMode === 'tracks+genres') {
+			if (this.isShuffleDeckExhausted()) {
+				if (this.repeatMode === 'all') {
+					this.generateShuffleDeck();
+				} else {
+					return false;
+				}
+			}
+
+			const nextPos = this.getNextDeckPos();
+			if (nextPos < 0) {
+				return false;
+			}
+
+			this.setDeckPosition(nextPos, true);
+			if (this.currentShuffleGenre) {
+				this.switchGenre(this.currentShuffleGenre);
+			}
+			this.callbacks.onTrackLoad?.(this.currentIndex, true);
+			return true;
+		}
+
 		const nextIndex = this.getNextIndex();
 		const isAtEnd = this.isAtEndOfQueue();
 
 		if (this.repeatMode === 'off' && isAtEnd) {
 			this.currentIndex = nextIndex;
-			// Set genre if in tracks+genres mode
-			if (this.shuffleMode === 'tracks+genres') {
-				const genre = this.getGenreForTrack(nextIndex);
-				if (genre) {
-					this.switchGenre(genre);
-				}
-			}
 			this.callbacks.onTrackLoad?.(nextIndex, false);
 			return false;
 		}
 
 		this.currentIndex = nextIndex;
-		// Set genre if in tracks+genres mode
-		if (this.shuffleMode === 'tracks+genres') {
-			const genre = this.getGenreForTrack(nextIndex);
-			if (genre) {
-				this.switchGenre(genre);
-			}
-		}
 		this.callbacks.onTrackLoad?.(nextIndex, true);
 		return true;
 	}
@@ -94,15 +117,21 @@ export class QueueManager {
 			return false;
 		}
 
+		if (this.shuffleMode === 'tracks+genres') {
+			const prevPos = this.getPrevDeckPos();
+			if (prevPos < 0) {
+				return false;
+			}
+			this.setDeckPosition(prevPos, false);
+			if (this.currentShuffleGenre) {
+				this.switchGenre(this.currentShuffleGenre);
+			}
+			this.callbacks.onTrackLoad?.(this.currentIndex, true);
+			return true;
+		}
+
 		const prevIndex = this.getPrevIndex();
 		this.currentIndex = prevIndex;
-		// Set genre if in tracks+genres mode
-		if (this.shuffleMode === 'tracks+genres') {
-			const genre = this.getGenreForTrack(prevIndex);
-			if (genre) {
-				this.switchGenre(genre);
-			}
-		}
 		this.callbacks.onTrackLoad?.(prevIndex, true);
 		return true;
 	}
@@ -118,19 +147,27 @@ export class QueueManager {
 		}
 
 		if (this.shuffleMode !== 'off') {
-			this.generateShuffledIndices();
+			if (this.shuffleMode === 'tracks+genres') {
+				this.generateShuffleDeck();
+			} else {
+				this.generateShuffledIndices();
+			}
 
 			if (this.currentIndex >= 0) {
-				const currentPos = this.shuffledIndices.indexOf(this.currentIndex);
-				if (currentPos > 0) {
-					this.shuffledIndices.splice(currentPos, 1);
-					this.shuffledIndices.unshift(this.currentIndex);
+				if (this.shuffleMode === 'tracks+genres') {
+					this.alignShuffleDeckToCurrentTrack();
+				} else {
+					const currentPos = this.shuffledIndices.indexOf(this.currentIndex);
+					if (currentPos > 0) {
+						this.shuffledIndices.splice(currentPos, 1);
+						this.shuffledIndices.unshift(this.currentIndex);
+					}
 				}
 			}
 		} else {
 			// Clear shuffled data when turning off
 			this.shuffledIndices = [];
-			this.shuffledGenres = [];
+			this.resetShuffleDeck();
 		}
 
 		this.callbacks.onShuffleChange?.(this.shuffleMode);
@@ -149,18 +186,26 @@ export class QueueManager {
 		this.shuffleMode = mode;
 
 		if (this.shuffleMode !== 'off') {
-			this.generateShuffledIndices();
+			if (this.shuffleMode === 'tracks+genres') {
+				this.generateShuffleDeck();
+			} else {
+				this.generateShuffledIndices();
+			}
 
 			if (this.currentIndex >= 0) {
-				const currentPos = this.shuffledIndices.indexOf(this.currentIndex);
-				if (currentPos > 0) {
-					this.shuffledIndices.splice(currentPos, 1);
-					this.shuffledIndices.unshift(this.currentIndex);
+				if (this.shuffleMode === 'tracks+genres') {
+					this.alignShuffleDeckToCurrentTrack();
+				} else {
+					const currentPos = this.shuffledIndices.indexOf(this.currentIndex);
+					if (currentPos > 0) {
+						this.shuffledIndices.splice(currentPos, 1);
+						this.shuffledIndices.unshift(this.currentIndex);
+					}
 				}
 			}
 		} else {
 			this.shuffledIndices = [];
-			this.shuffledGenres = [];
+			this.resetShuffleDeck();
 		}
 
 		this.callbacks.onShuffleChange?.(this.shuffleMode);
@@ -254,7 +299,11 @@ export class QueueManager {
 		this.currentIndex = -1;
 
 		if (this.shuffleMode !== 'off') {
-			this.generateShuffledIndices();
+			if (this.shuffleMode === 'tracks+genres') {
+				this.generateShuffleDeck();
+			} else {
+				this.generateShuffledIndices();
+			}
 		}
 
 		return true;
@@ -293,18 +342,12 @@ export class QueueManager {
 		return this.getAvailableGenresForTrack(this.currentIndex);
 	}
 
-	getGenreForTrack(index: number): string | null {
+	getGenreForTrack(_index: number): string | null {
 		if (this.shuffleMode !== 'tracks+genres') {
 			return null;
 		}
 
-		// Find the position of this track in the shuffled queue
-		const shufflePos = this.shuffledIndices.indexOf(index);
-		if (shufflePos >= 0 && shufflePos < this.shuffledGenres.length) {
-			return this.shuffledGenres[shufflePos] ?? null;
-		}
-
-		return null;
+		return this.currentShuffleGenre;
 	}
 
 	private getNextIndex(): number {
@@ -323,6 +366,33 @@ export class QueueManager {
 		}
 
 		return (this.currentIndex + 1) % this.tracks.length;
+	}
+
+	private getNextDeckPos(): number {
+		if (this.shuffleDeck.length === 0) {
+			return -1;
+		}
+
+		for (let i = 0; i < this.shuffleDeck.length; i++) {
+			const pos = (this.shuffleDeckPos + 1 + i) % this.shuffleDeck.length;
+			if (!this.shuffleDeckPlayed.has(pos)) {
+				return pos;
+			}
+		}
+
+		return -1;
+	}
+
+	private getPrevDeckPos(): number {
+		if (this.shuffleDeck.length === 0) {
+			return -1;
+		}
+
+		if (this.shuffleDeckPos < 0) {
+			return -1;
+		}
+
+		return (this.shuffleDeckPos - 1 + this.shuffleDeck.length) % this.shuffleDeck.length;
 	}
 
 	private getPrevIndex(): number {
@@ -348,6 +418,10 @@ export class QueueManager {
 			return true;
 		}
 
+		if (this.shuffleMode === 'tracks+genres') {
+			return this.isShuffleDeckExhausted();
+		}
+
 		if (this.shuffleMode !== 'off') {
 			const currentShufflePos = this.shuffledIndices.indexOf(this.currentIndex);
 			return currentShufflePos === this.shuffledIndices.length - 1;
@@ -363,6 +437,10 @@ export class QueueManager {
 	isAtStartOfQueue(): boolean {
 		if (this.tracks.length === 0 || this.currentIndex < 0) {
 			return true;
+		}
+
+		if (this.shuffleMode === 'tracks+genres') {
+			return this.shuffleDeckPos <= 0;
 		}
 
 		if (this.shuffleMode !== 'off') {
@@ -391,22 +469,98 @@ export class QueueManager {
 			this.shuffledIndices[i] = this.shuffledIndices[j]!;
 			this.shuffledIndices[j] = temp;
 		}
+	}
 
-		// If in tracks+genres mode, also generate random genres for each track
-		if (this.shuffleMode === 'tracks+genres') {
-			this.shuffledGenres = this.shuffledIndices.map((trackIndex) => {
-				const track = this.tracks[trackIndex]!;
-				const availableGenres = Object.keys(track.versions);
-				if (availableGenres.length === 0) {
-					return this.defaultGenre;
-				}
-				// Randomly select one of the available genres
-				const randomIndex = Math.floor(Math.random() * availableGenres.length);
-				return availableGenres[randomIndex]!;
+	private generateShuffleDeck(): void {
+		const deck: Array<{ trackIndex: number; genre: string }> = [];
+
+		this.tracks.forEach((track, trackIndex) => {
+			const genres = Object.keys(track.versions);
+			if (genres.length === 0) {
+				deck.push({ trackIndex, genre: this.defaultGenre });
+				return;
+			}
+			genres.forEach((genre) => {
+				deck.push({ trackIndex, genre });
 			});
-		} else {
-			this.shuffledGenres = [];
+		});
+
+		for (let i = deck.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			const temp = deck[i]!;
+			deck[i] = deck[j]!;
+			deck[j] = temp;
 		}
+
+		this.shuffleDeck = deck;
+		this.shuffleDeckPos = -1;
+		this.shuffleDeckPlayed.clear();
+		this.currentShuffleGenre = null;
+	}
+
+	private resetShuffleDeck(): void {
+		this.shuffleDeck = [];
+		this.shuffleDeckPos = -1;
+		this.shuffleDeckPlayed.clear();
+		this.currentShuffleGenre = null;
+	}
+
+	private ensureShuffleDeck(): void {
+		if (this.shuffleDeck.length === 0) {
+			this.generateShuffleDeck();
+		}
+	}
+
+	private isShuffleDeckExhausted(): boolean {
+		if (this.shuffleDeck.length === 0) {
+			return true;
+		}
+		return this.shuffleDeckPlayed.size >= this.shuffleDeck.length;
+	}
+
+	private setDeckPosition(pos: number, markPlayed: boolean): void {
+		const entry = this.shuffleDeck[pos];
+		if (!entry) {
+			return;
+		}
+		this.shuffleDeckPos = pos;
+		this.currentShuffleGenre = entry.genre;
+		this.currentIndex = entry.trackIndex;
+		if (markPlayed) {
+			this.shuffleDeckPlayed.add(pos);
+		}
+	}
+
+	private findDeckPosForTrack(trackIndex: number): number | null {
+		if (this.shuffleDeck.length === 0) {
+			return null;
+		}
+
+		for (let i = 0; i < this.shuffleDeck.length; i++) {
+			const pos = (this.shuffleDeckPos + 1 + i) % this.shuffleDeck.length;
+			const entry = this.shuffleDeck[pos];
+			if (entry && entry.trackIndex === trackIndex && !this.shuffleDeckPlayed.has(pos)) {
+				return pos;
+			}
+		}
+
+		const fallback = this.shuffleDeck.findIndex((entry) => entry.trackIndex === trackIndex);
+		return fallback >= 0 ? fallback : null;
+	}
+
+	private alignShuffleDeckToCurrentTrack(): void {
+		const currentTrack = this.currentIndex;
+		if (currentTrack < 0) {
+			return;
+		}
+		const pos = this.findDeckPosForTrack(currentTrack);
+		if (pos !== null) {
+			this.setDeckPosition(pos, true);
+			return;
+		}
+
+		this.shuffleDeckPos = -1;
+		this.currentShuffleGenre = null;
 	}
 
 	private isValidIndex(index: number): boolean {

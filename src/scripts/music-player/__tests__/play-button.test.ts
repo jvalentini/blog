@@ -277,6 +277,21 @@ describe('Play Button Functionality', () => {
 			expect(onNext).toHaveBeenCalledWith(1, true);
 		});
 
+		it('should not wrap to the first track when repeat is off and at the end', () => {
+			const onNext = vi.fn<TrackLoadCallback>();
+			const qm = new QueueManager(mockTracks.slice(0, 2), 'hip-hop', 'ai', {
+				onTrackLoad: onNext,
+			});
+
+			qm.loadTrack(1, false);
+			onNext.mockClear();
+			const result = qm.playNext();
+
+			expect(result).toBe(false);
+			expect(onNext).not.toHaveBeenCalled();
+			expect(qm.getCurrentIndex()).toBe(1);
+		});
+
 		it('should play previous track', () => {
 			const onPrev = vi.fn();
 			const qm = new QueueManager(mockTracks.slice(0, 2), 'hip-hop', 'ai', {
@@ -288,6 +303,21 @@ describe('Play Button Functionality', () => {
 
 			expect(result).toBe(true);
 			expect(onPrev).toHaveBeenCalledWith(0, true);
+		});
+
+		it('should not wrap to the last track when repeat is off and at the start', () => {
+			const onPrev = vi.fn<TrackLoadCallback>();
+			const qm = new QueueManager(mockTracks.slice(0, 2), 'hip-hop', 'ai', {
+				onTrackLoad: onPrev,
+			});
+
+			qm.loadTrack(0, false);
+			onPrev.mockClear();
+			const result = qm.playPrevious();
+
+			expect(result).toBe(false);
+			expect(onPrev).not.toHaveBeenCalled();
+			expect(qm.getCurrentIndex()).toBe(0);
 		});
 
 		it('should handle repeat mode correctly', () => {

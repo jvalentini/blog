@@ -39,6 +39,33 @@ export function createAudioController(): AudioController {
 	let handlePlay: (() => void) | null = null;
 	let handlePause: (() => void) | null = null;
 
+	function getSeekableRange(): { start: number; end: number } | null {
+		if (!audio || !audio.seekable || audio.seekable.length === 0) {
+			return null;
+		}
+
+		try {
+			const start = audio.seekable.start(0);
+			const end = audio.seekable.end(audio.seekable.length - 1);
+			if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+				return null;
+			}
+			return { start, end };
+		} catch {
+			return null;
+		}
+	}
+
+	function getEffectiveDuration(): number {
+		if (!audio) return 0;
+		if (Number.isFinite(audio.duration) && audio.duration > 0) {
+			return audio.duration;
+		}
+
+		const range = getSeekableRange();
+		return range ? range.end : 0;
+	}
+
 	function removeEventListeners(): void {
 		if (!audio) return;
 
@@ -73,9 +100,7 @@ export function createAudioController(): AudioController {
 
 		handleTimeUpdate = () => {
 			if (callbacks.onTimeUpdate && audio) {
-				// For streaming audio, duration can be Infinity or NaN
-				// Pass the actual value (including Infinity) so Media Session can handle it
-				const duration = Number.isFinite(audio.duration) ? audio.duration : Infinity;
+				const duration = getEffectiveDuration();
 				callbacks.onTimeUpdate(audio.currentTime, duration);
 			}
 		};
@@ -86,8 +111,7 @@ export function createAudioController(): AudioController {
 
 		handleLoadedMetadata = () => {
 			if (callbacks.onLoadedMetadata && audio) {
-				const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
-				callbacks.onLoadedMetadata(duration);
+				callbacks.onLoadedMetadata(getEffectiveDuration());
 			}
 		};
 
@@ -95,8 +119,7 @@ export function createAudioController(): AudioController {
 			// For streaming audio, duration may change as more data loads
 			// Trigger a timeupdate-like callback to update position state
 			if (callbacks.onTimeUpdate && audio) {
-				const duration = Number.isFinite(audio.duration) ? audio.duration : Infinity;
-				callbacks.onTimeUpdate(audio.currentTime, duration);
+				callbacks.onTimeUpdate(audio.currentTime, getEffectiveDuration());
 			}
 		};
 
@@ -156,18 +179,29 @@ export function createAudioController(): AudioController {
 			if (!audio) return;
 
 			const duration = audio.duration;
-			if (!duration || !Number.isFinite(duration)) return;
+			if (Number.isFinite(duration) && duration > 0) {
+				audio.currentTime = Math.max(0, Math.min(time, duration));
+				return;
+			}
 
-			audio.currentTime = Math.max(0, Math.min(time, duration));
+			const seekable = getSeekableRange();
+			if (!seekable) return;
+			audio.currentTime = Math.max(seekable.start, Math.min(time, seekable.end));
 		},
 
 		seekPercent(percent: number): void {
 			if (!audio) return;
 
-			const duration = audio.duration;
+			const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : getEffectiveDuration();
 			if (!duration || !Number.isFinite(duration)) return;
 
 			const clampedPercent = Math.max(0, Math.min(percent, 100));
+			const seekable = getSeekableRange();
+			if (seekable) {
+				const range = seekable.end - seekable.start;
+				audio.currentTime = seekable.start + (clampedPercent / 100) * range;
+				return;
+			}
 			audio.currentTime = (clampedPercent / 100) * duration;
 		},
 
@@ -181,9 +215,7 @@ export function createAudioController(): AudioController {
 		},
 
 		getDuration(): number {
-			if (!audio) return 0;
-			const duration = audio.duration;
-			return duration && Number.isFinite(duration) ? duration : 0;
+			return getEffectiveDuration();
 		},
 
 		getVolume(): number {

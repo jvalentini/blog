@@ -1,0 +1,334 @@
+---
+import { SITE_TITLE } from '../../consts';
+import tracksData from '../../data/tracks.json';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+interface TracksConfig {
+	songs: Array<{
+		title: string;
+		versions: Record<string, string>;
+	}>;
+}
+
+const { songs = [] } = tracksData as TracksConfig;
+const trackOptions = songs.flatMap((song) =>
+	Object.entries(song.versions ?? {}).map(([genre, file]) => ({
+		label: `${song.title} (${genre})`,
+		url: `/assets/music/${file}`,
+	})),
+);
+const defaultTrack = trackOptions[0]?.url ?? '';
+---
+
+<BaseLayout title={`Audio Diagnostics | ${SITE_TITLE}`} description="Inspect seekable and buffered ranges for audio playback.">
+	<section class="diagnostic">
+		<header class="diagnostic-header">
+			<div class="terminal-command">
+				<span class="prompt">$</span>
+				<span class="command">audio --diagnostics</span>
+			</div>
+			<h1>Audio Diagnostics</h1>
+			<p>
+				This page inspects <code>audio.seekable</code> and <code>audio.buffered</code> ranges on your device and runs a
+				byte-range probe against the selected asset.
+			</p>
+		</header>
+
+		<div class="diagnostic-controls">
+			<label class="control">
+				<span>Track version</span>
+				<select id="track-select">
+					{trackOptions.map((option) => (
+						<option value={option.url} selected={option.url === defaultTrack}>
+							{option.label}
+						</option>
+					))}
+				</select>
+			</label>
+			<div class="control-buttons">
+				<button class="btn" id="load-track" type="button">Load</button>
+				<button class="btn" id="probe-range" type="button">Range probe</button>
+				<button class="btn" id="clear-log" type="button">Clear log</button>
+			</div>
+		</div>
+
+		<div class="player">
+			<audio id="debug-audio" controls preload="metadata" data-default-src={defaultTrack}></audio>
+		</div>
+
+		<div class="status-grid">
+			<div class="panel">
+				<h2>Status</h2>
+				<pre id="status-output">Waiting for audio load.</pre>
+			</div>
+			<div class="panel">
+				<h2>Events</h2>
+				<pre id="events-output">Ready.</pre>
+			</div>
+		</div>
+	</section>
+</BaseLayout>
+
+<script>
+	const audio = document.getElementById('debug-audio') as HTMLAudioElement | null;
+	const trackSelect = document.getElementById('track-select') as HTMLSelectElement | null;
+	const loadButton = document.getElementById('load-track') as HTMLButtonElement | null;
+	const probeButton = document.getElementById('probe-range') as HTMLButtonElement | null;
+	const clearButton = document.getElementById('clear-log') as HTMLButtonElement | null;
+	const statusOutput = document.getElementById('status-output') as HTMLPreElement | null;
+	const eventsOutput = document.getElementById('events-output') as HTMLPreElement | null;
+
+	const eventLines: string[] = [];
+	const MAX_LINES = 40;
+
+	const readyStates = ['HAVE_NOTHING', 'HAVE_METADATA', 'HAVE_CURRENT_DATA', 'HAVE_FUTURE_DATA', 'HAVE_ENOUGH_DATA'];
+	const networkStates = ['NETWORK_EMPTY', 'NETWORK_IDLE', 'NETWORK_LOADING', 'NETWORK_NO_SOURCE'];
+
+	const formatRanges = (ranges: TimeRanges | null) => {
+		if (!ranges || ranges.length === 0) return 'none';
+		const segments = [];
+		for (let i = 0; i < ranges.length; i += 1) {
+			try {
+				const start = ranges.start(i).toFixed(2);
+				const end = ranges.end(i).toFixed(2);
+				segments.push(`[${start}, ${end}]`);
+			} catch {
+				segments.push('[error]');
+			}
+		}
+		return segments.join(' ');
+	};
+
+	const formatDuration = (duration: number) => {
+		if (!Number.isFinite(duration) || duration <= 0) return 'unknown';
+		return `${duration.toFixed(2)}s`;
+	};
+
+	const logEvent = (message: string) => {
+		const timestamp = new Date().toLocaleTimeString();
+		eventLines.unshift(`${timestamp} ${message}`);
+		if (eventLines.length > MAX_LINES) {
+			eventLines.length = MAX_LINES;
+		}
+		if (eventsOutput) {
+			eventsOutput.textContent = eventLines.join('\n');
+		}
+	};
+
+	const updateStatus = () => {
+		if (!audio || !statusOutput) return;
+		const duration = formatDuration(audio.duration);
+		const currentTime = Number.isFinite(audio.currentTime) ? `${audio.currentTime.toFixed(2)}s` : '0.00s';
+		const seekable = formatRanges(audio.seekable);
+		const buffered = formatRanges(audio.buffered);
+		const readyState = readyStates[audio.readyState] || String(audio.readyState);
+		const networkState = networkStates[audio.networkState] || String(audio.networkState);
+		const currentSrc = audio.currentSrc || audio.src || 'none';
+
+		statusOutput.textContent = [
+			`src: ${currentSrc}`,
+			`currentTime: ${currentTime}`,
+			`duration: ${duration}`,
+			`readyState: ${readyState}`,
+			`networkState: ${networkState}`,
+			`paused: ${audio.paused}`,
+			`ended: ${audio.ended}`,
+			`seekable: ${seekable}`,
+			`buffered: ${buffered}`,
+		].join('\n');
+	};
+
+	const loadTrack = () => {
+		if (!audio || !trackSelect) return;
+		const url = trackSelect.value;
+		if (!url) return;
+		audio.src = url;
+		audio.load();
+		logEvent(`load: ${url}`);
+	};
+
+	const probeRange = async () => {
+		if (!trackSelect) return;
+		const url = trackSelect.value;
+		if (!url) return;
+		logEvent(`range probe start: ${url}`);
+		try {
+			const response = await fetch(url, {
+				headers: { Range: 'bytes=0-1023' },
+			});
+			const contentRange = response.headers.get('content-range') || 'none';
+			const acceptRanges = response.headers.get('accept-ranges') || 'none';
+			const contentLength = response.headers.get('content-length') || 'none';
+			logEvent(
+				`range probe: ${response.status} ${response.statusText} content-range=${contentRange} accept-ranges=${acceptRanges} content-length=${contentLength}`,
+			);
+		} catch (error) {
+			logEvent(`range probe error: ${error instanceof Error ? error.message : String(error)}`);
+		}
+	};
+
+	if (loadButton) {
+		loadButton.addEventListener('click', loadTrack);
+	}
+
+	if (probeButton) {
+		probeButton.addEventListener('click', probeRange);
+	}
+
+	if (clearButton && eventsOutput) {
+		clearButton.addEventListener('click', () => {
+			eventLines.length = 0;
+			eventsOutput.textContent = 'Ready.';
+		});
+	}
+
+	if (audio) {
+		const defaultSrc = audio.dataset.defaultSrc;
+		if (defaultSrc) {
+			audio.src = defaultSrc;
+		}
+
+		const events = [
+			'loadstart',
+			'loadedmetadata',
+			'durationchange',
+			'loadeddata',
+			'canplay',
+			'canplaythrough',
+			'progress',
+			'timeupdate',
+			'seeking',
+			'seeked',
+			'waiting',
+			'stalled',
+			'pause',
+			'play',
+			'ended',
+			'error',
+		];
+
+		events.forEach((eventName) => {
+			audio.addEventListener(eventName, () => {
+				logEvent(eventName);
+				updateStatus();
+			});
+		});
+
+		updateStatus();
+	}
+</script>
+
+<style>
+	.diagnostic {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.diagnostic-header {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.terminal-command {
+		display: flex;
+		gap: var(--space-sm, 0.5rem);
+		font-size: 1rem;
+		color: var(--text-secondary);
+	}
+
+	.prompt {
+		color: var(--phosphor-base, #33ff33);
+	}
+
+	.diagnostic-controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		align-items: flex-end;
+	}
+
+	.control {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		flex: 1;
+		min-width: 220px;
+	}
+
+	.control select {
+		padding: 0.6rem 0.75rem;
+		border-radius: 6px;
+		border: 1px solid var(--border-base, rgba(51, 255, 51, 0.2));
+		background: var(--bg-deep, #0a0c0e);
+		color: var(--text-primary, #fff);
+		font-family: var(--font-mono, ui-monospace, monospace);
+	}
+
+	.control-buttons {
+		display: flex;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.btn {
+		padding: 0.6rem 0.9rem;
+		border-radius: 6px;
+		border: 1px solid var(--border-base, rgba(51, 255, 51, 0.3));
+		background: color-mix(in srgb, var(--phosphor-base, #33ff33) 10%, transparent);
+		color: var(--text-primary, #fff);
+		cursor: pointer;
+		font-size: 0.9rem;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		transition: all 0.2s ease;
+	}
+
+	.btn:hover {
+		border-color: var(--phosphor-base, #33ff33);
+		background: color-mix(in srgb, var(--phosphor-base, #33ff33) 20%, transparent);
+	}
+
+	.player audio {
+		width: 100%;
+		max-width: 720px;
+	}
+
+	.status-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 1rem;
+	}
+
+	.panel {
+		background: var(--bg-elevated, rgba(10, 12, 14, 0.6));
+		border: 1px solid var(--border-base, rgba(51, 255, 51, 0.2));
+		border-radius: 8px;
+		padding: 1rem;
+	}
+
+	.panel h2 {
+		margin: 0 0 0.75rem 0;
+		font-size: 1rem;
+		color: var(--phosphor-base, #33ff33);
+	}
+
+	.panel pre {
+		margin: 0;
+		white-space: pre-wrap;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 0.8rem;
+		color: var(--text-secondary, #d0d0d0);
+	}
+
+	@media (max-width: 720px) {
+		.diagnostic-controls {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.control-buttons {
+			justify-content: flex-start;
+		}
+	}
+</style>

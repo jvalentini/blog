@@ -39,6 +39,10 @@ export function createAudioController(): AudioController {
 	let handlePlay: (() => void) | null = null;
 	let handlePause: (() => void) | null = null;
 
+	function hasFiniteDuration(): boolean {
+		return !!audio && Number.isFinite(audio.duration) && audio.duration > 0;
+	}
+
 	function getSeekableRange(): { start: number; end: number } | null {
 		if (!audio || !audio.seekable || audio.seekable.length === 0) {
 			return null;
@@ -56,14 +60,27 @@ export function createAudioController(): AudioController {
 		}
 	}
 
-	function getEffectiveDuration(): number {
-		if (!audio) return 0;
-		if (Number.isFinite(audio.duration) && audio.duration > 0) {
-			return audio.duration;
+	function getEffectiveTiming(): { currentTime: number; duration: number; seekableStart: number | null } {
+		if (!audio) {
+			return { currentTime: 0, duration: 0, seekableStart: null };
+		}
+
+		if (hasFiniteDuration()) {
+			return { currentTime: audio.currentTime, duration: audio.duration, seekableStart: null };
 		}
 
 		const range = getSeekableRange();
-		return range ? range.end : 0;
+		if (!range) {
+			return { currentTime: audio.currentTime, duration: 0, seekableStart: null };
+		}
+
+		const duration = Math.max(0, range.end - range.start);
+		const currentTime = Math.max(0, audio.currentTime - range.start);
+		return { currentTime, duration, seekableStart: range.start };
+	}
+
+	function getEffectiveDuration(): number {
+		return getEffectiveTiming().duration;
 	}
 
 	function removeEventListeners(): void {
@@ -100,8 +117,8 @@ export function createAudioController(): AudioController {
 
 		handleTimeUpdate = () => {
 			if (callbacks.onTimeUpdate && audio) {
-				const duration = getEffectiveDuration();
-				callbacks.onTimeUpdate(audio.currentTime, duration);
+				const timing = getEffectiveTiming();
+				callbacks.onTimeUpdate(timing.currentTime, timing.duration);
 			}
 		};
 
@@ -119,7 +136,8 @@ export function createAudioController(): AudioController {
 			// For streaming audio, duration may change as more data loads
 			// Trigger a timeupdate-like callback to update position state
 			if (callbacks.onTimeUpdate && audio) {
-				callbacks.onTimeUpdate(audio.currentTime, getEffectiveDuration());
+				const timing = getEffectiveTiming();
+				callbacks.onTimeUpdate(timing.currentTime, timing.duration);
 			}
 		};
 
@@ -178,25 +196,26 @@ export function createAudioController(): AudioController {
 		seek(time: number): void {
 			if (!audio) return;
 
-			const duration = audio.duration;
-			if (Number.isFinite(duration) && duration > 0) {
-				audio.currentTime = Math.max(0, Math.min(time, duration));
+			if (hasFiniteDuration()) {
+				audio.currentTime = Math.max(0, Math.min(time, audio.duration));
 				return;
 			}
 
 			const seekable = getSeekableRange();
 			if (!seekable) return;
-			audio.currentTime = Math.max(seekable.start, Math.min(time, seekable.end));
+			const range = Math.max(0, seekable.end - seekable.start);
+			const clampedTime = Math.max(0, Math.min(time, range));
+			audio.currentTime = seekable.start + clampedTime;
 		},
 
 		seekPercent(percent: number): void {
 			if (!audio) return;
 
-			const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : getEffectiveDuration();
+			const duration = hasFiniteDuration() ? audio.duration : getEffectiveDuration();
 			if (!duration || !Number.isFinite(duration)) return;
 
 			const clampedPercent = Math.max(0, Math.min(percent, 100));
-			const seekable = getSeekableRange();
+			const seekable = hasFiniteDuration() ? null : getSeekableRange();
 			if (seekable) {
 				const range = seekable.end - seekable.start;
 				audio.currentTime = seekable.start + (clampedPercent / 100) * range;
@@ -211,7 +230,7 @@ export function createAudioController(): AudioController {
 		},
 
 		getCurrentTime(): number {
-			return audio?.currentTime ?? 0;
+			return getEffectiveTiming().currentTime;
 		},
 
 		getDuration(): number {

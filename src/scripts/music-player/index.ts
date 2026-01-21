@@ -263,9 +263,18 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 		// Now get the source with the correct genre and set it
 		const src = queueManager.getTrackSrc(index, genreToUse);
+		const hasSrc = Boolean(src);
 		if (src) {
 			audioController.setSrc(src);
 			audioController.load();
+		} else {
+			console.warn('[MusicPlayer] Missing audio source for track', track);
+			audioController.pause();
+			audioController.setSrc('');
+			audioController.load();
+			state.set('isPlaying', false);
+			showPlayIcon();
+			mediaSessionManager.clearPositionState();
 		}
 
 		loadLyricsForTrack(index);
@@ -285,7 +294,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		updateMediaSessionMetadata();
 		updateMediaSessionActionAvailability();
 
-		if (autoplay) {
+		if (autoplay && hasSrc) {
 			audioController.play().then(() => {
 				state.set('isPlaying', true);
 			});
@@ -398,6 +407,15 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		}
 	};
 
+	const updateQueueGenreBadges = (genre: Genre): void => {
+		elements.queueItems.forEach((item) => {
+			const badge = item.querySelector('.queue-item-genre-badge') as HTMLElement | null;
+			if (badge) {
+				badge.textContent = genre;
+			}
+		});
+	};
+
 	const updateShuffleUI = (mode: string): void => {
 		const shuffleOff = elements.btnShuffle.querySelector('.shuffle-off') as HTMLElement | null;
 		const shuffleTracks = elements.btnShuffle.querySelector('.shuffle-tracks') as HTMLElement | null;
@@ -473,6 +491,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			state.set('currentGenre', genre as Genre);
 			updateGenreUI(genre as Genre);
 			updateQueueListTheme(genre as Genre);
+			updateQueueGenreBadges(genre as Genre);
 			storage.save({ currentGenre: genre as Genre });
 
 			const currentIndex = state.get('currentIndex');
@@ -785,6 +804,10 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			elements.hotkeysModal.classList.remove('visible');
 			if (window.terminalAPI?.close) {
 				window.terminalAPI.close();
+			}
+			if (elements.lyricsFullscreenOverlay?.classList.contains('visible')) {
+				elements.lyricsFullscreenOverlay.classList.remove('visible');
+				document.body.style.overflow = '';
 			}
 		},
 		onPlaylistReveal: () => {
@@ -1244,10 +1267,13 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				currentX = touch.clientX;
 				const deltaX = currentX - startX;
 
-				if (Math.abs(deltaX) > 10) {
+				if (deltaX > 10) {
 					wrapper.classList.add('swiping');
-					const clampedDelta = Math.max(-SWIPE_THRESHOLD, Math.min(SWIPE_THRESHOLD, deltaX));
+					const clampedDelta = Math.min(SWIPE_THRESHOLD, deltaX);
 					item.style.transform = `translateX(${clampedDelta}px)`;
+				} else {
+					wrapper.classList.remove('swiping');
+					item.style.transform = '';
 				}
 			},
 			{ passive: true },

@@ -129,9 +129,6 @@ const { tracks, genres, defaultGenre } = Astro.props;
         <div class="queue-item-action queue-item-action-play">
           <span>&#9654; Play</span>
         </div>
-        <div class="queue-item-action queue-item-action-remove">
-          <span>Remove &#10005;</span>
-        </div>
         <div 
           class="queue-item" 
           data-index={idx}
@@ -369,29 +366,10 @@ const { tracks, genres, defaultGenre } = Astro.props;
     color: #33ff33;
   }
 
-  .queue-item-action-remove {
-    right: 0;
-    background: linear-gradient(270deg, rgba(255, 51, 51, 0.3) 0%, rgba(255, 51, 51, 0.1) 100%);
-    color: #ff3333;
-  }
-
   .queue-item-wrapper.swiping .queue-item-action {
     opacity: 1;
   }
 
-  .queue-item-wrapper.removing {
-    animation: slideOutRight 0.3s ease forwards;
-  }
-
-  @keyframes slideOutRight {
-    to {
-      transform: translateX(100%);
-      opacity: 0;
-      height: 0;
-      margin: 0;
-      padding: 0;
-    }
-  }
 
   .queue-item {
     display: flex;

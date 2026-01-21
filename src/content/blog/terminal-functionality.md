@@ -1,6 +1,7 @@
 ---
 title: 'Building a Global Terminal for My Blog'
 description: 'A keyboard-accessible terminal interface for navigating my blog, controlling the music player, and exploring content using Unix commands.'
+heroImage: '../../assets/terminal-functionality-hero.png'
 pubDate: 'Jan 15 2026'
 tags: ['web', 'astro', 'typescript', 'ux']
 ---

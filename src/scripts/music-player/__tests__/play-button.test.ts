@@ -1,17 +1,18 @@
-/* biome-ignore lint/suspicious/noExplicitAny: necessary for mocking in tests */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAudioController } from '../audio-controller';
-import { QueueManager } from '../queue-manager';
+import { QueueManager, type TrackLoadCallback } from '../queue-manager';
 import type { Track } from '../types';
 
 describe('Play Button Functionality', () => {
 	describe('AudioController', () => {
 		let audioController: ReturnType<typeof createAudioController>;
 		let mockAudio: Partial<HTMLAudioElement>;
+		let playMock: ReturnType<typeof vi.fn<() => Promise<void>>>;
 
 		beforeEach(() => {
+			playMock = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 			mockAudio = {
-				play: vi.fn().mockResolvedValue(undefined),
+				play: playMock,
 				pause: vi.fn(),
 				paused: true,
 				ended: false,
@@ -68,7 +69,7 @@ describe('Play Button Functionality', () => {
 
 		it('should handle play() promise rejection gracefully', async () => {
 			const playError = new Error('Autoplay blocked');
-			(mockAudio.play as any).mockRejectedValueOnce(playError);
+			playMock.mockRejectedValueOnce(playError);
 
 			await expect(audioController.play()).rejects.toThrow('Autoplay blocked');
 		});
@@ -129,7 +130,7 @@ describe('Play Button Functionality', () => {
 
 	describe('QueueManager', () => {
 		let queueManager: QueueManager;
-		let onTrackLoad: ReturnType<typeof vi.fn>;
+		let onTrackLoad: ReturnType<typeof vi.fn<TrackLoadCallback>>;
 
 		const mockTracks: Track[] = [
 			{
@@ -159,8 +160,8 @@ describe('Play Button Functionality', () => {
 		];
 
 		beforeEach(() => {
-			onTrackLoad = vi.fn();
-			queueManager = new QueueManager(mockTracks, 'hip-hop', 'ai', { onTrackLoad: onTrackLoad as any });
+			onTrackLoad = vi.fn<TrackLoadCallback>();
+			queueManager = new QueueManager(mockTracks, 'hip-hop', 'ai', { onTrackLoad });
 		});
 
 		it('should load track and call callback with autoplay=true', () => {
@@ -310,11 +311,56 @@ describe('Play Button Functionality', () => {
 			const shuffleMode3 = queueManager.toggleShuffle();
 			expect(shuffleMode3).toBe('off');
 		});
+
+		it('should not repeat track-genre pairs in tracks+genres shuffle until exhausted', () => {
+			const testTracks: Track[] = [
+				{
+					id: 1,
+					songId: 'song-1',
+					title: 'Track 1',
+					playlist: 'ai',
+					lyrics: {},
+					versions: { 'hip-hop': '/audio/1.mp3', rock: '/audio/1-rock.mp3' },
+				},
+				{
+					id: 2,
+					songId: 'song-2',
+					title: 'Track 2',
+					playlist: 'ai',
+					lyrics: {},
+					versions: { 'hip-hop': '/audio/2.mp3' },
+				},
+			];
+
+			const totalPairs = Object.values(testTracks)
+				.map((track) => Object.keys(track.versions).length)
+				.reduce((sum, count) => sum + count, 0);
+
+			const seenPairs = new Set<string>();
+			const shuffleQueue = new QueueManager(testTracks, 'hip-hop', 'ai', {
+				onTrackLoad: (index) => {
+					const genre = shuffleQueue.getGenreForTrack(index) ?? shuffleQueue.getCurrentGenre();
+					seenPairs.add(`${index}:${genre}`);
+				},
+			});
+
+			shuffleQueue.setShuffleMode('tracks+genres');
+
+			let safety = 0;
+			while (shuffleQueue.playNext()) {
+				safety += 1;
+				if (safety > totalPairs + 2) {
+					break;
+				}
+			}
+
+			expect(seenPairs.size).toBe(totalPairs);
+		});
 	});
 
 	describe('Play Button Bug Fix - Playlist Field', () => {
 		it('should fail to load tracks without playlist field', () => {
-			const tracksWithoutPlaylist: any[] = [
+			const tracksWithoutPlaylist = [
 				{
 					id: 1,
 					songId: 'song-1',
@@ -322,10 +368,10 @@ describe('Play Button Functionality', () => {
 					lyrics: {},
 					versions: { 'hip-hop': '/audio/1.mp3' },
 				},
-			];
+			] satisfies Array<Omit<Track, 'playlist'>>;
 
-			const onTrackLoad = vi.fn();
-			const qm = new QueueManager(tracksWithoutPlaylist, 'hip-hop', 'ai', { onTrackLoad: onTrackLoad as any });
+			const onTrackLoad = vi.fn<TrackLoadCallback>();
+			const qm = new QueueManager(tracksWithoutPlaylist as unknown as Track[], 'hip-hop', 'ai', { onTrackLoad });
 
 			const result = qm.loadTrack(0, true);
 			expect(result).toBe(false);
@@ -344,8 +390,8 @@ describe('Play Button Functionality', () => {
 				},
 			];
 
-			const onTrackLoad = vi.fn();
-			const qm = new QueueManager(tracksWithPlaylist, 'hip-hop', 'ai', { onTrackLoad: onTrackLoad as any });
+			const onTrackLoad = vi.fn<TrackLoadCallback>();
+			const qm = new QueueManager(tracksWithPlaylist, 'hip-hop', 'ai', { onTrackLoad });
 
 			const result = qm.loadTrack(0, true);
 			expect(result).toBe(true);

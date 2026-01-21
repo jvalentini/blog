@@ -27,7 +27,6 @@ export class MediaSessionManager {
 	private callbacks: MediaSessionCallbacks = {};
 	private lastPositionUpdate: number = 0;
 	private positionUpdateThrottle: number = 1000; // 1 second
-	private currentTrackId: string | number | null = null; // For race condition protection
 	private debug: boolean;
 
 	constructor() {
@@ -145,11 +144,6 @@ export class MediaSessionManager {
 			return;
 		}
 
-		// Race condition protection: if trackId is provided and doesn't match current, skip update
-		if (trackId !== undefined && this.currentTrackId !== null && this.currentTrackId !== trackId) {
-			return;
-		}
-
 		// Validate metadata
 		if (!metadata.title || metadata.title.trim() === '') {
 			console.warn('[MediaSessionManager] Cannot update metadata with empty title');
@@ -163,11 +157,6 @@ export class MediaSessionManager {
 				album: metadata.album || 'Unknown Album',
 				artwork: metadata.artwork || [],
 			});
-
-			// Update current track ID if provided
-			if (trackId !== undefined) {
-				this.currentTrackId = trackId;
-			}
 
 			if (this.debug) {
 				console.log('[MediaSessionManager] Metadata updated:', {
@@ -393,6 +382,5 @@ export class MediaSessionManager {
 		}
 
 		this.callbacks = {};
-		this.currentTrackId = null;
 	}
 }

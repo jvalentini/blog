@@ -187,14 +187,14 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	const audioController = createAudioController();
 
 	const loadTrackAtIndex = (index: number, autoplay: boolean): void => {
-		if (index < 0 || index >= elements.queueItems.length) return;
+		const track = queueManager.getTrack(index);
+		if (!track) return;
 
 		const item = elements.queueItems[index];
 		if (!item) return;
-		const title = item.dataset.title;
-		const songId = item.dataset.songId;
 
-		if (!title || !songId) return;
+		const title = track.title;
+		const songId = track.songId;
 
 		// Mark that we're changing tracks - this ensures we start at 0:00
 		isTrackChange = true;
@@ -269,6 +269,17 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		}
 
 		loadLyricsForTrack(index);
+
+		if (
+			elements.lyricsFullscreenOverlay?.classList.contains('visible') &&
+			elements.lyricsFullscreenContent &&
+			elements.lyricsContent
+		) {
+			elements.lyricsFullscreenContent.innerHTML = elements.lyricsContent.innerHTML;
+			if (elements.lyricsFullscreenTrack) {
+				elements.lyricsFullscreenTrack.textContent = title;
+			}
+		}
 
 		// Update media session metadata
 		updateMediaSessionMetadata();
@@ -1066,6 +1077,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 	const playlistState = new PlaylistState();
 	const playlistsArray = Object.values(playlists);
+	let updatePlaylistUI: ((activePlaylistId: string) => void) | null = null;
 
 	if (elements.playlistToggle) {
 		elements.playlistToggle.addEventListener('click', (e) => {
@@ -1077,13 +1089,22 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				const success = queueManager.switchPlaylist(playlistId);
 				if (success) {
 					storage.save({ currentPlaylist: playlistId });
-					updatePlaylistUI(playlistId);
+					pendingSeekTime = null;
+					pendingAutoplay = false;
+					audioController.pause();
+					state.set('isPlaying', false);
+					showPlayIcon();
+					mediaSessionManager.clearPositionState();
+					if (updatePlaylistUI) {
+						updatePlaylistUI(playlistId);
+					}
 					rebuildQueue();
+					queueManager.loadTrack(0, false);
 				}
 			}
 		});
 
-		const updatePlaylistUI = (activePlaylistId: string) => {
+		updatePlaylistUI = (activePlaylistId: string) => {
 			const buttons = elements.playlistToggle!.querySelectorAll('.playlist-btn');
 			buttons.forEach((btn) => {
 				const isActive = btn.getAttribute('data-playlist-id') === activePlaylistId;
@@ -1104,33 +1125,89 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	const rebuildQueue = () => {
 		const tracks = queueManager.getAllTracks();
 		const currentGenre = state.get('currentGenre');
+		const queueCount = document.querySelector('.queue-count');
+
+		if (queueCount) {
+			queueCount.textContent = `${tracks.length} track${tracks.length !== 1 ? 's' : ''}`;
+		}
+
 		elements.queueItems.forEach((item, idx) => {
+			const wrapper = item.closest('.queue-item-wrapper') as HTMLElement | null;
 			if (idx < tracks.length) {
 				const track = tracks[idx];
 				if (!track) return;
 				const titleEl = item.querySelector('.queue-item-title');
-				const genreBadge = item.querySelector('.genre-badge');
+				const genreBadge = item.querySelector('.queue-item-genre-badge');
+				const numberEl = item.querySelector('.queue-item-number');
+
+				item.dataset.index = String(idx);
+				item.dataset.title = track.title;
+				item.dataset.songId = track.songId;
+				item.dataset.versions = JSON.stringify(track.versions);
+
+				if (wrapper) {
+					wrapper.dataset.index = String(idx);
+					wrapper.style.display = '';
+				}
+
+				if (numberEl) numberEl.textContent = String(idx + 1);
 				if (titleEl) titleEl.textContent = track.title;
 				if (genreBadge) genreBadge.textContent = currentGenre;
 				item.style.display = '';
 			} else {
+				if (wrapper) wrapper.style.display = 'none';
 				item.style.display = 'none';
 			}
 		});
 	};
 
-	elements.queueItems.forEach((item, idx) => {
+	rebuildQueue();
+
+	const loadTrackBySongId = (songId: string, autoplay: boolean): boolean => {
+		const targetTrack = tracks.find((track) => track.songId === songId);
+		if (!targetTrack) return false;
+
+		if (targetTrack.playlist !== queueManager.getCurrentPlaylist()) {
+			const switched = queueManager.switchPlaylist(targetTrack.playlist);
+			if (!switched) return false;
+			storage.save({ currentPlaylist: targetTrack.playlist });
+			if (updatePlaylistUI) {
+				updatePlaylistUI(targetTrack.playlist);
+			}
+			pendingSeekTime = null;
+			pendingAutoplay = false;
+			audioController.pause();
+			state.set('isPlaying', false);
+			showPlayIcon();
+			mediaSessionManager.clearPositionState();
+			rebuildQueue();
+		}
+
+		const playlistTracks = queueManager.getAllTracks();
+		const index = playlistTracks.findIndex((track) => track.songId === songId);
+		if (index < 0) return false;
+		queueManager.loadTrack(index, autoplay);
+		return true;
+	};
+
+	elements.queueItems.forEach((item) => {
+		const loadFromDataset = () => {
+			const trackIndex = parseInt(item.dataset.index || '-1', 10);
+			if (trackIndex >= 0) {
+				queueManager.loadTrack(trackIndex, true);
+			}
+		};
 		const titleEl = item.querySelector('.queue-item-title');
 		if (titleEl) {
 			titleEl.addEventListener('click', (e) => {
 				e.stopPropagation();
 				hapticFeedback('light');
-				queueManager.loadTrack(idx, true);
+				loadFromDataset();
 			});
 		}
 		item.addEventListener('click', () => {
 			hapticFeedback('light');
-			queueManager.loadTrack(idx, true);
+			loadFromDataset();
 		});
 	});
 
@@ -1208,11 +1285,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		const match = window.location.pathname.match(/^\/waves\/(.+)$/);
 		if (match) {
 			const songId = match[1];
-			elements.queueItems.forEach((item, idx) => {
-				if (item.dataset.songId === songId) {
-					queueManager.loadTrack(idx, false);
-				}
-			});
+			if (songId) {
+				loadTrackBySongId(songId, false);
+			}
 		}
 	});
 
@@ -1281,20 +1356,14 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	const urlMatch = window.location.pathname.match(/^\/waves\/(.+)$/);
 	if (urlMatch) {
 		const songId = urlMatch[1];
-		elements.queueItems.forEach((item, idx) => {
-			if (item.dataset.songId === songId) {
-				queueManager.loadTrack(idx, false);
+		if (songId) {
+			if (!loadTrackBySongId(songId, false) && elements.queueItems.length > 0) {
+				queueManager.loadTrack(0, false);
 			}
-		});
+		}
 	} else if (savedSettings.currentTrackId) {
-		let foundSavedTrack = false;
-		elements.queueItems.forEach((item, idx) => {
-			if (item.dataset.songId === savedSettings.currentTrackId) {
-				queueManager.loadTrack(idx, false);
-				foundSavedTrack = true;
-			}
-		});
-		if (!foundSavedTrack && elements.queueItems.length > 0) {
+		const loaded = loadTrackBySongId(savedSettings.currentTrackId, false);
+		if (!loaded && elements.queueItems.length > 0) {
 			queueManager.loadTrack(0, false);
 		}
 	} else if (elements.queueItems.length > 0) {

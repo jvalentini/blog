@@ -76,6 +76,10 @@ export class QueueManager {
 			return true;
 		}
 
+		if (this.shuffleMode !== 'tracks+genres' && this.repeatMode === 'off' && this.isAtEndOfQueue()) {
+			return false;
+		}
+
 		if (this.shuffleMode === 'tracks+genres') {
 			if (this.isShuffleDeckExhausted()) {
 				if (this.repeatMode === 'all') {
@@ -114,6 +118,10 @@ export class QueueManager {
 
 	playPrevious(): boolean {
 		if (this.tracks.length === 0) {
+			return false;
+		}
+
+		if (this.repeatMode === 'off' && this.isAtStartOfQueue()) {
 			return false;
 		}
 

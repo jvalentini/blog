@@ -90,6 +90,46 @@
 			"versions": {
 				"hip-hop": "hip-hop/ai-why-do-you-lie-hip-hop.mp3"
 			}
+		},
+		{
+			"id": "the-simultaneous-sip",
+			"title": "Simultaneous Sip",
+			"playlist": "scott-adams",
+			"lyrics": {
+				"hip-hop": "the-simultaneous-sip.md",
+				"country": "the-simultaneous-sip.md",
+				"rock": "the-simultaneous-sip.md",
+				"weird": "the-simultaneous-sip.md",
+				"bluegrass": "the-simultaneous-sip.md"
+			},
+			"versions": {
+				"hip-hop": "hip-hop/the-simultaneous-sip-hip-hop.mp3",
+				"country": "country/the-simultaneous-sip-country.mp3",
+				"rock": "rock/the-simultaneous-sip-rock.mp3",
+				"weird": "weird/the-simultaneous-sip-weird.mp3",
+				"bluegrass": "bluegrass/the-simultaneous-sip-bluegrass.mp3"
+			}
+		},
+		{
+			"id": "everything-ends-poorly-but-that-dont-mean-its-wrong",
+			"title": "Everything Ends Poorly (But That Don't Mean It's Wrong)",
+			"playlist": "scott-adams",
+			"lyrics": {
+				"hip-hop": "everything-ends-poorly-but-that-dont-mean-its-wrong.md",
+				"country": "everything-ends-poorly-but-that-dont-mean-its-wrong.md",
+				"rock": "everything-ends-poorly-but-that-dont-mean-its-wrong.md",
+				"weird": "everything-ends-poorly-but-that-dont-mean-its-wrong.md",
+				"pop": "everything-ends-poorly-but-that-dont-mean-its-wrong.md",
+				"bluegrass": "everything-ends-poorly-but-that-dont-mean-its-wrong.md"
+			},
+			"versions": {
+				"hip-hop": "hip-hop/everything-ends-poorly-but-that-dont-mean-its-wrong-hip-hop.mp3",
+				"country": "country/everything-ends-poorly-but-that-dont-mean-its-wrong.mp3",
+				"rock": "rock/everything-ends-poorly-but-that-dont-mean-its-wrong-rock.mp3",
+				"weird": "weird/everything-ends-poorly-but-that-dont-mean-its-wrong-weird.mp3",
+				"pop": "pop/everything-ends-poorly-but-that-dont-mean-its-wrong-pop.mp3",
+				"bluegrass": "bluegrass/everything-ends-poorly-but-that-dont-mean-its-wrong-bluegrass.mp3"
+			}
 		}
 	],
 	"genres": ["hip-hop", "country", "rock", "weird", "pop", "bluegrass"],

@@ -174,8 +174,11 @@ export function createAudioController(): AudioController {
 			try {
 				await audio.play();
 			} catch (error) {
+				const domError = error as DOMException;
+				if (domError?.name === 'AbortError') {
+					return;
+				}
 				console.warn('AudioController: play() failed', error);
-				throw error;
 			}
 		},
 

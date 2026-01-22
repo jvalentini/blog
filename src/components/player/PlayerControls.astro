@@ -47,25 +47,27 @@
       </svg>
     </button>
   </div>
-  <div class="download-control-wrapper">
-    <span class="download-status-label" id="download-status-label">Download</span>
-    <button class="control-btn" id="btn-download" title="Download playlist">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 3v12" />
-        <path d="M8 11l4 4 4-4" />
-        <path d="M4 19h16" />
-      </svg>
-    </button>
-  </div>
-  <div class="remove-control-wrapper">
-    <span class="remove-status-label" id="remove-status-label">Remove</span>
-    <button class="control-btn" id="btn-remove-downloads" title="Remove downloads">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 6h18" />
-        <path d="M8 6V4h8v2" />
-        <path d="M6 6l1 14h10l1-14" />
-      </svg>
-    </button>
+  <div class="download-controls">
+    <div class="download-control-wrapper">
+      <span class="download-status-label" id="download-status-label">Download</span>
+      <button class="control-btn" id="btn-download" title="Download playlist">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 3v12" />
+          <path d="M8 11l4 4 4-4" />
+          <path d="M4 19h16" />
+        </svg>
+      </button>
+    </div>
+    <div class="remove-control-wrapper">
+      <span class="remove-status-label" id="remove-status-label">Remove</span>
+      <button class="control-btn" id="btn-remove-downloads" title="Remove downloads">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18" />
+          <path d="M8 6V4h8v2" />
+          <path d="M6 6l1 14h10l1-14" />
+        </svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -131,6 +133,12 @@
     flex-direction: column;
     align-items: center;
     gap: 0.25rem;
+  }
+
+  .download-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
   }
 
   .download-control-wrapper {
@@ -245,6 +253,18 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+
+    .playback-buttons {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .download-controls {
+      flex-basis: 100%;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
     }
 
     #btn-shuffle,

@@ -7,7 +7,7 @@
 		},
 		"scott-adams": {
 			"id": "scott-adams",
-			"name": "Scott Adams",
+			"name": "FrameWashing",
 			"visible": true
 		},
 		"politics": {
@@ -93,7 +93,7 @@
 		},
 		{
 			"id": "the-simultaneous-sip",
-			"title": "The simultaneous sip",
+			"title": "The Simultaneous Sip",
 			"playlist": "scott-adams",
 			"lyrics": {
 				"hip-hop": "the-simultaneous-sip.md",

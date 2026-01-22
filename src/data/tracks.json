@@ -100,6 +100,7 @@
 				"country": "the-simultaneous-sip.md",
 				"rock": "the-simultaneous-sip.md",
 				"weird": "the-simultaneous-sip.md",
+				"pop": "the-simultaneous-sip.md",
 				"bluegrass": "the-simultaneous-sip.md"
 			},
 			"versions": {
@@ -107,6 +108,7 @@
 				"country": "country/the-simultaneous-sip-country.mp3",
 				"rock": "rock/the-simultaneous-sip-rock.mp3",
 				"weird": "weird/the-simultaneous-sip-weird.mp3",
+				"pop": "pop/the-simultaneous-sip-pop.mp3",
 				"bluegrass": "bluegrass/the-simultaneous-sip-bluegrass.mp3"
 			}
 		},
@@ -129,6 +131,90 @@
 				"weird": "weird/everything-ends-poorly-but-that-dont-mean-its-wrong-weird.mp3",
 				"pop": "pop/everything-ends-poorly-but-that-dont-mean-its-wrong-pop.mp3",
 				"bluegrass": "bluegrass/everything-ends-poorly-but-that-dont-mean-its-wrong-bluegrass.mp3"
+			}
+		},
+		{
+			"id": "fail-forward",
+			"title": "Fail Forward",
+			"playlist": "scott-adams",
+			"lyrics": {
+				"hip-hop": "fail-forward.md",
+				"country": "fail-forward.md",
+				"rock": "fail-forward.md",
+				"weird": "fail-forward.md",
+				"pop": "fail-forward.md",
+				"bluegrass": "fail-forward.md"
+			},
+			"versions": {
+				"hip-hop": "hip-hop/fail-forward-hip-hop.mp3",
+				"country": "country/fail-forward-country.mp3",
+				"rock": "rock/fail-forward-rock.mp3",
+				"weird": "weird/fail-forward-weird.mp3",
+				"pop": "pop/fail-forward-pop.mp3",
+				"bluegrass": "bluegrass/fail-forward-bluegrass.mp3"
+			}
+		},
+		{
+			"id": "first-principles",
+			"title": "First Principles",
+			"playlist": "scott-adams",
+			"lyrics": {
+				"hip-hop": "first-principles.md",
+				"country": "first-principles.md",
+				"rock": "first-principles.md",
+				"weird": "first-principles.md",
+				"pop": "first-principles.md",
+				"bluegrass": "first-principles.md"
+			},
+			"versions": {
+				"hip-hop": "hip-hop/first-principles-hip-hop.mp3",
+				"country": "country/first-principles-country.mp3",
+				"rock": "rock/first-principles-rock.mp3",
+				"weird": "weird/first-principles-weird.mp3",
+				"pop": "pop/first-principles-pop.mp3",
+				"bluegrass": "bluegrass/first-principles-bluegrass.mp3"
+			}
+		},
+		{
+			"id": "hoaxed",
+			"title": "Hoaxed",
+			"playlist": "scott-adams",
+			"lyrics": {
+				"hip-hop": "hoaxed.md",
+				"country": "hoaxed.md",
+				"rock": "hoaxed.md",
+				"weird": "hoaxed.md",
+				"pop": "hoaxed.md",
+				"bluegrass": "hoaxed.md"
+			},
+			"versions": {
+				"hip-hop": "hip-hop/hoaxed-hip-hop.mp3",
+				"country": "country/hoaxed-country.mp3",
+				"rock": "rock/hoaxed-rock.mp3",
+				"weird": "weird/hoaxed-weird.mp3",
+				"pop": "pop/hoaxed-pop.mp3",
+				"bluegrass": "bluegrass/hoaxed-bluegrass.mp3"
+			}
+		},
+		{
+			"id": "stack-the-deck",
+			"title": "Stack the Deck",
+			"playlist": "scott-adams",
+			"lyrics": {
+				"hip-hop": "stack-the-deck.md",
+				"country": "stack-the-deck.md",
+				"rock": "stack-the-deck.md",
+				"weird": "stack-the-deck.md",
+				"pop": "stack-the-deck.md",
+				"bluegrass": "stack-the-deck.md"
+			},
+			"versions": {
+				"hip-hop": "hip-hop/stack-the-deck-hip-hop.mp3",
+				"country": "country/stack-the-deck-country.mp3",
+				"rock": "rock/stack-the-deck-rock.mp3",
+				"weird": "weird/stack-the-deck-weird.mp3",
+				"pop": "pop/stack-the-deck-pop.mp3",
+				"bluegrass": "bluegrass/stack-the-deck-bluegrass.mp3"
 			}
 		}
 	],

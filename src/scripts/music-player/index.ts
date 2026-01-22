@@ -1,4 +1,5 @@
 import { createAudioController } from './audio-controller';
+import { DownloadManager } from './download-manager';
 import { KeyboardShortcutsManager } from './keyboard-shortcuts';
 import { LyricsSyncManager } from './lyrics-sync';
 import { MediaSessionManager } from './media-session-manager';
@@ -25,6 +26,7 @@ interface DOMElements {
 	btnPrevious: HTMLButtonElement;
 	btnShuffle: HTMLButtonElement;
 	btnRepeat: HTMLButtonElement;
+	btnDownload: HTMLButtonElement | null;
 	progressSlider: HTMLInputElement;
 	volumeSlider: HTMLInputElement | null;
 	currentTime: HTMLElement;
@@ -48,6 +50,7 @@ interface DOMElements {
 	lyricsFullscreenTrack: HTMLElement | null;
 	lyricsFullscreenContent: HTMLElement | null;
 	lyricsContent: HTMLElement | null;
+	downloadStatusLabel: HTMLElement | null;
 }
 
 function formatTime(seconds: number): string {
@@ -70,6 +73,7 @@ function getElements(): DOMElements | null {
 	const btnPrevious = document.getElementById('btn-previous') as HTMLButtonElement | null;
 	const btnShuffle = document.getElementById('btn-shuffle') as HTMLButtonElement | null;
 	const btnRepeat = document.getElementById('btn-repeat') as HTMLButtonElement | null;
+	const btnDownload = document.getElementById('btn-download') as HTMLButtonElement | null;
 	const progressSlider = document.getElementById('progress-slider') as HTMLInputElement | null;
 	const currentTime = document.getElementById('current-time');
 	const durationTime = document.getElementById('duration-time');
@@ -91,6 +95,7 @@ function getElements(): DOMElements | null {
 	const lyricsFullscreenTrack = document.getElementById('lyrics-fullscreen-track');
 	const lyricsFullscreenContent = document.getElementById('lyrics-fullscreen-content');
 	const lyricsContent = document.getElementById('lyrics-content');
+	const downloadStatusLabel = document.getElementById('download-status-label');
 
 	if (!audio || !btnPlay) {
 		console.warn('[MusicPlayer] Required DOM elements not found');
@@ -130,6 +135,7 @@ function getElements(): DOMElements | null {
 		btnPrevious,
 		btnShuffle,
 		btnRepeat,
+		btnDownload,
 		progressSlider,
 		volumeSlider,
 		currentTime,
@@ -153,6 +159,7 @@ function getElements(): DOMElements | null {
 		lyricsFullscreenTrack,
 		lyricsFullscreenContent,
 		lyricsContent,
+		downloadStatusLabel,
 	};
 }
 
@@ -532,6 +539,47 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	const lyricsSync = new LyricsSyncManager('lyrics-content');
 
 	const mediaSessionManager = new MediaSessionManager();
+	const downloadManager = new DownloadManager(tracks);
+	let activeDownload: { playlistId: string; completed: number; total: number } | null = null;
+	let downloadResetTimeout: ReturnType<typeof setTimeout> | null = null;
+
+	const updateDownloadUI = (playlistId: string): void => {
+		const btnDownload = elements.btnDownload;
+		const downloadStatusLabel = elements.downloadStatusLabel;
+
+		if (!btnDownload || !downloadStatusLabel) {
+			return;
+		}
+
+		if (!downloadManager.isSupported()) {
+			downloadStatusLabel.textContent = 'Offline unavailable';
+			btnDownload.disabled = true;
+			btnDownload.classList.remove('downloading', 'active');
+			return;
+		}
+
+		if (activeDownload) {
+			const percent = activeDownload.total ? Math.round((activeDownload.completed / activeDownload.total) * 100) : 0;
+			downloadStatusLabel.textContent =
+				activeDownload.playlistId === playlistId ? `Downloading ${percent}%` : 'Downloading...';
+			btnDownload.disabled = true;
+			btnDownload.classList.add('downloading');
+			btnDownload.classList.remove('active');
+			return;
+		}
+
+		btnDownload.classList.remove('downloading');
+		if (downloadManager.isPlaylistDownloaded(playlistId)) {
+			downloadStatusLabel.textContent = 'Downloaded';
+			btnDownload.disabled = true;
+			btnDownload.classList.add('active');
+			return;
+		}
+
+		downloadStatusLabel.textContent = 'Download';
+		btnDownload.disabled = false;
+		btnDownload.classList.remove('active');
+	};
 
 	// Helper function to check if we can go to previous track
 	const canGoPrevious = (): boolean => {
@@ -840,6 +888,15 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 	keyboardShortcuts.init();
 
+	downloadManager
+		.init()
+		.then(() => {
+			updateDownloadUI(queueManager.getCurrentPlaylist());
+		})
+		.catch(() => {
+			updateDownloadUI(queueManager.getCurrentPlaylist());
+		});
+
 	// Initialize Media Session Manager
 	mediaSessionManager.init({
 		onPlay: async () => {
@@ -899,6 +956,26 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				position: seekTime,
 			});
 		},
+		onSeekTo: (details) => {
+			if (!details || typeof details.seekTime !== 'number' || !Number.isFinite(details.seekTime)) {
+				return;
+			}
+			const seekTime = Math.max(0, details.seekTime);
+
+			if (details.fastSeek && typeof elements.audio.fastSeek === 'function') {
+				elements.audio.fastSeek(seekTime);
+			} else {
+				audioController.seek(seekTime);
+			}
+
+			const duration = audioController.getDuration();
+			mediaSessionManager.clearThrottle();
+			mediaSessionManager.updatePositionState({
+				duration: Number.isFinite(duration) && duration > 0 ? duration : Infinity,
+				playbackRate: 1,
+				position: seekTime,
+			});
+		},
 	});
 
 	elements.btnPlay.addEventListener('click', () => {
@@ -922,6 +999,43 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			queueManager.playPrevious();
 		}
 	});
+
+	if (elements.btnDownload) {
+		const btnDownload = elements.btnDownload;
+		const downloadStatusLabel = elements.downloadStatusLabel;
+
+		btnDownload.addEventListener('click', async () => {
+			hapticFeedback('light');
+			const playlistId = queueManager.getCurrentPlaylist();
+			if (downloadManager.isPlaylistDownloaded(playlistId) || activeDownload) {
+				return;
+			}
+
+			activeDownload = { playlistId, completed: 0, total: 0 };
+			updateDownloadUI(playlistId);
+
+			const success = await downloadManager.downloadPlaylist(playlistId, (progress) => {
+				activeDownload = progress;
+				updateDownloadUI(playlistId);
+			});
+
+			activeDownload = null;
+			updateDownloadUI(playlistId);
+
+			if (!success && downloadStatusLabel) {
+				downloadStatusLabel.textContent = 'Download failed';
+				btnDownload.disabled = false;
+				btnDownload.classList.remove('downloading');
+
+				if (downloadResetTimeout) {
+					clearTimeout(downloadResetTimeout);
+				}
+				downloadResetTimeout = setTimeout(() => {
+					updateDownloadUI(playlistId);
+				}, 2000);
+			}
+		});
+	}
 
 	const HOLD_SEEK_DELAY_MS = 300;
 	const HOLD_SEEK_INTERVAL_MS = 100;
@@ -1121,6 +1235,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 					if (updatePlaylistUI) {
 						updatePlaylistUI(playlistId);
 					}
+					updateDownloadUI(playlistId);
 					rebuildQueue();
 					queueManager.loadTrack(0, false);
 				}
@@ -1143,6 +1258,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		});
 
 		updatePlaylistUI(initialPlaylist);
+		updateDownloadUI(initialPlaylist);
 	}
 
 	const rebuildQueue = () => {
@@ -1197,6 +1313,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			if (updatePlaylistUI) {
 				updatePlaylistUI(targetTrack.playlist);
 			}
+			updateDownloadUI(targetTrack.playlist);
 			pendingSeekTime = null;
 			pendingAutoplay = false;
 			audioController.pause();

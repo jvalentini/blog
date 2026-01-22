@@ -177,4 +177,52 @@ export class DownloadManager {
 			this.isDownloading = false;
 		}
 	}
+
+	async removePlaylist(playlistId: string): Promise<boolean> {
+		if (!this.supported || this.isDownloading) {
+			return false;
+		}
+
+		try {
+			const cache = await caches.open(AUDIO_CACHE);
+			const stored = this.loadStoredDownloads();
+			const storedEntry = stored.playlists[playlistId];
+			const urls = storedEntry?.urls?.length ? storedEntry.urls : this.getPlaylistUrls(playlistId);
+
+			await Promise.all(urls.map((url) => cache.delete(url)));
+
+			if (stored.playlists[playlistId]) {
+				delete stored.playlists[playlistId];
+				this.saveStoredDownloads(stored);
+			}
+
+			return true;
+		} catch (error) {
+			console.warn('[DownloadManager] Remove failed:', error);
+			return false;
+		}
+	}
+
+	async logSourceUsage(url: string): Promise<void> {
+		if (!url) {
+			return;
+		}
+
+		if (!this.supported) {
+			console.info('[DownloadManager] Streaming audio:', url);
+			return;
+		}
+
+		try {
+			const cache = await caches.open(AUDIO_CACHE);
+			const cached = await cache.match(url);
+			if (cached) {
+				console.info('[DownloadManager] Using cached audio:', { cache: AUDIO_CACHE, url });
+			} else {
+				console.info('[DownloadManager] Streaming audio:', url);
+			}
+		} catch (error) {
+			console.warn('[DownloadManager] Cache lookup failed, streaming:', error);
+		}
+	}
 }

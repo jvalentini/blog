@@ -27,6 +27,7 @@ interface DOMElements {
 	btnShuffle: HTMLButtonElement;
 	btnRepeat: HTMLButtonElement;
 	btnDownload: HTMLButtonElement | null;
+	btnRemoveDownloads: HTMLButtonElement | null;
 	progressSlider: HTMLInputElement;
 	volumeSlider: HTMLInputElement | null;
 	currentTime: HTMLElement;
@@ -51,6 +52,7 @@ interface DOMElements {
 	lyricsFullscreenContent: HTMLElement | null;
 	lyricsContent: HTMLElement | null;
 	downloadStatusLabel: HTMLElement | null;
+	removeStatusLabel: HTMLElement | null;
 }
 
 function formatTime(seconds: number): string {
@@ -74,6 +76,7 @@ function getElements(): DOMElements | null {
 	const btnShuffle = document.getElementById('btn-shuffle') as HTMLButtonElement | null;
 	const btnRepeat = document.getElementById('btn-repeat') as HTMLButtonElement | null;
 	const btnDownload = document.getElementById('btn-download') as HTMLButtonElement | null;
+	const btnRemoveDownloads = document.getElementById('btn-remove-downloads') as HTMLButtonElement | null;
 	const progressSlider = document.getElementById('progress-slider') as HTMLInputElement | null;
 	const currentTime = document.getElementById('current-time');
 	const durationTime = document.getElementById('duration-time');
@@ -96,6 +99,7 @@ function getElements(): DOMElements | null {
 	const lyricsFullscreenContent = document.getElementById('lyrics-fullscreen-content');
 	const lyricsContent = document.getElementById('lyrics-content');
 	const downloadStatusLabel = document.getElementById('download-status-label');
+	const removeStatusLabel = document.getElementById('remove-status-label');
 
 	if (!audio || !btnPlay) {
 		console.warn('[MusicPlayer] Required DOM elements not found');
@@ -136,6 +140,7 @@ function getElements(): DOMElements | null {
 		btnShuffle,
 		btnRepeat,
 		btnDownload,
+		btnRemoveDownloads,
 		progressSlider,
 		volumeSlider,
 		currentTime,
@@ -160,6 +165,7 @@ function getElements(): DOMElements | null {
 		lyricsFullscreenContent,
 		lyricsContent,
 		downloadStatusLabel,
+		removeStatusLabel,
 	};
 }
 
@@ -273,6 +279,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		const hasSrc = Boolean(src);
 		if (src) {
 			audioController.setSrc(src);
+			void downloadManager.logSourceUsage(src);
 			audioController.load();
 		} else {
 			console.warn('[MusicPlayer] Missing audio source for track', track);
@@ -513,6 +520,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 						pendingAutoplay = wasPlaying;
 					}
 					audioController.setSrc(src);
+					void downloadManager.logSourceUsage(src);
 					audioController.load();
 				}
 				loadLyricsForTrack(currentIndex);
@@ -541,13 +549,17 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	const mediaSessionManager = new MediaSessionManager();
 	const downloadManager = new DownloadManager(tracks);
 	let activeDownload: { playlistId: string; completed: number; total: number } | null = null;
+	let activeRemoval = false;
 	let downloadResetTimeout: ReturnType<typeof setTimeout> | null = null;
+	let removeResetTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	const updateDownloadUI = (playlistId: string): void => {
 		const btnDownload = elements.btnDownload;
 		const downloadStatusLabel = elements.downloadStatusLabel;
+		const btnRemoveDownloads = elements.btnRemoveDownloads;
+		const removeStatusLabel = elements.removeStatusLabel;
 
-		if (!btnDownload || !downloadStatusLabel) {
+		if (!btnDownload || !downloadStatusLabel || !btnRemoveDownloads || !removeStatusLabel) {
 			return;
 		}
 
@@ -555,6 +567,18 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			downloadStatusLabel.textContent = 'Offline unavailable';
 			btnDownload.disabled = true;
 			btnDownload.classList.remove('downloading', 'active');
+			removeStatusLabel.textContent = 'Remove';
+			btnRemoveDownloads.disabled = true;
+			return;
+		}
+
+		if (activeRemoval) {
+			downloadStatusLabel.textContent = 'Downloading...';
+			btnDownload.disabled = true;
+			btnDownload.classList.add('downloading');
+			btnDownload.classList.remove('active');
+			removeStatusLabel.textContent = 'Removing...';
+			btnRemoveDownloads.disabled = true;
 			return;
 		}
 
@@ -565,6 +589,8 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			btnDownload.disabled = true;
 			btnDownload.classList.add('downloading');
 			btnDownload.classList.remove('active');
+			removeStatusLabel.textContent = 'Remove';
+			btnRemoveDownloads.disabled = true;
 			return;
 		}
 
@@ -573,12 +599,16 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			downloadStatusLabel.textContent = 'Downloaded';
 			btnDownload.disabled = true;
 			btnDownload.classList.add('active');
+			removeStatusLabel.textContent = 'Remove';
+			btnRemoveDownloads.disabled = false;
 			return;
 		}
 
 		downloadStatusLabel.textContent = 'Download';
 		btnDownload.disabled = false;
 		btnDownload.classList.remove('active');
+		removeStatusLabel.textContent = 'Remove';
+		btnRemoveDownloads.disabled = true;
 	};
 
 	// Helper function to check if we can go to previous track
@@ -1031,6 +1061,38 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 					clearTimeout(downloadResetTimeout);
 				}
 				downloadResetTimeout = setTimeout(() => {
+					updateDownloadUI(playlistId);
+				}, 2000);
+			}
+		});
+	}
+
+	if (elements.btnRemoveDownloads) {
+		const btnRemoveDownloads = elements.btnRemoveDownloads;
+		const removeStatusLabel = elements.removeStatusLabel;
+
+		btnRemoveDownloads.addEventListener('click', async () => {
+			hapticFeedback('light');
+			const playlistId = queueManager.getCurrentPlaylist();
+			if (!downloadManager.isPlaylistDownloaded(playlistId) || activeDownload || activeRemoval) {
+				return;
+			}
+
+			activeRemoval = true;
+			updateDownloadUI(playlistId);
+
+			const success = await downloadManager.removePlaylist(playlistId);
+
+			activeRemoval = false;
+			updateDownloadUI(playlistId);
+
+			if (!success && removeStatusLabel) {
+				removeStatusLabel.textContent = 'Remove failed';
+
+				if (removeResetTimeout) {
+					clearTimeout(removeResetTimeout);
+				}
+				removeResetTimeout = setTimeout(() => {
 					updateDownloadUI(playlistId);
 				}, 2000);
 			}

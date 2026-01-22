@@ -18,7 +18,6 @@ If it ever made you happier, then it mattered all along
 The answer's in the question—would you trade the joy away?
 If you wouldn't, then it's worthwhile, that's What Scott would say
 
-
 [Verse 2]
 He's gone now, and we're grieving, but the tools are still in place
 We'll use what he has taught us to get through this aching space

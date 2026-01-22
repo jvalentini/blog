@@ -7,6 +7,7 @@ export interface MediaSessionCallbacks {
 	onNextTrack?: () => void;
 	onSeekBackward?: () => void;
 	onSeekForward?: () => void;
+	onSeekTo?: (details: { seekTime?: number; fastSeek?: boolean }) => void;
 }
 
 export interface MediaSessionMetadata {
@@ -126,6 +127,16 @@ export class MediaSessionManager {
 						callbacks.onSeekForward?.();
 					} catch (error) {
 						console.error('[MediaSessionManager] Error in seekForward action:', error);
+					}
+				});
+			}
+
+			if (callbacks.onSeekTo) {
+				navigator.mediaSession.setActionHandler('seekto', (details) => {
+					try {
+						callbacks.onSeekTo?.(details as { seekTime?: number; fastSeek?: boolean });
+					} catch (error) {
+						console.error('[MediaSessionManager] Error in seekTo action:', error);
 					}
 				});
 			}
@@ -374,6 +385,7 @@ export class MediaSessionManager {
 			navigator.mediaSession.setActionHandler('nexttrack', null);
 			navigator.mediaSession.setActionHandler('seekbackward', null);
 			navigator.mediaSession.setActionHandler('seekforward', null);
+			navigator.mediaSession.setActionHandler('seekto', null);
 
 			// Clear metadata
 			navigator.mediaSession.metadata = null;

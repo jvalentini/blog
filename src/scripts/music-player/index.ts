@@ -62,6 +62,16 @@ function formatTime(seconds: number): string {
 	return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+function formatBytes(bytes: number, hasUnknown: boolean): string {
+	if (!Number.isFinite(bytes) || bytes <= 0) {
+		return hasUnknown ? 'unknown' : '0 MB';
+	}
+
+	const mb = bytes / (1024 * 1024);
+	const formatted = mb >= 100 ? `${Math.round(mb)} MB` : `${mb.toFixed(1)} MB`;
+	return hasUnknown ? `~${formatted}` : formatted;
+}
+
 function hapticFeedback(style: 'light' | 'medium' | 'heavy' = 'light'): void {
 	if (!navigator.vibrate) return;
 	const durations = { light: 10, medium: 20, heavy: 30 };
@@ -573,9 +583,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		}
 
 		if (activeRemoval) {
-			downloadStatusLabel.textContent = 'Downloading...';
+			downloadStatusLabel.textContent = 'Download';
 			btnDownload.disabled = true;
-			btnDownload.classList.add('downloading');
+			btnDownload.classList.remove('downloading');
 			btnDownload.classList.remove('active');
 			removeStatusLabel.textContent = 'Removing...';
 			btnRemoveDownloads.disabled = true;
@@ -1041,6 +1051,17 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 				return;
 			}
 
+			const playlistName = playlists[playlistId]?.name ?? playlistId;
+			const assetCount = downloadManager.getPlaylistAssetCount(playlistId);
+			const estimate = await downloadManager.estimatePlaylistBytes(playlistId);
+			const estimateText = formatBytes(estimate.bytes, estimate.hasUnknown);
+			const confirmDownload = window.confirm(
+				`Download ${playlistName} (${assetCount} files) for offline playback?\nEstimated size: ${estimateText}`,
+			);
+			if (!confirmDownload) {
+				return;
+			}
+
 			activeDownload = { playlistId, completed: 0, total: 0 };
 			updateDownloadUI(playlistId);
 
@@ -1075,6 +1096,16 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			hapticFeedback('light');
 			const playlistId = queueManager.getCurrentPlaylist();
 			if (!downloadManager.isPlaylistDownloaded(playlistId) || activeDownload || activeRemoval) {
+				return;
+			}
+
+			const playlistName = playlists[playlistId]?.name ?? playlistId;
+			const estimate = await downloadManager.estimatePlaylistBytes(playlistId, { preferCache: true });
+			const estimateText = formatBytes(estimate.bytes, estimate.hasUnknown);
+			const confirmRemove = window.confirm(
+				`Remove downloaded ${playlistName} audio?\nEstimated storage freed: ${estimateText}`,
+			);
+			if (!confirmRemove) {
 				return;
 			}
 

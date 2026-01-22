@@ -4,6 +4,7 @@ const AUDIO_CACHE = 'waves-audio-v1';
 const DOWNLOADS_STORAGE_KEY = 'waves-audio-downloads';
 const DOWNLOAD_VERSION = 1;
 const DEFAULT_CONCURRENCY = 2;
+const ESTIMATE_CONCURRENCY = 4;
 
 interface StoredDownloads {
 	version: number;
@@ -87,6 +88,101 @@ export class DownloadManager {
 		return Array.from(urls);
 	}
 
+	private parseContentLength(headers: Headers): number | null {
+		const contentLength = headers.get('content-length');
+		if (contentLength) {
+			const parsed = Number.parseInt(contentLength, 10);
+			if (Number.isFinite(parsed) && parsed > 0) {
+				return parsed;
+			}
+		}
+
+		const contentRange = headers.get('content-range');
+		if (contentRange) {
+			const match = /\/(\d+)$/.exec(contentRange);
+			if (match?.[1]) {
+				const parsed = Number.parseInt(match[1], 10);
+				if (Number.isFinite(parsed) && parsed > 0) {
+					return parsed;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private async fetchContentLength(url: string): Promise<number | null> {
+		try {
+			const headResponse = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+			if (headResponse.ok) {
+				const length = this.parseContentLength(headResponse.headers);
+				if (length) {
+					return length;
+				}
+			}
+		} catch {}
+
+		try {
+			const rangeResponse = await fetch(url, {
+				method: 'GET',
+				headers: { Range: 'bytes=0-0' },
+				cache: 'no-store',
+			});
+			if (rangeResponse.ok || rangeResponse.status === 206) {
+				const length = this.parseContentLength(rangeResponse.headers);
+				if (length) {
+					return length;
+				}
+			}
+		} catch {}
+
+		return null;
+	}
+
+	private async estimateUrlsBytes(
+		urls: string[],
+		preferCache: boolean,
+	): Promise<{ bytes: number; hasUnknown: boolean }> {
+		let bytes = 0;
+		let hasUnknown = false;
+
+		let cache: Cache | null = null;
+		if (this.supported && preferCache) {
+			cache = await caches.open(AUDIO_CACHE);
+		}
+
+		const queue = [...urls];
+		const worker = async (): Promise<void> => {
+			while (queue.length > 0) {
+				const url = queue.shift();
+				if (!url) return;
+
+				let length: number | null = null;
+				if (cache) {
+					const cached = await cache.match(url);
+					if (cached) {
+						length = this.parseContentLength(cached.headers);
+					}
+				}
+
+				if (length === null) {
+					length = await this.fetchContentLength(url);
+				}
+
+				if (length !== null) {
+					bytes += length;
+				} else {
+					hasUnknown = true;
+				}
+			}
+		};
+
+		const workers = Array.from({ length: ESTIMATE_CONCURRENCY }, () => worker());
+		await Promise.all(workers);
+
+		return { bytes, hasUnknown };
+	}
+
 	isSupported(): boolean {
 		return this.supported;
 	}
@@ -94,6 +190,22 @@ export class DownloadManager {
 	isPlaylistDownloaded(playlistId: string): boolean {
 		const stored = this.loadStoredDownloads();
 		return Boolean(stored.playlists[playlistId]);
+	}
+
+	getPlaylistAssetCount(playlistId: string): number {
+		return this.getPlaylistUrls(playlistId).length;
+	}
+
+	async estimatePlaylistBytes(
+		playlistId: string,
+		options: { preferCache?: boolean } = {},
+	): Promise<{ bytes: number; hasUnknown: boolean }> {
+		const urls = this.getPlaylistUrls(playlistId);
+		if (urls.length === 0) {
+			return { bytes: 0, hasUnknown: false };
+		}
+
+		return this.estimateUrlsBytes(urls, options.preferCache ?? false);
 	}
 
 	async init(): Promise<void> {

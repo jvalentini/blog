@@ -562,6 +562,69 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	let activeRemoval = false;
 	let downloadResetTimeout: ReturnType<typeof setTimeout> | null = null;
 	let removeResetTimeout: ReturnType<typeof setTimeout> | null = null;
+	const estimateCache = new Map<string, { bytes: number; hasUnknown: boolean }>();
+	const estimateRequests = new Map<string, Promise<{ bytes: number; hasUnknown: boolean }>>();
+
+	const cacheEstimate = (key: string, estimate: { bytes: number; hasUnknown: boolean }): void => {
+		estimateCache.set(key, estimate);
+	};
+
+	const getEstimateKey = (playlistId: string, kind: 'download' | 'remove'): string => `${kind}:${playlistId}`;
+
+	const primeEstimate = (playlistId: string, kind: 'download' | 'remove', preferCache: boolean): void => {
+		const key = getEstimateKey(playlistId, kind);
+		if (estimateCache.has(key) || estimateRequests.has(key)) {
+			return;
+		}
+
+		const request = downloadManager
+			.estimatePlaylistBytes(playlistId, { preferCache })
+			.then((estimate) => {
+				cacheEstimate(key, estimate);
+				return estimate;
+			})
+			.catch(() => ({ bytes: 0, hasUnknown: true }))
+			.finally(() => {
+				estimateRequests.delete(key);
+			});
+
+		estimateRequests.set(key, request);
+	};
+
+	const getEstimate = async (
+		playlistId: string,
+		kind: 'download' | 'remove',
+		preferCache: boolean,
+		timeoutMs: number,
+	): Promise<{ bytes: number; hasUnknown: boolean } | null> => {
+		const key = getEstimateKey(playlistId, kind);
+		const cached = estimateCache.get(key);
+		if (cached) {
+			return cached;
+		}
+
+		primeEstimate(playlistId, kind, preferCache);
+		const request = estimateRequests.get(key);
+		if (!request) {
+			return null;
+		}
+
+		if (timeoutMs <= 0) {
+			return null;
+		}
+
+		let timeoutId: ReturnType<typeof setTimeout> | null = null;
+		const timeoutPromise = new Promise<null>((resolve) => {
+			timeoutId = setTimeout(() => resolve(null), timeoutMs);
+		});
+
+		const result = await Promise.race([request, timeoutPromise]);
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+		}
+
+		return result;
+	};
 
 	const updateDownloadUI = (playlistId: string): void => {
 		const btnDownload = elements.btnDownload;
@@ -581,6 +644,8 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			btnRemoveDownloads.disabled = true;
 			return;
 		}
+
+		primeEstimate(playlistId, 'download', false);
 
 		if (activeRemoval) {
 			downloadStatusLabel.textContent = 'Download';
@@ -606,6 +671,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 		btnDownload.classList.remove('downloading');
 		if (downloadManager.isPlaylistDownloaded(playlistId)) {
+			primeEstimate(playlistId, 'remove', true);
 			downloadStatusLabel.textContent = 'Downloaded';
 			btnDownload.disabled = true;
 			btnDownload.classList.add('active');
@@ -1053,8 +1119,10 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 			const playlistName = playlists[playlistId]?.name ?? playlistId;
 			const assetCount = downloadManager.getPlaylistAssetCount(playlistId);
-			const estimate = await downloadManager.estimatePlaylistBytes(playlistId);
-			const estimateText = formatBytes(estimate.bytes, estimate.hasUnknown);
+			const estimate =
+				(await getEstimate(playlistId, 'download', false, 200)) ??
+				estimateCache.get(getEstimateKey(playlistId, 'download'));
+			const estimateText = estimate ? formatBytes(estimate.bytes, estimate.hasUnknown) : 'unknown';
 			const confirmDownload = window.confirm(
 				`Download ${playlistName} (${assetCount} files) for offline playback?\nEstimated size: ${estimateText}`,
 			);
@@ -1072,6 +1140,8 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 			activeDownload = null;
 			updateDownloadUI(playlistId);
+			primeEstimate(playlistId, 'remove', true);
+			estimateCache.delete(getEstimateKey(playlistId, 'download'));
 
 			if (!success && downloadStatusLabel) {
 				downloadStatusLabel.textContent = 'Download failed';
@@ -1100,8 +1170,9 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 			}
 
 			const playlistName = playlists[playlistId]?.name ?? playlistId;
-			const estimate = await downloadManager.estimatePlaylistBytes(playlistId, { preferCache: true });
-			const estimateText = formatBytes(estimate.bytes, estimate.hasUnknown);
+			const estimate =
+				(await getEstimate(playlistId, 'remove', true, 200)) ?? estimateCache.get(getEstimateKey(playlistId, 'remove'));
+			const estimateText = estimate ? formatBytes(estimate.bytes, estimate.hasUnknown) : 'unknown';
 			const confirmRemove = window.confirm(
 				`Remove downloaded ${playlistName} audio?\nEstimated storage freed: ${estimateText}`,
 			);
@@ -1116,6 +1187,7 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 
 			activeRemoval = false;
 			updateDownloadUI(playlistId);
+			estimateCache.delete(getEstimateKey(playlistId, 'remove'));
 
 			if (!success && removeStatusLabel) {
 				removeStatusLabel.textContent = 'Remove failed';

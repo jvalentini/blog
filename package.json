@@ -48,7 +48,7 @@
 		"linkinator": "^7.5.3",
 		"oxlint": "^1.38.0",
 		"schema-dts": "^1.1.5",
-		"typescript": "^5.9.3",
+		"typescript": "^6.0.2",
 		"vitest": "^4.0.17"
 	}
 }

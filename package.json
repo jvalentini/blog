@@ -47,7 +47,7 @@
 		"lefthook": "^2.0.13",
 		"linkinator": "^7.5.3",
 		"oxlint": "^1.38.0",
-		"schema-dts": "^1.1.5",
+		"schema-dts": "^2.0.0",
 		"typescript": "^5.9.3",
 		"vitest": "^4.0.17"
 	}

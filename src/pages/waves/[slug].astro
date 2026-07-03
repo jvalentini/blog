@@ -4,12 +4,13 @@ import MusicPlayer from '../../components/MusicPlayer.astro';
 import { SITE_TITLE } from '../../consts';
 import tracksData from '../../data/tracks.json';
 import WavesLayout from '../../layouts/WavesLayout.astro';
+import { type AudioVersionMap, getAbsoluteAudioAssetUrl, getAudioVersionEntries } from '../../utils/audio-assets';
 
 interface Song {
 	id: string;
 	title: string;
-	lyrics: Record<string, string>;
-	versions: Record<string, string>;
+	lyrics: Record<string, string | undefined>;
+	versions: AudioVersionMap;
 }
 
 interface TracksConfig {
@@ -27,7 +28,7 @@ export async function getStaticPaths() {
 			trackTitle: song.title,
 			trackSlug: song.id,
 			// Use the default genre's filename for the embed
-			filename: song.versions[config.defaultGenre] || Object.values(song.versions)[0],
+			filename: song.versions[config.defaultGenre] ?? getAudioVersionEntries(song.versions)[0]?.[1] ?? '',
 		},
 	}));
 }
@@ -39,7 +40,7 @@ const pageDescription = `Listen to ${trackTitle} - A collection of original trac
 const siteUrl = Astro.site?.origin ?? 'https://jvalentini.pages.dev';
 const playerCard = {
 	embedUrl: `${siteUrl}/embed/${trackSlug}`,
-	streamUrl: `${siteUrl}/assets/music/${filename}`,
+	streamUrl: getAbsoluteAudioAssetUrl(filename, siteUrl),
 	slug: trackSlug,
 	width: 480,
 	height: 200,

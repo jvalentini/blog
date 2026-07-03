@@ -237,6 +237,34 @@ describe('Play Button Functionality', () => {
 			expect(genres).toContain('hip-hop');
 		});
 
+		it('should get available genres for current playlist only', () => {
+			const tracks: Track[] = [
+				{
+					id: 1,
+					songId: 'song-1',
+					title: 'Track 1',
+					playlist: 'ai',
+					lyrics: {},
+					versions: { 'hip-hop': '/audio/1.mp3', rock: '/audio/1-rock.mp3' },
+				},
+				{
+					id: 2,
+					songId: 'chapter-1',
+					title: 'Chapter 1',
+					playlist: 'audiobook',
+					lyrics: {},
+					versions: { audiobook: '/audio/chapter-1.mp3' },
+				},
+			];
+			const qm = new QueueManager(tracks, 'hip-hop', 'ai', {});
+
+			expect(qm.getAvailableGenresForCurrentPlaylist()).toEqual(['hip-hop', 'rock']);
+
+			qm.switchPlaylist('audiobook');
+
+			expect(qm.getAvailableGenresForCurrentPlaylist()).toEqual(['audiobook']);
+		});
+
 		it('should get current genre', () => {
 			expect(queueManager.getCurrentGenre()).toBe('hip-hop');
 		});

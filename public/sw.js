@@ -1,5 +1,5 @@
 const AUDIO_CACHE = 'waves-audio-v1';
-const AUDIO_PATH_PREFIX = '/assets/music/';
+const AUDIO_PATH_PREFIXES = ['/assets/music/', '/assets/audiobooks/'];
 
 self.addEventListener('install', (event) => {
 	event.waitUntil(self.skipWaiting());
@@ -28,7 +28,7 @@ self.addEventListener('fetch', (event) => {
 		return;
 	}
 
-	if (!url.pathname.startsWith(AUDIO_PATH_PREFIX)) {
+	if (!AUDIO_PATH_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
 		return;
 	}
 

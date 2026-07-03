@@ -1,11 +1,12 @@
 ---
 import tracksData from '../../data/tracks.json';
+import { type AudioVersionMap, getAudioAssetPath, getAudioVersionEntries } from '../../utils/audio-assets';
 
 interface Song {
 	id: string;
 	title: string;
-	lyrics: Record<string, string>;
-	versions: Record<string, string>;
+	lyrics: Record<string, string | undefined>;
+	versions: AudioVersionMap;
 }
 
 interface TracksConfig {
@@ -22,7 +23,9 @@ export async function getStaticPaths() {
 		props: {
 			trackTitle: song.title,
 			trackId: song.id,
-			versions: song.versions,
+			versions: Object.fromEntries(
+				getAudioVersionEntries(song.versions).map(([genre, filePath]) => [genre, getAudioAssetPath(filePath)]),
+			),
 			genres: config.genres,
 			defaultGenre: config.defaultGenre,
 		},
@@ -262,7 +265,8 @@ const { trackTitle, trackId, versions, defaultGenre } = Astro.props;
     const durationEl = document.getElementById('duration');
     const genreControls = document.getElementById('genreControls');
 
-    let currentGenre = defaultGenre;
+    const availableGenres = Object.keys(versions);
+    let currentGenre = versions[defaultGenre] ? defaultGenre : availableGenres[0];
     let wasPlaying = false;
     let currentTime = 0;
 
@@ -278,7 +282,7 @@ const { trackTitle, trackId, versions, defaultGenre } = Astro.props;
       currentTime = audio.currentTime || 0;
       currentGenre = genre;
       
-      audio.src = `/assets/music/${versions[genre]}`;
+      audio.src = versions[genre];
       audio.load();
       
       document.querySelectorAll('.genre-btn').forEach(btn => {
@@ -298,8 +302,6 @@ const { trackTitle, trackId, versions, defaultGenre } = Astro.props;
       }
     });
 
-    // Initialize genre buttons
-    const availableGenres = Object.keys(versions);
     availableGenres.forEach(genre => {
       const btn = document.createElement('button');
       btn.className = 'genre-btn' + (genre === currentGenre ? ' active' : '');
@@ -319,7 +321,9 @@ const { trackTitle, trackId, versions, defaultGenre } = Astro.props;
     const genreHotkeyEnabled = availableGenres.length > 1;
 
     // Load initial audio
-    loadGenre(currentGenre);
+    if (currentGenre) {
+      loadGenre(currentGenre);
+    }
 
     playBtn.addEventListener('click', () => {
       if (audio.paused) {

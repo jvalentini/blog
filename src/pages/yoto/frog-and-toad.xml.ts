@@ -2,20 +2,11 @@ import { stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import type { APIContext } from 'astro';
 import { AUTHOR_NAME } from '../../consts';
-import { getAbsoluteAudioAssetUrl } from '../../utils/audio-assets';
-import { getFrogAndToadChapters } from '../../utils/frog-and-toad';
-
-const FEED_TITLE = 'Frog and Toad Audiobook';
-const FEED_DESCRIPTION = 'Private licensed Frog and Toad audiobook feed for online playback fallback.';
-
-function escapeXml(value: string): string {
-	return value
-		.replaceAll('&', '&amp;')
-		.replaceAll('<', '&lt;')
-		.replaceAll('>', '&gt;')
-		.replaceAll('"', '&quot;')
-		.replaceAll("'", '&apos;');
-}
+import {
+	buildFrogAndToadPodcastFeed,
+	getFrogAndToadChapters,
+	getFrogAndToadChapterUrl,
+} from '../../utils/frog-and-toad';
 
 async function getPublicAssetSize(assetPath: string): Promise<number> {
 	const publicPath = fileURLToPath(new URL(`../../../public${assetPath}`, import.meta.url));
@@ -29,34 +20,15 @@ export async function GET(context: APIContext): Promise<Response> {
 		getFrogAndToadChapters().map(async (chapter) => ({
 			...chapter,
 			size: await getPublicAssetSize(chapter.assetPath),
-			url: getAbsoluteAudioAssetUrl(chapter.filePath, siteUrl),
+			url: getFrogAndToadChapterUrl(chapter.filePath, siteUrl),
 		})),
 	);
-	const publishedAt = new Date('2026-07-03T00:00:00.000Z').toUTCString();
-
-	const items = chapters
-		.map(
-			(chapter) => `<item>
-	<title>${escapeXml(chapter.title)}</title>
-	<guid isPermaLink="false">${escapeXml(chapter.id)}</guid>
-	<pubDate>${publishedAt}</pubDate>
-	<enclosure url="${escapeXml(chapter.url)}" length="${chapter.size}" type="audio/mpeg" />
-</item>`,
-		)
-		.join('\\n');
-
-	const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-<channel>
-	<title>${escapeXml(FEED_TITLE)}</title>
-	<link>${escapeXml(new URL('/yoto/frog-and-toad', siteUrl).toString())}</link>
-	<description>${escapeXml(FEED_DESCRIPTION)}</description>
-	<language>en-us</language>
-	<author>${escapeXml(AUTHOR_NAME)}</author>
-	<pubDate>${publishedAt}</pubDate>
-	${items}
-</channel>
-</rss>`;
+	const xml = buildFrogAndToadPodcastFeed({
+		authorName: AUTHOR_NAME,
+		chapters,
+		publishedAt: new Date('2026-07-03T00:00:00.000Z'),
+		siteUrl,
+	});
 
 	return new Response(xml, {
 		headers: {

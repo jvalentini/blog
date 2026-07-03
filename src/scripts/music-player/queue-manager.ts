@@ -350,6 +350,16 @@ export class QueueManager {
 		return this.getAvailableGenresForTrack(this.currentIndex);
 	}
 
+	getAvailableGenresForCurrentPlaylist(): string[] {
+		const genres = new Set<string>();
+		this.tracks.forEach((track) => {
+			Object.keys(track.versions).forEach((genre) => {
+				genres.add(genre);
+			});
+		});
+		return Array.from(genres);
+	}
+
 	getGenreForTrack(_index: number): string | null {
 		if (this.shuffleMode !== 'tracks+genres') {
 			return null;

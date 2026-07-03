@@ -10,6 +10,13 @@ interface CFProperties {
 	continent?: string;
 }
 
+const STATIC_AUDIO_PATH_PREFIXES = ['/assets/music/', '/assets/audiobooks/'] as const;
+
+export function shouldBypassMiddleware(request: Request): boolean {
+	const url = new URL(request.url);
+	return STATIC_AUDIO_PATH_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
+}
+
 function getABBucket(request: Request): 'A' | 'B' {
 	const cookie = request.headers.get('Cookie') || '';
 	const match = cookie.match(/ab_bucket=([AB])/);
@@ -32,6 +39,10 @@ function formatLocalTime(timezone: string): string {
 
 export const onRequest: PagesFunction<Env> = async (context) => {
 	const { request, next, env } = context;
+	if (shouldBypassMiddleware(request)) {
+		return next();
+	}
+
 	const cf = (request.cf || {}) as CFProperties;
 
 	const abBucket = getABBucket(request);

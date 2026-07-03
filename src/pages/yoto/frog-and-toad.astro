@@ -1,0 +1,207 @@
+---
+import { SITE_TITLE } from '../../consts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { FROG_AND_TOAD_RSS_PATH, getFrogAndToadChapters } from '../../utils/frog-and-toad';
+
+const chapters = getFrogAndToadChapters();
+const firstChapterPath = chapters[0] ? `/waves/${chapters[0].id}` : '/waves';
+const pageTitle = `Frog and Toad Yoto Setup | ${SITE_TITLE}`;
+const description =
+	'Download the Frog and Toad audiobook chapters and set up a Yoto Make Your Own card for offline playback.';
+---
+
+<BaseLayout title={pageTitle} description={description} wide>
+	<section class="yoto-page">
+		<header class="terminal-panel hero">
+			<div class="terminal-command">
+				<span class="prompt">$</span>
+				<span class="command">yoto --offline frog-and-toad</span>
+			</div>
+			<h1>Frog and Toad for Yoto</h1>
+			<p>
+				Everything is hosted here. When you come back, use this page as the checklist for setting up the Yoto Mini for
+				offline playback.
+			</p>
+			<div class="actions">
+				<a class="btn primary" href={firstChapterPath}>Open in Waves</a>
+				<a class="btn" href={FROG_AND_TOAD_RSS_PATH}>RSS fallback</a>
+			</div>
+		</header>
+
+		<section class="terminal-panel setup">
+			<h2>When You Come Back</h2>
+			<ol>
+				<li>Open this page and download the 22 MP3 chapter files below.</li>
+				<li>Open the Yoto app and create a Make Your Own playlist.</li>
+				<li>Add the MP3s to that playlist in chapter order.</li>
+				<li>Link that playlist to a Make Your Own card.</li>
+				<li>Put the card in the Yoto Mini while it is online and let it download once.</li>
+				<li>Switch the Yoto Mini offline and test the card.</li>
+			</ol>
+			<p class="note">
+				Use the RSS fallback only if you want online streaming. For offline Yoto playback, use the Make Your Own upload
+				steps above.
+			</p>
+		</section>
+
+		<section class="terminal-panel chapters">
+			<h2>Chapter Files</h2>
+			<div class="chapter-list">
+				{chapters.map((chapter, index) => (
+					<a class="chapter-row" href={chapter.assetPath} download>
+						<span class="chapter-number">{String(index + 1).padStart(2, '0')}</span>
+						<span class="chapter-title">{chapter.title}</span>
+						<span class="chapter-action">Download MP3</span>
+					</a>
+				))}
+			</div>
+		</section>
+	</section>
+</BaseLayout>
+
+<style>
+	.yoto-page {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-xl);
+		margin-bottom: var(--space-3xl);
+	}
+
+	.terminal-panel {
+		background: linear-gradient(135deg, var(--bg-surface), color-mix(in srgb, var(--bg-base) 88%, transparent));
+		border: 1px solid var(--border-base);
+		border-radius: 12px;
+		padding: var(--space-xl);
+		box-shadow: var(--glow-sm);
+	}
+
+	.hero {
+		border-color: color-mix(in srgb, var(--amber-base) 45%, var(--border-base));
+	}
+
+	.terminal-command {
+		display: flex;
+		gap: var(--space-sm);
+		margin-bottom: var(--space-md);
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
+	}
+
+	.prompt {
+		color: var(--phosphor-base);
+	}
+
+	.command {
+		color: var(--amber-base);
+	}
+
+	.hero h1 {
+		margin-bottom: var(--space-md);
+	}
+
+	.hero p,
+	.note {
+		max-width: 72ch;
+	}
+
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-md);
+		margin-top: var(--space-xl);
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 44px;
+		border: 1px solid var(--border-base);
+		border-radius: 8px;
+		padding: var(--space-sm) var(--space-md);
+		color: var(--text-bright);
+		background: var(--bg-elevated);
+		transition: border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+	}
+
+	.btn:hover,
+	.btn:focus-visible {
+		border-color: var(--phosphor-base);
+		color: var(--phosphor-bright);
+		box-shadow: var(--glow-sm);
+	}
+
+	.btn.primary {
+		border-color: var(--phosphor-base);
+		color: var(--phosphor-base);
+	}
+
+	.setup ol {
+		margin: 0 0 var(--space-lg);
+		padding-left: var(--space-xl);
+	}
+
+	.setup li {
+		margin-bottom: var(--space-sm);
+	}
+
+	.note {
+		margin: 0;
+		color: var(--amber-bright);
+	}
+
+	.chapter-list {
+		display: grid;
+		gap: var(--space-sm);
+	}
+
+	.chapter-row {
+		display: grid;
+		grid-template-columns: 3rem minmax(0, 1fr) auto;
+		align-items: center;
+		gap: var(--space-md);
+		min-height: 48px;
+		border: 1px solid var(--border-dim);
+		border-radius: 8px;
+		padding: var(--space-sm) var(--space-md);
+		background: color-mix(in srgb, var(--bg-deep) 80%, transparent);
+		text-decoration: none;
+		transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+	}
+
+	.chapter-row:hover,
+	.chapter-row:focus-visible {
+		border-color: var(--phosphor-base);
+		background: var(--phosphor-glow);
+		transform: translateY(-1px);
+	}
+
+	.chapter-number {
+		color: var(--amber-base);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.chapter-title {
+		color: var(--text-bright);
+		overflow-wrap: anywhere;
+	}
+
+	.chapter-action {
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
+	}
+
+	@media (max-width: 768px) {
+		.terminal-panel {
+			padding: var(--space-lg);
+		}
+
+		.chapter-row {
+			grid-template-columns: 2.5rem minmax(0, 1fr);
+		}
+
+		.chapter-action {
+			grid-column: 2;
+		}
+	}
+</style>

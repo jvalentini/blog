@@ -14,6 +14,11 @@
 			"id": "politics",
 			"name": "Politics",
 			"visible": false
+		},
+		"frog-and-toad": {
+			"id": "frog-and-toad",
+			"name": "Frog and Toad",
+			"visible": true
 		}
 	},
 	"songs": [
@@ -215,6 +220,204 @@
 				"weird": "weird/stack-the-deck-weird.mp3",
 				"pop": "pop/stack-the-deck-pop.mp3",
 				"bluegrass": "bluegrass/stack-the-deck-bluegrass.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-frog-and-toad-are-friends",
+			"title": "Frog and Toad Are Friends",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/1-01-frog-and-toad-are-friends.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-spring",
+			"title": "Spring",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/1-02-spring.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-the-story",
+			"title": "The Story",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/1-03-the-story.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-a-lost-button",
+			"title": "A Lost Button",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/1-04-a-lost-button.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-a-swim",
+			"title": "A Swim",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/1-05-a-swim.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-the-letter",
+			"title": "The Letter",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/1-06-the-letter.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-frog-and-toad-all-year",
+			"title": "Frog and Toad All Year",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/1-07-frog-and-toad-all-year.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-ice-cream",
+			"title": "Ice Cream",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/1-08-ice-cream.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-the-surprise",
+			"title": "The Surprise",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/1-09-the-surprise.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-christmas-eve",
+			"title": "Christmas Eve",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/1-10-christmas-eve.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-frog-and-toad-together",
+			"title": "Frog and Toad Together",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-01-frog-and-toad-together.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-a-list",
+			"title": "A List",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-02-a-list.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-the-garden",
+			"title": "The Garden",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-03-the-garden.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-cookies",
+			"title": "Cookies",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-04-cookies.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-dragons-and-giants",
+			"title": "Dragons and Giants",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-05-dragons-and-giants.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-the-dream",
+			"title": "The Dream",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-06-the-dream.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-days-with-frog-and-toad",
+			"title": "Days With Frog and Toad",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-07-days-with-frog-and-toad.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-tomorrow",
+			"title": "Tomorrow",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-08-tomorrow.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-the-kite",
+			"title": "The Kite",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-09-the-kite.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-shivers",
+			"title": "Shivers",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-10-shivers.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-the-hat",
+			"title": "The Hat",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-11-the-hat.mp3"
+			}
+		},
+		{
+			"id": "frog-and-toad-alone",
+			"title": "Alone",
+			"playlist": "frog-and-toad",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/frog-and-toad/2-12-alone.mp3"
 			}
 		}
 	],

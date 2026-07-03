@@ -2,12 +2,13 @@ import { getImage } from 'astro:assets';
 import type { APIRoute, GetStaticPaths } from 'astro';
 import wavesHeroImage from '../../assets/waves-hero.png';
 import tracksData from '../../data/tracks.json';
+import type { AudioVersionMap } from '../../utils/audio-assets';
 
 interface Song {
 	id: string;
 	title: string;
-	lyrics: Record<string, string>;
-	versions: Record<string, string>;
+	lyrics: Record<string, string | undefined>;
+	versions: AudioVersionMap;
 }
 
 interface TracksConfig {

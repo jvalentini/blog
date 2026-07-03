@@ -28,5 +28,10 @@
 		"base": "#33ff33",
 		"bright": "#66ff66",
 		"dim": "rgba(51, 255, 51, 0.1)"
+	},
+	"audiobook": {
+		"base": "#ffb000",
+		"bright": "#ffc433",
+		"dim": "rgba(255, 176, 0, 0.1)"
 	}
 }

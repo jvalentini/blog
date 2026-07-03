@@ -7,6 +7,7 @@ import wavesHeroImage from '../assets/waves-hero.png';
 import genreColorsData from '../data/genre-colors.json';
 import tracksData from '../data/tracks.json';
 import type { ParsedLyrics } from '../scripts/music-player/types';
+import { type AudioVersionMap, getAudioAssetPath, getAudioVersionEntries } from '../utils/audio-assets';
 import { parseLyrics } from '../utils/lyrics-parser';
 import HotkeysModal from './player/HotkeysModal.astro';
 import LyricsPanel from './player/LyricsPanel.astro';
@@ -20,8 +21,8 @@ interface Song {
 	id: string;
 	title: string;
 	playlist: string;
-	lyrics: Record<string, string>;
-	versions: Record<string, string>;
+	lyrics: Record<string, string | undefined>;
+	versions: AudioVersionMap;
 }
 
 interface Playlist {
@@ -49,7 +50,7 @@ const tracks = songs.map((song, idx) => ({
 	playlist: song.playlist,
 	lyrics: song.lyrics,
 	versions: Object.fromEntries(
-		Object.entries(song.versions).map(([genre, filepath]) => [genre, `/assets/music/${filepath}`]),
+		getAudioVersionEntries(song.versions).map(([genre, filepath]) => [genre, getAudioAssetPath(filepath)]),
 	),
 }));
 
@@ -69,7 +70,9 @@ try {
 		if (!song.lyrics) continue;
 		lyricsData[song.title] = {};
 
-		for (const [genre, filepath] of Object.entries(song.lyrics)) {
+		for (const [genre, filepath] of Object.entries(song.lyrics).filter(
+			(entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1].length > 0,
+		)) {
 			try {
 				// Try genre-specific path first (e.g., "hip-hop/slop-slinger-hip-hop.md")
 				const filePath = path.join(lyricsDir, filepath);

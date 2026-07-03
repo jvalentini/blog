@@ -195,6 +195,29 @@ const { tracks, genres, defaultGenre } = Astro.props;
     box-shadow: 0 0 8px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 10%, transparent);
   }
 
+  .genre-selector.single-genre-hidden,
+  .queue-section.single-genre-playlist .queue-item-genre-badge {
+    display: none;
+  }
+
+  .queue-section.single-genre-playlist .queue-item {
+    background: color-mix(in srgb, var(--bg-deep) 72%, var(--genre-dim));
+  }
+
+  .queue-section.single-genre-playlist .queue-item-number {
+    color: var(--genre-base, var(--amber-base));
+    opacity: 1;
+  }
+
+  .queue-section.single-genre-playlist .queue-item-title {
+    color: var(--text-bright);
+  }
+
+  .queue-section.single-genre-playlist .queue-item.active .queue-item-title,
+  .queue-section.single-genre-playlist .queue-item-title:hover {
+    color: var(--genre-bright, var(--amber-bright));
+  }
+
   .genre-selector:hover {
     border-color: color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 50%, transparent);
     box-shadow: 0 0 12px color-mix(in srgb, var(--genre-base, var(--phosphor-base)) 20%, transparent);
@@ -342,6 +365,7 @@ const { tracks, genres, defaultGenre } = Astro.props;
     position: relative;
     overflow: hidden;
     border-radius: 6px;
+    min-height: 50px;
   }
 
   .queue-item-action {

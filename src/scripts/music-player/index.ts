@@ -360,6 +360,21 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 	const updateGenreUI = (genre: Genre): void => {
 		const currentIndex = state.get('currentIndex');
 		const availableGenres = currentIndex >= 0 ? queueManager.getAvailableGenresForCurrentTrack() : genres;
+		const playlistGenres = queueManager.getAvailableGenresForCurrentPlaylist();
+		const isSingleGenrePlaylist = playlistGenres.length <= 1;
+		const musicPlayer = document.querySelector('.music-player') as HTMLElement | null;
+		const genreSelector = elements.genreToggle.closest('.genre-selector') as HTMLElement | null;
+		const queueSection = document.querySelector('.queue-section') as HTMLElement | null;
+
+		if (musicPlayer) {
+			musicPlayer.classList.toggle('single-genre-playlist', isSingleGenrePlaylist);
+		}
+		if (genreSelector) {
+			genreSelector.classList.toggle('single-genre-hidden', isSingleGenrePlaylist);
+		}
+		if (queueSection) {
+			queueSection.classList.toggle('single-genre-playlist', isSingleGenrePlaylist);
+		}
 
 		// Update all genre buttons
 		const genreButtons = elements.genreToggle.querySelectorAll('.genre-btn');
@@ -404,7 +419,6 @@ export function initMusicPlayer(config: MusicPlayerConfig): MusicPlayerAPI | nul
 		// Apply genre colors via CSS variables
 		const colors = genreColors[genre];
 		if (colors) {
-			const musicPlayer = document.querySelector('.music-player') as HTMLElement;
 			if (musicPlayer) {
 				musicPlayer.style.setProperty('--genre-base', colors.base);
 				musicPlayer.style.setProperty('--genre-bright', colors.bright);

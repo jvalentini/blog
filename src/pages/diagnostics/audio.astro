@@ -2,19 +2,20 @@
 import { SITE_TITLE } from '../../consts';
 import tracksData from '../../data/tracks.json';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { type AudioVersionMap, getAudioAssetPath, getAudioVersionEntries } from '../../utils/audio-assets';
 
 interface TracksConfig {
 	songs: Array<{
 		title: string;
-		versions: Record<string, string>;
+		versions: AudioVersionMap;
 	}>;
 }
 
 const { songs = [] } = tracksData as TracksConfig;
 const trackOptions = songs.flatMap((song) =>
-	Object.entries(song.versions ?? {}).map(([genre, file]) => ({
+	getAudioVersionEntries(song.versions ?? {}).map(([genre, file]) => ({
 		label: `${song.title} (${genre})`,
-		url: `/assets/music/${file}`,
+		url: getAudioAssetPath(file),
 	})),
 );
 const defaultTrack = trackOptions[0]?.url ?? '';

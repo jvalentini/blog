@@ -5,6 +5,9 @@ import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 
+const hasAnalytics =
+	typeof process.env.PUBLIC_GA_MEASUREMENT_ID === 'string' && process.env.PUBLIC_GA_MEASUREMENT_ID.length > 0;
+
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://jval.dev',
@@ -18,11 +21,15 @@ export default defineConfig({
 			},
 			lastmod: new Date(),
 		}),
-		partytown({
-			config: {
-				forward: ['dataLayer.push'],
-			},
-		}),
+		...(hasAnalytics
+			? [
+					partytown({
+						config: {
+							forward: ['dataLayer.push'],
+						},
+					}),
+				]
+			: []),
 	],
 	output: 'static',
 	build: {

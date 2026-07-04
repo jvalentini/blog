@@ -1,9 +1,12 @@
 ---
 interface Playlist {
 	id: string;
+	artworkPath?: string;
 	name: string;
 	visible: boolean;
 }
+
+import { getYotoDisplayArtworkPath } from '../../utils/yoto-artwork';
 
 interface Props {
 	playlists: Record<string, Playlist>;
@@ -37,7 +40,17 @@ const playlistArray = Object.values(playlists);
 				aria-checked={playlist.id === defaultPlaylist ? 'true' : 'false'}
 				aria-label={`${playlist.name} playlist`}
 			>
-				{playlist.name}
+				{playlist.artworkPath && (
+					<img
+						class="playlist-art"
+						src={getYotoDisplayArtworkPath(playlist.artworkPath)}
+						alt=""
+						loading="lazy"
+						width="34"
+						height="34"
+					/>
+				)}
+				<span>{playlist.name}</span>
 			</button>
 		))}
 	</div>
@@ -161,6 +174,7 @@ const playlistArray = Object.values(playlists);
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 0.625rem;
   width: 100%;
   background: transparent;
   border: none;
@@ -176,6 +190,20 @@ const playlistArray = Object.values(playlists);
   cursor: pointer;
   transition: all 0.2s ease;
   overflow-wrap: anywhere;
+}
+
+.playlist-art {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid rgba(51, 255, 51, 0.22);
+  border-radius: 6px;
+  object-fit: cover;
+  box-shadow: 0 0 6px rgba(51, 255, 51, 0.12);
+}
+
+.playlist-btn span {
+  min-width: 0;
 }
 
 .playlist-btn:last-child {

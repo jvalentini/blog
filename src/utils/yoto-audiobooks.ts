@@ -71,11 +71,16 @@ export function getYotoAudiobookRssPath(config: YotoAudiobookConfig): string {
 	return `/yoto/${config.id}.xml`;
 }
 
+export function getYotoAudiobookArtworkUrl(config: YotoAudiobookConfig, siteUrl: string): string {
+	return new URL(config.artworkPath, siteUrl).toString();
+}
+
 export function buildYotoAudiobookPodcastFeed(options: YotoAudiobookPodcastFeedOptions): string {
 	const feedDescription = `${options.config.sourceNote} Built for Yoto offline playback.`;
 	const publishedAt = new Date(options.config.publishedAt).toUTCString();
 	const feedUrl = new URL(getYotoAudiobookRssPath(options.config), options.siteUrl).toString();
 	const pageUrl = new URL(`/yoto/${options.config.id}`, options.siteUrl).toString();
+	const artworkUrl = getYotoAudiobookArtworkUrl(options.config, options.siteUrl);
 
 	const items = options.chapters
 		.map((chapter, index) => {
@@ -92,6 +97,7 @@ export function buildYotoAudiobookPodcastFeed(options: YotoAudiobookPodcastFeedO
 	<itunes:episode>${episodeNumber}</itunes:episode>
 	<itunes:episodeType>full</itunes:episodeType>
 	<itunes:duration>${duration}</itunes:duration>
+	<itunes:image href="${escapeXml(artworkUrl)}" />
 	<enclosure url="${chapterUrl}" length="${chapter.size}" type="audio/mpeg" />
 </item>`;
 		})
@@ -104,9 +110,15 @@ export function buildYotoAudiobookPodcastFeed(options: YotoAudiobookPodcastFeedO
 	<link>${escapeXml(pageUrl)}</link>
 	<atom:link href="${escapeXml(feedUrl)}" rel="self" type="application/rss+xml" />
 	<description>${escapeXml(feedDescription)}</description>
+	<image>
+		<url>${escapeXml(artworkUrl)}</url>
+		<title>${escapeXml(options.config.feedTitle)}</title>
+		<link>${escapeXml(pageUrl)}</link>
+	</image>
 	<language>en-us</language>
 	<itunes:author>${escapeXml(options.config.authorName)}</itunes:author>
 	<itunes:summary>${escapeXml(feedDescription)}</itunes:summary>
+	<itunes:image href="${escapeXml(artworkUrl)}" />
 	<itunes:explicit>false</itunes:explicit>
 	<itunes:type>episodic</itunes:type>
 	<itunes:category text="${escapeXml('Kids & Family')}" />

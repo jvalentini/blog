@@ -1,7 +1,8 @@
 ---
 import { SITE_TITLE } from '../../consts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { FROG_AND_TOAD_RSS_PATH, getFrogAndToadChapters } from '../../utils/frog-and-toad';
+import { FROG_AND_TOAD_ARTWORK_PATH, FROG_AND_TOAD_RSS_PATH, getFrogAndToadChapters } from '../../utils/frog-and-toad';
+import { getYotoDisplayArtworkPath } from '../../utils/yoto-artwork';
 
 const chapters = getFrogAndToadChapters();
 const firstChapterPath = chapters[0] ? `/waves/${chapters[0].id}` : '/waves';
@@ -13,22 +14,25 @@ const description =
 <BaseLayout title={pageTitle} description={description} wide>
 	<section class="yoto-page">
 		<header class="terminal-panel hero">
-			<div class="terminal-command">
-				<span class="prompt">$</span>
-				<span class="command">yoto --offline frog-and-toad</span>
-			</div>
-			<h1>Frog and Toad for Yoto</h1>
-			<p>
-				Everything is hosted here. When you come back, use this page as the checklist for setting up the Yoto Mini for
-				offline playback.
-			</p>
-			<div class="actions">
-				<a class="btn primary" href={firstChapterPath}>Open in Waves</a>
-				<a class="btn" href={FROG_AND_TOAD_RSS_PATH}>Yoto RSS feed</a>
-				<a class="btn" href="/yoto">All Yoto feeds</a>
-				<a class="btn" href="https://my.yotoplay.com/podcasts/new" rel="noopener noreferrer" target="_blank">
-					Add in Yoto
-				</a>
+			<img class="playlist-art" src={getYotoDisplayArtworkPath(FROG_AND_TOAD_ARTWORK_PATH)} alt="" width="220" height="220" />
+			<div class="hero-copy">
+				<div class="terminal-command">
+					<span class="prompt">$</span>
+					<span class="command">yoto --offline frog-and-toad</span>
+				</div>
+				<h1>Frog and Toad for Yoto</h1>
+				<p>
+					Everything is hosted here. When you come back, use this page as the checklist for setting up the Yoto Mini
+					for offline playback.
+				</p>
+				<div class="actions">
+					<a class="btn primary" href={firstChapterPath}>Open in Waves</a>
+					<a class="btn" href={FROG_AND_TOAD_RSS_PATH}>Yoto RSS feed</a>
+					<a class="btn" href="/yoto">All Yoto feeds</a>
+					<a class="btn" href="https://my.yotoplay.com/podcasts/new" rel="noopener noreferrer" target="_blank">
+						Add in Yoto
+					</a>
+				</div>
 			</div>
 		</header>
 
@@ -79,7 +83,21 @@ const description =
 	}
 
 	.hero {
+		display: grid;
+		grid-template-columns: 13.75rem minmax(0, 1fr);
+		gap: var(--space-xl);
+		align-items: center;
 		border-color: color-mix(in srgb, var(--amber-base) 45%, var(--border-base));
+	}
+
+	.playlist-art {
+		width: 100%;
+		max-width: 220px;
+		aspect-ratio: 1;
+		border: 1px solid var(--border-base);
+		border-radius: 8px;
+		object-fit: cover;
+		box-shadow: var(--glow-md);
 	}
 
 	.terminal-command {
@@ -195,6 +213,14 @@ const description =
 	}
 
 	@media (max-width: 768px) {
+		.hero {
+			grid-template-columns: 1fr;
+		}
+
+		.playlist-art {
+			max-width: 168px;
+		}
+
 		.terminal-panel {
 			padding: var(--space-lg);
 		}

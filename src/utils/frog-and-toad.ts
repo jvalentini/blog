@@ -3,6 +3,7 @@ import { type AudioVersionMap, getAbsoluteAudioAssetUrl, getAudioAssetPath } fro
 
 export const FROG_AND_TOAD_PLAYLIST_ID = 'frog-and-toad';
 export const FROG_AND_TOAD_RSS_PATH = '/yoto/frog-and-toad.xml';
+export const FROG_AND_TOAD_ARTWORK_PATH = '/assets/yoto-art/frog-and-toad.png';
 
 const FROG_AND_TOAD_AUDIOBOOK_DURATIONS_SECONDS: Record<string, number> = {
 	'audiobooks/frog-and-toad/1-01-frog-and-toad-are-friends.mp3': 59,
@@ -111,6 +112,10 @@ export function getFrogAndToadChapterUrl(filePath: string, siteUrl: string): str
 	return getAbsoluteAudioAssetUrl(filePath, siteUrl);
 }
 
+export function getFrogAndToadArtworkUrl(siteUrl: string): string {
+	return new URL(FROG_AND_TOAD_ARTWORK_PATH, siteUrl).toString();
+}
+
 function formatPodcastDuration(totalSeconds: number): string {
 	const hours = Math.floor(totalSeconds / 3600);
 	const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -124,6 +129,7 @@ export function buildFrogAndToadPodcastFeed(options: FrogAndToadPodcastFeedOptio
 	const publishedAt = options.publishedAt.toUTCString();
 	const feedUrl = new URL(FROG_AND_TOAD_RSS_PATH, options.siteUrl).toString();
 	const pageUrl = new URL('/yoto/frog-and-toad', options.siteUrl).toString();
+	const artworkUrl = getFrogAndToadArtworkUrl(options.siteUrl);
 
 	const items = options.chapters
 		.map((chapter, index) => {
@@ -140,6 +146,7 @@ export function buildFrogAndToadPodcastFeed(options: FrogAndToadPodcastFeedOptio
 	<itunes:episode>${episodeNumber}</itunes:episode>
 	<itunes:episodeType>full</itunes:episodeType>
 	<itunes:duration>${duration}</itunes:duration>
+	<itunes:image href="${escapeXml(artworkUrl)}" />
 	<enclosure url="${chapterUrl}" length="${chapter.size}" type="audio/mpeg" />
 </item>`;
 		})
@@ -152,9 +159,15 @@ export function buildFrogAndToadPodcastFeed(options: FrogAndToadPodcastFeedOptio
 	<link>${escapeXml(pageUrl)}</link>
 	<atom:link href="${escapeXml(feedUrl)}" rel="self" type="application/rss+xml" />
 	<description>${escapeXml(feedDescription)}</description>
+	<image>
+		<url>${escapeXml(artworkUrl)}</url>
+		<title>${escapeXml(feedTitle)}</title>
+		<link>${escapeXml(pageUrl)}</link>
+	</image>
 	<language>en-us</language>
 	<itunes:author>${escapeXml(options.authorName)}</itunes:author>
 	<itunes:summary>${escapeXml(feedDescription)}</itunes:summary>
+	<itunes:image href="${escapeXml(artworkUrl)}" />
 	<itunes:explicit>false</itunes:explicit>
 	<itunes:type>episodic</itunes:type>
 	<itunes:category text="${escapeXml('Kids & Family')}" />

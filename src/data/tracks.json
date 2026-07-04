@@ -17,51 +17,61 @@
 		},
 		"frog-and-toad": {
 			"id": "frog-and-toad",
+			"artworkPath": "/assets/yoto-art/frog-and-toad.png",
 			"name": "Frog and Toad",
 			"visible": true
 		},
 		"beatrix-potter": {
 			"id": "beatrix-potter",
+			"artworkPath": "/assets/yoto-art/beatrix-potter.png",
 			"name": "Beatrix Potter",
 			"visible": true
 		},
 		"little-red-riding-hood": {
 			"id": "little-red-riding-hood",
+			"artworkPath": "/assets/yoto-art/little-red-riding-hood.png",
 			"name": "Little Red Riding Hood",
 			"visible": true
 		},
 		"uncle-wiggily-story-book": {
 			"id": "uncle-wiggily-story-book",
+			"artworkPath": "/assets/yoto-art/uncle-wiggily-story-book.png",
 			"name": "Uncle Wiggily's Story Book",
 			"visible": true
 		},
 		"roald-dahl-revolting-rhymes": {
 			"id": "roald-dahl-revolting-rhymes",
+			"artworkPath": "/assets/yoto-art/roald-dahl-revolting-rhymes.png",
 			"name": "Roald Dahl's Revolting Rhymes",
 			"visible": true
 		},
 		"dr-seuss-rik-mayall": {
 			"id": "dr-seuss-rik-mayall",
+			"artworkPath": "/assets/yoto-art/dr-seuss-rik-mayall.png",
 			"name": "Dr. Seuss Collection - Rik Mayall",
 			"visible": true
 		},
 		"dr-seuss-cat-in-the-hat": {
 			"id": "dr-seuss-cat-in-the-hat",
+			"artworkPath": "/assets/yoto-art/dr-seuss-cat-in-the-hat.png",
 			"name": "Cat in the Hat and Other Stories",
 			"visible": true
 		},
 		"dr-seuss-scrambled-eggs-super": {
 			"id": "dr-seuss-scrambled-eggs-super",
+			"artworkPath": "/assets/yoto-art/dr-seuss-scrambled-eggs-super.png",
 			"name": "Scrambled Eggs Super and Other Stories",
 			"visible": true
 		},
 		"when-you-grow-up": {
 			"id": "when-you-grow-up",
+			"artworkPath": "/assets/yoto-art/when-you-grow-up.png",
 			"name": "When You Grow Up",
 			"visible": true
 		},
 		"roald-dahl-bfg": {
 			"id": "roald-dahl-bfg",
+			"artworkPath": "/assets/yoto-art/roald-dahl-bfg.png",
 			"name": "Roald Dahl - The BFG",
 			"visible": true
 		}

@@ -23,6 +23,7 @@ describe('Archive-backed Yoto audiobook feeds', () => {
 		for (const [audiobookId, chapterCount] of expectedCounts) {
 			const config = getYotoAudiobookConfig(audiobookId);
 
+			expect(config.artworkPath).toBe(`/assets/yoto-art/${audiobookId}.png`);
 			expect(getYotoAudiobookChapters(config)).toHaveLength(chapterCount);
 			expect(getYotoAudiobookRssPath(config)).toBe(`/yoto/${audiobookId}.xml`);
 		}
@@ -78,6 +79,8 @@ describe('Archive-backed Yoto audiobook feeds', () => {
 		);
 		expect(xml).toContain('<itunes:author>Howard R. Garis</itunes:author>');
 		expect(xml).toContain('<itunes:category text="Kids &amp; Family" />');
+		expect(xml).toContain('<itunes:image href="https://jval.dev/assets/yoto-art/uncle-wiggily-story-book.png" />');
+		expect(xml).toContain('<url>https://jval.dev/assets/yoto-art/uncle-wiggily-story-book.png</url>');
 		expect(xml).toContain('<itunes:duration>00:12:51</itunes:duration>');
 		expect(xml).toContain('<title>Uncle Wiggily&apos;s Toothache</title>');
 		expect(xml).not.toContain('<author>');

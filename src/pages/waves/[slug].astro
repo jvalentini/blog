@@ -35,7 +35,8 @@ export async function getStaticPaths() {
 
 const { trackTitle, trackSlug, filename } = Astro.props;
 const pageTitle = 'waves';
-const pageDescription = `Listen to ${trackTitle} - A collection of original tracks and creative experiments.`;
+const metaTrackTitle = trackTitle.length > 38 ? `${trackTitle.slice(0, 35)}...` : trackTitle;
+const pageDescription = `Listen to ${metaTrackTitle} in the Waves audio player, with controls, playlists, lyrics where available, and shareable embeds.`;
 
 const siteUrl = Astro.site?.origin ?? 'https://jvalentini.pages.dev';
 const playerCard = {
@@ -47,7 +48,7 @@ const playerCard = {
 };
 ---
 
-<WavesLayout title={`${trackTitle} | ${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image={wavesHeroImage} playerCard={playerCard}>
+<WavesLayout title={`${metaTrackTitle} | ${pageTitle} | ${SITE_TITLE}`} description={pageDescription} image={wavesHeroImage} playerCard={playerCard}>
 	<section class="player-section">
 		<MusicPlayer />
 	</section>

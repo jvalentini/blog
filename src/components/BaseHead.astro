@@ -6,7 +6,8 @@ import type { Article, BreadcrumbList, FAQPage, HowTo, Person, WebSite, WithCont
 import wavesHeroImage from '../assets/waves-hero.png';
 import { AUTHOR_NAME, SITE_DESCRIPTION, SITE_TITLE, SOCIAL_LINKS } from '../consts';
 
-const GA_MEASUREMENT_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-XXXXXXXXXX';
+const GA_MEASUREMENT_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID;
+const hasAnalytics = typeof GA_MEASUREMENT_ID === 'string' && GA_MEASUREMENT_ID.length > 0;
 
 // Default OG image as ImageMetadata for optimization
 const DEFAULT_OG_IMAGE: ImageMetadata = wavesHeroImage;
@@ -160,13 +161,6 @@ const faqSchema: WithContext<FAQPage> | null =
 />
 <meta name="generator" content={Astro.generator} />
 
-<!-- Font preloads -->
-<link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin />
-<link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin />
-
-<!-- Turnstile preconnect for better performance -->
-<link rel="preconnect" href="https://challenges.cloudflare.com" />
-
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
 
@@ -224,11 +218,19 @@ const faqSchema: WithContext<FAQPage> | null =
 	<script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 )}
 
-<!-- Google Analytics (GA4) with Partytown -->
-<script is:inline type="text/partytown" src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
-<script is:inline type="text/partytown">
-	window.dataLayer = window.dataLayer || [];
-	function gtag(){dataLayer.push(arguments);}
-	gtag('js', new Date());
-	gtag('config', GA_MEASUREMENT_ID);
-</script>
+{hasAnalytics && (
+	<>
+		<!-- Google Analytics (GA4) with Partytown -->
+		<script
+			is:inline
+			type="text/partytown"
+			src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+		></script>
+		<script is:inline type="text/partytown" define:vars={{ GA_MEASUREMENT_ID }}>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', GA_MEASUREMENT_ID);
+		</script>
+	</>
+)}

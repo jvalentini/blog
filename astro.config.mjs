@@ -11,6 +11,11 @@ export default defineConfig({
 	integrations: [
 		mdx(),
 		sitemap({
+			filter: (page) => {
+				const url = new URL(page);
+				const nonIndexablePrefixes = ['/diagnostics/', '/embed/', '/oembed/'];
+				return !nonIndexablePrefixes.some((prefix) => url.pathname.startsWith(prefix));
+			},
 			lastmod: new Date(),
 		}),
 		partytown({

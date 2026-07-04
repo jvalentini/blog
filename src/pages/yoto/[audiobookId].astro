@@ -19,7 +19,7 @@ const chapters = getYotoAudiobookChapters(config);
 const rssPath = getYotoAudiobookRssPath(config);
 const firstChapterPath = chapters[0] ? `/waves/${chapters[0].id}` : '/waves';
 const pageTitle = `${config.playlistName} Yoto Setup | ${SITE_TITLE}`;
-const description = `Download ${config.feedTitle} chapters and set up a Yoto Make Your Own card for offline playback.`;
+const description = `Download ${config.playlistName} chapters, copy the hosted RSS feed, and link a Yoto Make Your Own card for cached offline playback.`;
 ---
 
 <BaseLayout title={pageTitle} description={description} wide>

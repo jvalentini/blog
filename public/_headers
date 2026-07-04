@@ -11,13 +11,15 @@
 
 /*.css
   Cache-Control: public, max-age=31536000, immutable
-  Link: </fonts/atkinson-regular.woff>; rel=preload; as=font; type=font/woff; crossorigin
 
-/*.html
-  Link: </fonts/atkinson-regular.woff>; rel=preload; as=font; type=font/woff; crossorigin, </fonts/atkinson-bold.woff>; rel=preload; as=font; type=font/woff; crossorigin
+/diagnostics/*
+  X-Robots-Tag: noindex, nofollow
 
-/blog/*
-  Link: </fonts/atkinson-regular.woff>; rel=preload; as=font; type=font/woff; crossorigin, </fonts/atkinson-bold.woff>; rel=preload; as=font; type=font/woff; crossorigin
+/embed/*
+  X-Robots-Tag: noindex, nofollow
+
+/oembed/*
+  X-Robots-Tag: noindex, nofollow
 
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable

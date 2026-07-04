@@ -8,8 +8,9 @@ const pathDisplay = segments.length > 0 ? segments.join('/') : 'home';
 
 <header>
 	<nav>
-		<button type="button" class="terminal-prompt" aria-label="Open terminal (or press /)" tabindex="0">
+		<button type="button" class="terminal-prompt" title="Open terminal" tabindex="0">
 			<span class="user">justin.valentini</span><span class="at">@</span><span class="host">blog</span><span class="colon">:</span><span class="path">~/{pathDisplay}</span><span class="dollar">$</span><span class="cursor">_</span>
+			<span class="sr-only">open terminal</span>
 		</button>
 		
 		<button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">

@@ -19,6 +19,21 @@
 			"id": "frog-and-toad",
 			"name": "Frog and Toad",
 			"visible": true
+		},
+		"beatrix-potter": {
+			"id": "beatrix-potter",
+			"name": "Beatrix Potter",
+			"visible": true
+		},
+		"little-red-riding-hood": {
+			"id": "little-red-riding-hood",
+			"name": "Little Red Riding Hood",
+			"visible": true
+		},
+		"uncle-wiggily-story-book": {
+			"id": "uncle-wiggily-story-book",
+			"name": "Uncle Wiggily's Story Book",
+			"visible": true
 		}
 	},
 	"songs": [
@@ -418,6 +433,555 @@
 			"lyrics": {},
 			"versions": {
 				"audiobook": "audiobooks/frog-and-toad/2-12-alone.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-peter-rabbit",
+			"title": "The Tale of Peter Rabbit",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/01-the-tale-of-peter-rabbit.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tailor-of-gloucester",
+			"title": "The Tailor of Gloucester",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/02-the-tailor-of-gloucester.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-squirrel-nutkin",
+			"title": "The Tale of Squirrel Nutkin",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/03-the-tale-of-squirrel-nutkin.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-benjamin-bunny",
+			"title": "The Tale of Benjamin Bunny",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/04-the-tale-of-benjamin-bunny.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-two-bad-mice",
+			"title": "The Tale of Two Bad Mice",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/05-the-tale-of-two-bad-mice.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-mrs-tiggy-winkle",
+			"title": "The Tale of Mrs. Tiggy-winkle",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/06-the-tale-of-mrs-tiggy-winkle.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-pie-and-the-patty-pan",
+			"title": "The Pie and the Patty-Pan",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/07-the-pie-and-the-patty-pan.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-mr-jeremy-fisher",
+			"title": "The Tale of Mr. Jeremy Fisher",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/08-the-tale-of-mr-jeremy-fisher.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-story-of-a-fierce-bad-rabbit",
+			"title": "The Story of a Fierce Bad Rabbit",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/09-the-story-of-a-fierce-bad-rabbit.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-story-of-miss-moppet",
+			"title": "The Story of Miss Moppet",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/10-the-story-of-miss-moppet.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-tom-kitten",
+			"title": "The Tale of Tom Kitten",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/11-the-tale-of-tom-kitten.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-jemima-puddle-duck",
+			"title": "The Tale of Jemima Puddle-duck",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/12-the-tale-of-jemima-puddle-duck.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-roly-poly-pudding",
+			"title": "The Roly-Poly Pudding",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/13-the-roly-poly-pudding.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-the-flopsy-bunnies",
+			"title": "The Tale of the Flopsy Bunnies",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/14-the-tale-of-the-flopsy-bunnies.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-mrs-tittlemouse",
+			"title": "The Tale of Mrs. Tittlemouse",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/15-the-tale-of-mrs-tittlemouse.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-timmy-tiptoes",
+			"title": "The Tale of Timmy Tiptoes",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/16-the-tale-of-timmy-tiptoes.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-mr-tod",
+			"title": "The Tale of Mr. Tod",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/17-the-tale-of-mr-tod.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-the-tale-of-pigling-bland",
+			"title": "The Tale of Pigling Bland",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/18-the-tale-of-pigling-bland.mp3"
+			}
+		},
+		{
+			"id": "beatrix-potter-ginger-and-pickles",
+			"title": "Ginger and Pickles",
+			"playlist": "beatrix-potter",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/beatrix-potter/19-ginger-and-pickles.mp3"
+			}
+		},
+		{
+			"id": "little-red-riding-hood-the-little-red-engine",
+			"title": "The Little Red Engine",
+			"playlist": "little-red-riding-hood",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/little-red-riding-hood/01-the-little-red-engine.mp3"
+			}
+		},
+		{
+			"id": "little-red-riding-hood-robin-hood",
+			"title": "Robin Hood",
+			"playlist": "little-red-riding-hood",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/little-red-riding-hood/02-robin-hood.mp3"
+			}
+		},
+		{
+			"id": "little-red-riding-hood-jack-and-the-beanstalk",
+			"title": "Jack & The Beanstalk",
+			"playlist": "little-red-riding-hood",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/little-red-riding-hood/03-jack-and-the-beanstalk.mp3"
+			}
+		},
+		{
+			"id": "little-red-riding-hood-pinocchio",
+			"title": "Pinocchio",
+			"playlist": "little-red-riding-hood",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/little-red-riding-hood/04-pinocchio.mp3"
+			}
+		},
+		{
+			"id": "little-red-riding-hood-little-red-riding-hood",
+			"title": "Little Red Riding Hood",
+			"playlist": "little-red-riding-hood",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/little-red-riding-hood/05-little-red-riding-hood.mp3"
+			}
+		},
+		{
+			"id": "little-red-riding-hood-three-little-pigs",
+			"title": "Three Little Pigs",
+			"playlist": "little-red-riding-hood",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/little-red-riding-hood/06-three-little-pigs.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-s-toothache",
+			"title": "Uncle Wiggily's Toothache",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/01-uncle-wiggily-s-toothache.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-freckled-girl",
+			"title": "Uncle Wiggily and the Freckled Girl",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/02-uncle-wiggily-and-the-freckled-girl.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-mud-puddle",
+			"title": "Uncle Wiggily and the Mud Puddle",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/03-uncle-wiggily-and-the-mud-puddle.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-bad-boy",
+			"title": "Uncle Wiggily and the Bad Boy",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/04-uncle-wiggily-and-the-bad-boy.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-good-boy",
+			"title": "Uncle Wiggily and the Good Boy",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/05-uncle-wiggily-and-the-good-boy.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-s-valentine",
+			"title": "Uncle Wiggily's Valentine",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/06-uncle-wiggily-s-valentine.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-bad-dog",
+			"title": "Uncle Wiggily and the Bad Dog",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/07-uncle-wiggily-and-the-bad-dog.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-puss-in-boots",
+			"title": "Uncle Wiggily and Puss in Boots",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/08-uncle-wiggily-and-puss-in-boots.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-lost-boy",
+			"title": "Uncle Wiggily and the Lost Boy",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/09-uncle-wiggily-and-the-lost-boy.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-stubby-toes",
+			"title": "Uncle Wiggily and Stubby Toes",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/10-uncle-wiggily-and-stubby-toes.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-s-christmas",
+			"title": "Uncle Wiggily's Christmas",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/11-uncle-wiggily-s-christmas.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-s-fourth-of-july",
+			"title": "Uncle Wiggily's Fourth of July",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/12-uncle-wiggily-s-fourth-of-july.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-skates",
+			"title": "Uncle Wiggily and the Skates",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/13-uncle-wiggily-and-the-skates.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-goes-coasting",
+			"title": "Uncle Wiggily Goes Coasting",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/14-uncle-wiggily-goes-coasting.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-s-picnic",
+			"title": "Uncle Wiggily's Picnic",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/15-uncle-wiggily-s-picnic.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-s-rain-storm",
+			"title": "Uncle Wiggily's Rain Storm",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/16-uncle-wiggily-s-rain-storm.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-mumps",
+			"title": "Uncle Wiggily and the Mumps",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/17-uncle-wiggily-and-the-mumps.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-measles",
+			"title": "Uncle Wiggily and the Measles",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/18-uncle-wiggily-and-the-measles.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-chicken-pox",
+			"title": "Uncle Wiggily and the Chicken-Pox",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/19-uncle-wiggily-and-the-chicken-pox.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-s-hallowe-en",
+			"title": "Uncle Wiggily's Hallowe'en",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/20-uncle-wiggily-s-hallowe-en.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-poor-dog",
+			"title": "Uncle Wiggily and the Poor Dog",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/21-uncle-wiggily-and-the-poor-dog.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-rich-cat",
+			"title": "Uncle Wiggily and the Rich Cat",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/22-uncle-wiggily-and-the-rich-cat.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-horse",
+			"title": "Uncle Wiggily and the Horse",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/23-uncle-wiggily-and-the-horse.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-cow",
+			"title": "Uncle Wiggily and the Cow",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/24-uncle-wiggily-and-the-cow.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-camping-boys",
+			"title": "Uncle Wiggily and the Camping Boys",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/25-uncle-wiggily-and-the-camping-boys.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-birthday-cake",
+			"title": "Uncle Wiggily and the Birthday Cake",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/26-uncle-wiggily-and-the-birthday-cake.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-new-year-s-horn",
+			"title": "Uncle Wiggily and the New Year's Horn",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/27-uncle-wiggily-and-the-new-year-s-horn.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-s-thanksgiving",
+			"title": "Uncle Wiggily's Thanksgiving",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/28-uncle-wiggily-s-thanksgiving.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-at-the-circus",
+			"title": "Uncle Wiggily at the Circus",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/29-uncle-wiggily-at-the-circus.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-lion",
+			"title": "Uncle Wiggily and the Lion",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/30-uncle-wiggily-and-the-lion.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-tiger",
+			"title": "Uncle Wiggily and the Tiger",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/31-uncle-wiggily-and-the-tiger.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-elephant",
+			"title": "Uncle Wiggily and the Elephant",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/32-uncle-wiggily-and-the-elephant.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-camel",
+			"title": "Uncle Wiggily and the Camel",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/33-uncle-wiggily-and-the-camel.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-wild-rabbit",
+			"title": "Uncle Wiggily and the Wild Rabbit",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/34-uncle-wiggily-and-the-wild-rabbit.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-tame-squirrel",
+			"title": "Uncle Wiggily and the Tame Squirrel",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/35-uncle-wiggily-and-the-tame-squirrel.mp3"
+			}
+		},
+		{
+			"id": "uncle-wiggily-story-book-uncle-wiggily-and-the-wolf",
+			"title": "Uncle Wiggily and the Wolf",
+			"playlist": "uncle-wiggily-story-book",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/uncle-wiggily-story-book/36-uncle-wiggily-and-the-wolf.mp3"
 			}
 		}
 	],

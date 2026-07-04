@@ -4,6 +4,31 @@ import { type AudioVersionMap, getAbsoluteAudioAssetUrl, getAudioAssetPath } fro
 export const FROG_AND_TOAD_PLAYLIST_ID = 'frog-and-toad';
 export const FROG_AND_TOAD_RSS_PATH = '/yoto/frog-and-toad.xml';
 
+const FROG_AND_TOAD_AUDIOBOOK_DURATIONS_SECONDS: Record<string, number> = {
+	'audiobooks/frog-and-toad/1-01-frog-and-toad-are-friends.mp3': 59,
+	'audiobooks/frog-and-toad/1-02-spring.mp3': 275,
+	'audiobooks/frog-and-toad/1-03-the-story.mp3': 292,
+	'audiobooks/frog-and-toad/1-04-a-lost-button.mp3': 253,
+	'audiobooks/frog-and-toad/1-05-a-swim.mp3': 272,
+	'audiobooks/frog-and-toad/1-06-the-letter.mp3': 307,
+	'audiobooks/frog-and-toad/1-07-frog-and-toad-all-year.mp3': 536,
+	'audiobooks/frog-and-toad/1-08-ice-cream.mp3': 209,
+	'audiobooks/frog-and-toad/1-09-the-surprise.mp3': 203,
+	'audiobooks/frog-and-toad/1-10-christmas-eve.mp3': 252,
+	'audiobooks/frog-and-toad/2-01-frog-and-toad-together.mp3': 60,
+	'audiobooks/frog-and-toad/2-02-a-list.mp3': 307,
+	'audiobooks/frog-and-toad/2-03-the-garden.mp3': 279,
+	'audiobooks/frog-and-toad/2-04-cookies.mp3': 277,
+	'audiobooks/frog-and-toad/2-05-dragons-and-giants.mp3': 208,
+	'audiobooks/frog-and-toad/2-06-the-dream.mp3': 253,
+	'audiobooks/frog-and-toad/2-07-days-with-frog-and-toad.mp3': 59,
+	'audiobooks/frog-and-toad/2-08-tomorrow.mp3': 251,
+	'audiobooks/frog-and-toad/2-09-the-kite.mp3': 245,
+	'audiobooks/frog-and-toad/2-10-shivers.mp3': 295,
+	'audiobooks/frog-and-toad/2-11-the-hat.mp3': 224,
+	'audiobooks/frog-and-toad/2-12-alone.mp3': 310,
+};
+
 interface Song {
 	readonly id: string;
 	readonly title: string;
@@ -20,6 +45,7 @@ export interface FrogAndToadChapter {
 	readonly title: string;
 	readonly filePath: string;
 	readonly assetPath: string;
+	readonly durationSeconds: number;
 }
 
 export interface FrogAndToadPodcastChapter extends FrogAndToadChapter {
@@ -41,6 +67,13 @@ export class MissingAudiobookVersionError extends Error {
 	}
 }
 
+export class MissingAudiobookDurationError extends Error {
+	constructor(readonly filePath: string) {
+		super(`Missing audiobook duration for ${filePath}`);
+		this.name = 'MissingAudiobookDurationError';
+	}
+}
+
 function escapeXml(value: string): string {
 	return value
 		.replaceAll('&', '&amp;')
@@ -59,18 +92,30 @@ export function getFrogAndToadChapters(): readonly FrogAndToadChapter[] {
 			if (!filePath) {
 				throw new MissingAudiobookVersionError(song.id);
 			}
+			const durationSeconds = FROG_AND_TOAD_AUDIOBOOK_DURATIONS_SECONDS[filePath];
+			if (durationSeconds === undefined) {
+				throw new MissingAudiobookDurationError(filePath);
+			}
 
 			return {
 				id: song.id,
 				title: song.title,
 				filePath,
 				assetPath: getAudioAssetPath(filePath),
+				durationSeconds,
 			};
 		});
 }
 
 export function getFrogAndToadChapterUrl(filePath: string, siteUrl: string): string {
 	return getAbsoluteAudioAssetUrl(filePath, siteUrl);
+}
+
+function formatPodcastDuration(totalSeconds: number): string {
+	const hours = Math.floor(totalSeconds / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
+	return [hours, minutes, seconds].map((part) => part.toString().padStart(2, '0')).join(':');
 }
 
 export function buildFrogAndToadPodcastFeed(options: FrogAndToadPodcastFeedOptions): string {
@@ -81,8 +126,10 @@ export function buildFrogAndToadPodcastFeed(options: FrogAndToadPodcastFeedOptio
 	const pageUrl = new URL('/yoto/frog-and-toad', options.siteUrl).toString();
 
 	const items = options.chapters
-		.map((chapter) => {
+		.map((chapter, index) => {
 			const chapterUrl = escapeXml(chapter.url);
+			const episodeNumber = index + 1;
+			const duration = formatPodcastDuration(chapter.durationSeconds);
 
 			return `<item>
 	<title>${escapeXml(chapter.title)}</title>
@@ -90,6 +137,9 @@ export function buildFrogAndToadPodcastFeed(options: FrogAndToadPodcastFeedOptio
 	<guid isPermaLink="false">${escapeXml(chapter.id)}</guid>
 	<description>${escapeXml(chapter.title)}</description>
 	<pubDate>${publishedAt}</pubDate>
+	<itunes:episode>${episodeNumber}</itunes:episode>
+	<itunes:episodeType>full</itunes:episodeType>
+	<itunes:duration>${duration}</itunes:duration>
 	<enclosure url="${chapterUrl}" length="${chapter.size}" type="audio/mpeg" />
 </item>`;
 		})
@@ -106,6 +156,8 @@ export function buildFrogAndToadPodcastFeed(options: FrogAndToadPodcastFeedOptio
 	<itunes:author>${escapeXml(options.authorName)}</itunes:author>
 	<itunes:summary>${escapeXml(feedDescription)}</itunes:summary>
 	<itunes:explicit>false</itunes:explicit>
+	<itunes:type>episodic</itunes:type>
+	<itunes:category text="${escapeXml('Kids & Family')}" />
 	<pubDate>${publishedAt}</pubDate>
 	<lastBuildDate>${publishedAt}</lastBuildDate>
 	${items}

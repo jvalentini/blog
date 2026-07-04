@@ -7,6 +7,27 @@ import {
 } from '../yoto-audiobooks';
 
 describe('Archive-backed Yoto audiobook feeds', () => {
+	it('returns every hosted audiobook as a separate playlist config', () => {
+		const expectedCounts = new Map([
+			['beatrix-potter', 19],
+			['little-red-riding-hood', 6],
+			['uncle-wiggily-story-book', 36],
+			['roald-dahl-revolting-rhymes', 6],
+			['dr-seuss-rik-mayall', 4],
+			['dr-seuss-cat-in-the-hat', 8],
+			['dr-seuss-scrambled-eggs-super', 7],
+			['when-you-grow-up', 1],
+			['roald-dahl-bfg', 4],
+		]);
+
+		for (const [audiobookId, chapterCount] of expectedCounts) {
+			const config = getYotoAudiobookConfig(audiobookId);
+
+			expect(getYotoAudiobookChapters(config)).toHaveLength(chapterCount);
+			expect(getYotoAudiobookRssPath(config)).toBe(`/yoto/${audiobookId}.xml`);
+		}
+	});
+
 	it('returns the Little Red Riding Hood playlist chapters', () => {
 		const config = getYotoAudiobookConfig('little-red-riding-hood');
 		const chapters = getYotoAudiobookChapters(config);

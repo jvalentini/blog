@@ -28,7 +28,8 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 		publishedAt: '2009-10-18T00:00:00.000Z',
 		sourceUrl: 'https://archive.org/details/treasury_beatrixpotter_0910',
 		licenseLabel: 'Public Domain',
-		sourceNote: 'Public-domain LibriVox recording mirrored from Archive.org in 64 kbps MP3 chapter files.',
+		sourceNote:
+			'Public-domain LibriVox recording mirrored from Archive.org and normalized to 44.1 kHz mono MP3 chapter files for Yoto compatibility.',
 		chapters: [
 			{
 				id: 'beatrix-potter-the-tale-of-peter-rabbit',

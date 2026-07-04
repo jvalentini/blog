@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildFrogAndToadPodcastFeed, FROG_AND_TOAD_PLAYLIST_ID, getFrogAndToadChapters } from '../frog-and-toad';
+import {
+	buildFrogAndToadPodcastFeed,
+	FROG_AND_TOAD_ARTWORK_PATH,
+	FROG_AND_TOAD_PLAYLIST_ID,
+	getFrogAndToadChapters,
+} from '../frog-and-toad';
 
 describe('Frog and Toad audiobook chapter list', () => {
 	it('returns the full ordered chapter list for the Yoto helper surfaces', () => {
@@ -51,6 +56,9 @@ describe('Frog and Toad audiobook chapter list', () => {
 		);
 		expect(xml).toContain('<itunes:author>Justin Valentini</itunes:author>');
 		expect(xml).toContain('<itunes:category text="Kids &amp; Family" />');
+		expect(FROG_AND_TOAD_ARTWORK_PATH).toBe('/assets/yoto-art/frog-and-toad.png');
+		expect(xml).toContain('<itunes:image href="https://jval.dev/assets/yoto-art/frog-and-toad.png" />');
+		expect(xml).toContain('<url>https://jval.dev/assets/yoto-art/frog-and-toad.png</url>');
 		expect(xml).toContain('<itunes:episode>1</itunes:episode>');
 		expect(xml).toContain('<itunes:duration>00:00:59</itunes:duration>');
 		expect(xml).toContain('<itunes:duration>00:04:35</itunes:duration>');

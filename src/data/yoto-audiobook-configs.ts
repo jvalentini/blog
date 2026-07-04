@@ -7,6 +7,7 @@ export interface YotoAudiobookChapterConfig {
 
 export interface YotoAudiobookConfig {
 	readonly id: string;
+	readonly artworkPath: string;
 	readonly playlistName: string;
 	readonly feedTitle: string;
 	readonly authorName: string;
@@ -20,6 +21,7 @@ export interface YotoAudiobookConfig {
 export const YOTO_AUDIOBOOK_CONFIGS = [
 	{
 		id: 'beatrix-potter',
+		artworkPath: '/assets/yoto-art/beatrix-potter.png',
 		playlistName: 'Beatrix Potter',
 		feedTitle: 'The Great Big Treasury of Beatrix Potter',
 		authorName: 'Beatrix Potter',
@@ -146,6 +148,7 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 	},
 	{
 		id: 'little-red-riding-hood',
+		artworkPath: '/assets/yoto-art/little-red-riding-hood.png',
 		playlistName: 'Little Red Riding Hood',
 		feedTitle: "Little Red Riding Hood - 6 More Favourite Children's Stories",
 		authorName: "Robin Lucas Children's Theatre",
@@ -196,6 +199,7 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 	},
 	{
 		id: 'uncle-wiggily-story-book',
+		artworkPath: '/assets/yoto-art/uncle-wiggily-story-book.png',
 		playlistName: "Uncle Wiggily's Story Book",
 		feedTitle: "Uncle Wiggily's Story Book",
 		authorName: 'Howard R. Garis',
@@ -424,6 +428,7 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 	},
 	{
 		id: 'roald-dahl-revolting-rhymes',
+		artworkPath: '/assets/yoto-art/roald-dahl-revolting-rhymes.png',
 		playlistName: "Roald Dahl's Revolting Rhymes",
 		feedTitle: "Roald Dahl's Revolting Rhymes",
 		authorName: 'Roald Dahl',
@@ -472,6 +477,7 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 	},
 	{
 		id: 'dr-seuss-rik-mayall',
+		artworkPath: '/assets/yoto-art/dr-seuss-rik-mayall.png',
 		playlistName: 'Dr. Seuss Collection - Rik Mayall',
 		feedTitle: 'The Dr. Seuss Collection (read by Rik Mayall)',
 		authorName: 'Dr. Seuss',
@@ -508,6 +514,7 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 	},
 	{
 		id: 'dr-seuss-cat-in-the-hat',
+		artworkPath: '/assets/yoto-art/dr-seuss-cat-in-the-hat.png',
 		playlistName: 'Cat in the Hat and Other Stories',
 		feedTitle: 'The Cat in the Hat and Other Stories by Dr. Seuss',
 		authorName: 'Dr. Seuss',
@@ -568,6 +575,7 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 	},
 	{
 		id: 'dr-seuss-scrambled-eggs-super',
+		artworkPath: '/assets/yoto-art/dr-seuss-scrambled-eggs-super.png',
 		playlistName: 'Scrambled Eggs Super and Other Stories',
 		feedTitle: 'Scrambled Eggs Super! and Other Stories',
 		authorName: 'Dr. Seuss',
@@ -622,6 +630,7 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 	},
 	{
 		id: 'when-you-grow-up',
+		artworkPath: '/assets/yoto-art/when-you-grow-up.png',
 		playlistName: 'When You Grow Up',
 		feedTitle: 'When You Grow Up',
 		authorName: 'Lennie Goodings',
@@ -640,6 +649,7 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 	},
 	{
 		id: 'roald-dahl-bfg',
+		artworkPath: '/assets/yoto-art/roald-dahl-bfg.png',
 		playlistName: 'Roald Dahl - The BFG',
 		feedTitle: 'Roald Dahl - The BFG',
 		authorName: 'Roald Dahl',

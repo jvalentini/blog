@@ -1,6 +1,7 @@
 ---
 import { SITE_TITLE } from '../../consts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getYotoDisplayArtworkPath } from '../../utils/yoto-artwork';
 import {
 	getYotoAudiobookChapters,
 	getYotoAudiobookConfigs,
@@ -25,23 +26,26 @@ const description = `Download ${config.playlistName} chapters, copy the hosted R
 <BaseLayout title={pageTitle} description={description} wide>
 	<section class="yoto-page">
 		<header class="terminal-panel hero">
-			<div class="terminal-command">
-				<span class="prompt">$</span>
-				<span class="command">yoto --offline {config.id}</span>
-			</div>
-			<h1>{config.playlistName} for Yoto</h1>
-			<p>{config.sourceNote}</p>
-			<div class="source-line">
-				<a href={config.sourceUrl} rel="noopener noreferrer" target="_blank">Archive source</a>
-				<span>{config.licenseLabel}</span>
-			</div>
-			<div class="actions">
-				<a class="btn primary" href={firstChapterPath}>Open in Waves</a>
-				<a class="btn" href={rssPath}>Yoto RSS feed</a>
-				<a class="btn" href="/yoto">All Yoto feeds</a>
-				<a class="btn" href="https://my.yotoplay.com/podcasts/new" rel="noopener noreferrer" target="_blank">
-					Add in Yoto
-				</a>
+			<img class="playlist-art" src={getYotoDisplayArtworkPath(config.artworkPath)} alt="" width="220" height="220" />
+			<div class="hero-copy">
+				<div class="terminal-command">
+					<span class="prompt">$</span>
+					<span class="command">yoto --offline {config.id}</span>
+				</div>
+				<h1>{config.playlistName} for Yoto</h1>
+				<p>{config.sourceNote}</p>
+				<div class="source-line">
+					<a href={config.sourceUrl} rel="noopener noreferrer" target="_blank">Archive source</a>
+					<span>{config.licenseLabel}</span>
+				</div>
+				<div class="actions">
+					<a class="btn primary" href={firstChapterPath}>Open in Waves</a>
+					<a class="btn" href={rssPath}>Yoto RSS feed</a>
+					<a class="btn" href="/yoto">All Yoto feeds</a>
+					<a class="btn" href="https://my.yotoplay.com/podcasts/new" rel="noopener noreferrer" target="_blank">
+						Add in Yoto
+					</a>
+				</div>
 			</div>
 		</header>
 
@@ -92,7 +96,21 @@ const description = `Download ${config.playlistName} chapters, copy the hosted R
 	}
 
 	.hero {
+		display: grid;
+		grid-template-columns: 13.75rem minmax(0, 1fr);
+		gap: var(--space-xl);
+		align-items: center;
 		border-color: color-mix(in srgb, var(--amber-base) 45%, var(--border-base));
+	}
+
+	.playlist-art {
+		width: 100%;
+		max-width: 220px;
+		aspect-ratio: 1;
+		border: 1px solid var(--border-base);
+		border-radius: 8px;
+		object-fit: cover;
+		box-shadow: var(--glow-md);
 	}
 
 	.terminal-command,
@@ -214,6 +232,14 @@ const description = `Download ${config.playlistName} chapters, copy the hosted R
 	}
 
 	@media (max-width: 768px) {
+		.hero {
+			grid-template-columns: 1fr;
+		}
+
+		.playlist-art {
+			max-width: 168px;
+		}
+
 		.terminal-panel {
 			padding: var(--space-lg);
 		}

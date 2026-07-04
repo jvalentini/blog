@@ -34,6 +34,36 @@
 			"id": "uncle-wiggily-story-book",
 			"name": "Uncle Wiggily's Story Book",
 			"visible": true
+		},
+		"roald-dahl-revolting-rhymes": {
+			"id": "roald-dahl-revolting-rhymes",
+			"name": "Roald Dahl's Revolting Rhymes",
+			"visible": true
+		},
+		"dr-seuss-rik-mayall": {
+			"id": "dr-seuss-rik-mayall",
+			"name": "Dr. Seuss Collection - Rik Mayall",
+			"visible": true
+		},
+		"dr-seuss-cat-in-the-hat": {
+			"id": "dr-seuss-cat-in-the-hat",
+			"name": "Cat in the Hat and Other Stories",
+			"visible": true
+		},
+		"dr-seuss-scrambled-eggs-super": {
+			"id": "dr-seuss-scrambled-eggs-super",
+			"name": "Scrambled Eggs Super and Other Stories",
+			"visible": true
+		},
+		"when-you-grow-up": {
+			"id": "when-you-grow-up",
+			"name": "When You Grow Up",
+			"visible": true
+		},
+		"roald-dahl-bfg": {
+			"id": "roald-dahl-bfg",
+			"name": "Roald Dahl - The BFG",
+			"visible": true
 		}
 	},
 	"songs": [
@@ -982,6 +1012,276 @@
 			"lyrics": {},
 			"versions": {
 				"audiobook": "audiobooks/uncle-wiggily-story-book/36-uncle-wiggily-and-the-wolf.mp3"
+			}
+		},
+		{
+			"id": "roald-dahl-revolting-rhymes-snow-white-and-the-seven-dwarfs",
+			"title": "Snow White and the Seven Dwarfs",
+			"playlist": "roald-dahl-revolting-rhymes",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/roald-dahl-revolting-rhymes/01-snow-white-and-the-seven-dwarfs.mp3"
+			}
+		},
+		{
+			"id": "roald-dahl-revolting-rhymes-jack-and-the-beanstalk",
+			"title": "Jack and the Beanstalk",
+			"playlist": "roald-dahl-revolting-rhymes",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/roald-dahl-revolting-rhymes/02-jack-and-the-beanstalk.mp3"
+			}
+		},
+		{
+			"id": "roald-dahl-revolting-rhymes-little-red-riding-hood-and-the-wolf",
+			"title": "Little Red Riding Hood and the Wolf",
+			"playlist": "roald-dahl-revolting-rhymes",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/roald-dahl-revolting-rhymes/03-little-red-riding-hood-and-the-wolf.mp3"
+			}
+		},
+		{
+			"id": "roald-dahl-revolting-rhymes-the-three-little-pigs",
+			"title": "The Three Little Pigs",
+			"playlist": "roald-dahl-revolting-rhymes",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/roald-dahl-revolting-rhymes/04-the-three-little-pigs.mp3"
+			}
+		},
+		{
+			"id": "roald-dahl-revolting-rhymes-goldilocks-and-the-three-bears",
+			"title": "Goldilocks and the Three Bears",
+			"playlist": "roald-dahl-revolting-rhymes",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/roald-dahl-revolting-rhymes/05-goldilocks-and-the-three-bears.mp3"
+			}
+		},
+		{
+			"id": "roald-dahl-revolting-rhymes-cinderella",
+			"title": "Cinderella",
+			"playlist": "roald-dahl-revolting-rhymes",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/roald-dahl-revolting-rhymes/06-cinderella.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-rik-mayall-the-lorax",
+			"title": "The Lorax",
+			"playlist": "dr-seuss-rik-mayall",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-rik-mayall/01-the-lorax.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-rik-mayall-dr-seusss-abc",
+			"title": "Dr. Seuss's ABC",
+			"playlist": "dr-seuss-rik-mayall",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-rik-mayall/02-dr-seusss-abc.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-rik-mayall-how-the-grinch-stole-christmas",
+			"title": "How The Grinch Stole Christmas",
+			"playlist": "dr-seuss-rik-mayall",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-rik-mayall/03-how-the-grinch-stole-christmas.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-rik-mayall-one-fish-two-fish-red-fish-blue-fish",
+			"title": "One Fish Two Fish Red Fish Blue Fish",
+			"playlist": "dr-seuss-rik-mayall",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-rik-mayall/04-one-fish-two-fish-red-fish-blue-fish.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-cat-in-the-hat-the-cat-in-the-hat-pt-1",
+			"title": "The Cat In The Hat Pt.1",
+			"playlist": "dr-seuss-cat-in-the-hat",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-cat-in-the-hat/01-the-cat-in-the-hat-pt-1.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-cat-in-the-hat-the-cat-in-the-hat-pt-2",
+			"title": "The Cat In The Hat Pt.2",
+			"playlist": "dr-seuss-cat-in-the-hat",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-cat-in-the-hat/02-the-cat-in-the-hat-pt-2.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-cat-in-the-hat-fox-in-socks-pt-1",
+			"title": "Fox In Socks Pt.1",
+			"playlist": "dr-seuss-cat-in-the-hat",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-cat-in-the-hat/03-fox-in-socks-pt-1.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-cat-in-the-hat-fox-in-socks-pt-2",
+			"title": "Fox In Socks Pt.2",
+			"playlist": "dr-seuss-cat-in-the-hat",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-cat-in-the-hat/04-fox-in-socks-pt-2.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-cat-in-the-hat-the-cat-in-the-hat-comes-back-pt-1",
+			"title": "The Cat In The Hat Comes Back Pt.1",
+			"playlist": "dr-seuss-cat-in-the-hat",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-cat-in-the-hat/05-the-cat-in-the-hat-comes-back-pt-1.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-cat-in-the-hat-the-cat-in-the-hat-comes-back-pt-2",
+			"title": "The Cat In The Hat Comes Back Pt.2",
+			"playlist": "dr-seuss-cat-in-the-hat",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-cat-in-the-hat/06-the-cat-in-the-hat-comes-back-pt-2.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-cat-in-the-hat-green-eggs-and-ham-pt-2-1",
+			"title": "Green Eggs & Ham Pt.2/1",
+			"playlist": "dr-seuss-cat-in-the-hat",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-cat-in-the-hat/07-green-eggs-and-ham-pt-2-1.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-cat-in-the-hat-green-eggs-and-ham-pt-2",
+			"title": "Green Eggs & Ham Pt.2",
+			"playlist": "dr-seuss-cat-in-the-hat",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-cat-in-the-hat/08-green-eggs-and-ham-pt-2.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-scrambled-eggs-super-the-sneetches",
+			"title": "The Sneetches",
+			"playlist": "dr-seuss-scrambled-eggs-super",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-scrambled-eggs-super/01-the-sneetches.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-scrambled-eggs-super-the-zacks",
+			"title": "The Zacks",
+			"playlist": "dr-seuss-scrambled-eggs-super",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-scrambled-eggs-super/02-the-zacks.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-scrambled-eggs-super-too-many-daves",
+			"title": "Too Many Daves",
+			"playlist": "dr-seuss-scrambled-eggs-super",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-scrambled-eggs-super/03-too-many-daves.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-scrambled-eggs-super-what-was-i-scared-of",
+			"title": "What Was I Scared Of?",
+			"playlist": "dr-seuss-scrambled-eggs-super",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-scrambled-eggs-super/04-what-was-i-scared-of.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-scrambled-eggs-super-scrambled-eggs-super",
+			"title": "Scrambled Eggs Super!",
+			"playlist": "dr-seuss-scrambled-eggs-super",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-scrambled-eggs-super/05-scrambled-eggs-super.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-scrambled-eggs-super-oh-say-can-you-say",
+			"title": "Oh Say Can You Say?",
+			"playlist": "dr-seuss-scrambled-eggs-super",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-scrambled-eggs-super/06-oh-say-can-you-say.mp3"
+			}
+		},
+		{
+			"id": "dr-seuss-scrambled-eggs-super-horton-hatches-the-egg",
+			"title": "Horton Hatches The Egg",
+			"playlist": "dr-seuss-scrambled-eggs-super",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/dr-seuss-scrambled-eggs-super/07-horton-hatches-the-egg.mp3"
+			}
+		},
+		{
+			"id": "when-you-grow-up-when-you-grow-up",
+			"title": "When you Grow Up",
+			"playlist": "when-you-grow-up",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/when-you-grow-up/01-when-you-grow-up.mp3"
+			}
+		},
+		{
+			"id": "roald-dahl-bfg-the-bfg-audiobook-part-1",
+			"title": "The BFG (Audiobook, Part 1)",
+			"playlist": "roald-dahl-bfg",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/roald-dahl-bfg/01-the-bfg-audiobook-part-1.mp3"
+			}
+		},
+		{
+			"id": "roald-dahl-bfg-the-bfg-audiobook-part-2",
+			"title": "The BFG (Audiobook, Part 2)",
+			"playlist": "roald-dahl-bfg",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/roald-dahl-bfg/02-the-bfg-audiobook-part-2.mp3"
+			}
+		},
+		{
+			"id": "roald-dahl-bfg-the-bfg-audiobook-part-3",
+			"title": "The BFG (Audiobook, Part 3)",
+			"playlist": "roald-dahl-bfg",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/roald-dahl-bfg/03-the-bfg-audiobook-part-3.mp3"
+			}
+		},
+		{
+			"id": "roald-dahl-bfg-the-bfg-audiobook-part-4",
+			"title": "The BFG (Audiobook, Part 4)",
+			"playlist": "roald-dahl-bfg",
+			"lyrics": {},
+			"versions": {
+				"audiobook": "audiobooks/roald-dahl-bfg/04-the-bfg-audiobook-part-4.mp3"
 			}
 		}
 	],

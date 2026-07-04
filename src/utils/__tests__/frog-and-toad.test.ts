@@ -28,6 +28,7 @@ describe('Frog and Toad audiobook chapter list', () => {
 					filePath: 'audiobooks/frog-and-toad/1-01-frog-and-toad-are-friends.mp3',
 					assetPath: '/assets/audiobooks/frog-and-toad/1-01-frog-and-toad-are-friends.mp3',
 					size: 1084519,
+					durationSeconds: 59,
 					url: 'https://jval.dev/assets/audiobooks/frog-and-toad/1-01-frog-and-toad-are-friends.mp3',
 				},
 				{
@@ -36,6 +37,7 @@ describe('Frog and Toad audiobook chapter list', () => {
 					filePath: 'audiobooks/frog-and-toad/1-02-spring.mp3',
 					assetPath: '/assets/audiobooks/frog-and-toad/1-02-spring.mp3',
 					size: 5068486,
+					durationSeconds: 275,
 					url: 'https://jval.dev/assets/audiobooks/frog-and-toad/1-02-spring.mp3',
 				},
 			],
@@ -48,6 +50,10 @@ describe('Frog and Toad audiobook chapter list', () => {
 			'<atom:link href="https://jval.dev/yoto/frog-and-toad.xml" rel="self" type="application/rss+xml" />',
 		);
 		expect(xml).toContain('<itunes:author>Justin Valentini</itunes:author>');
+		expect(xml).toContain('<itunes:category text="Kids &amp; Family" />');
+		expect(xml).toContain('<itunes:episode>1</itunes:episode>');
+		expect(xml).toContain('<itunes:duration>00:00:59</itunes:duration>');
+		expect(xml).toContain('<itunes:duration>00:04:35</itunes:duration>');
 		expect(xml).toContain(
 			'<link>https://jval.dev/assets/audiobooks/frog-and-toad/1-01-frog-and-toad-are-friends.mp3</link>',
 		);

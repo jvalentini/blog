@@ -1,0 +1,262 @@
+---
+import { SITE_TITLE } from '../../consts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { FROG_AND_TOAD_RSS_PATH, getFrogAndToadChapters } from '../../utils/frog-and-toad';
+import {
+	getYotoAudiobookChapters,
+	getYotoAudiobookConfigs,
+	getYotoAudiobookRssPath,
+} from '../../utils/yoto-audiobooks';
+
+const siteUrl = 'https://jval.dev';
+const archiveFeeds = getYotoAudiobookConfigs().map((config) => ({
+	id: config.id,
+	name: config.playlistName,
+	chapterCount: getYotoAudiobookChapters(config).length,
+	setupPath: `/yoto/${config.id}/`,
+	rssPath: getYotoAudiobookRssPath(config),
+	source: config.licenseLabel,
+}));
+
+const feeds = [
+	{
+		id: 'frog-and-toad',
+		name: 'Frog and Toad',
+		chapterCount: getFrogAndToadChapters().length,
+		setupPath: '/yoto/frog-and-toad/',
+		rssPath: FROG_AND_TOAD_RSS_PATH,
+		source: 'Licensed by site owner',
+	},
+	...archiveFeeds,
+];
+
+const pageTitle = `Yoto Playlist Feeds | ${SITE_TITLE}`;
+const description = 'RSS feed URLs and setup pages for the hosted Yoto Make Your Own audiobook playlists.';
+---
+
+<BaseLayout title={pageTitle} description={description} wide>
+	<section class="yoto-directory">
+		<header class="terminal-panel hero">
+			<div class="terminal-command">
+				<span class="prompt">$</span>
+				<span class="command">ls ~/yoto-feeds</span>
+			</div>
+			<h1>Yoto Playlist Feeds</h1>
+			<p>
+				Copy the RSS feed URL into the Yoto podcast form, or open the setup page for the full card-linking checklist.
+			</p>
+			<div class="actions">
+				<a class="btn primary" href="https://my.yotoplay.com/podcasts/new" rel="noopener noreferrer" target="_blank">
+					Add in Yoto
+				</a>
+				<a class="btn" href="/waves">Open Waves</a>
+			</div>
+		</header>
+
+		<section class="feed-list" aria-label="Yoto playlist RSS feeds">
+			{feeds.map((feed) => {
+				const rssUrl = `${siteUrl}${feed.rssPath}`;
+				const setupUrl = `${siteUrl}${feed.setupPath}`;
+
+				return (
+					<article class="feed-row">
+						<div class="feed-main">
+							<div class="feed-kicker">
+								<span>{feed.chapterCount} chapters</span>
+								<span>{feed.source}</span>
+							</div>
+							<h2>{feed.name}</h2>
+						</div>
+						<div class="feed-links">
+							<div class="url-field">
+								<span class="url-label">RSS</span>
+								<code>{rssUrl}</code>
+								<a href={feed.rssPath}>Open</a>
+							</div>
+							<div class="url-field">
+								<span class="url-label">Page</span>
+								<code>{setupUrl}</code>
+								<a href={feed.setupPath}>Setup</a>
+							</div>
+						</div>
+					</article>
+				);
+			})}
+		</section>
+	</section>
+</BaseLayout>
+
+<style>
+	.yoto-directory {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-xl);
+		margin-bottom: var(--space-3xl);
+	}
+
+	.terminal-panel {
+		background: linear-gradient(135deg, var(--bg-surface), color-mix(in srgb, var(--bg-base) 88%, transparent));
+		border: 1px solid var(--border-base);
+		border-radius: 12px;
+		padding: var(--space-xl);
+		box-shadow: var(--glow-sm);
+	}
+
+	.hero {
+		border-color: color-mix(in srgb, var(--amber-base) 45%, var(--border-base));
+	}
+
+	.terminal-command {
+		display: flex;
+		gap: var(--space-sm);
+		margin-bottom: var(--space-md);
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
+	}
+
+	.prompt {
+		color: var(--phosphor-base);
+	}
+
+	.command {
+		color: var(--amber-base);
+	}
+
+	.hero h1 {
+		margin-bottom: var(--space-md);
+	}
+
+	.hero p {
+		max-width: 72ch;
+	}
+
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-md);
+		margin-top: var(--space-xl);
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 44px;
+		border: 1px solid var(--border-base);
+		border-radius: 8px;
+		padding: var(--space-sm) var(--space-md);
+		color: var(--text-bright);
+		background: var(--bg-elevated);
+		transition: border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+	}
+
+	.btn:hover,
+	.btn:focus-visible {
+		border-color: var(--phosphor-base);
+		color: var(--phosphor-bright);
+		box-shadow: var(--glow-sm);
+	}
+
+	.btn.primary {
+		border-color: var(--phosphor-base);
+		color: var(--phosphor-base);
+	}
+
+	.feed-list {
+		display: grid;
+		gap: var(--space-md);
+	}
+
+	.feed-row {
+		display: grid;
+		grid-template-columns: minmax(12rem, 0.45fr) minmax(0, 1.55fr);
+		gap: var(--space-lg);
+		border: 1px solid var(--border-dim);
+		border-radius: 8px;
+		padding: var(--space-lg);
+		background: color-mix(in srgb, var(--bg-deep) 84%, transparent);
+	}
+
+	.feed-kicker {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-sm);
+		color: var(--amber-base);
+		font-size: var(--font-size-xs);
+		text-transform: uppercase;
+	}
+
+	.feed-main h2 {
+		margin: var(--space-xs) 0 0;
+		color: var(--text-bright);
+		font-size: var(--font-size-lg);
+		letter-spacing: 0;
+	}
+
+	.feed-links {
+		display: grid;
+		gap: var(--space-sm);
+		min-width: 0;
+	}
+
+	.url-field {
+		display: grid;
+		grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+		align-items: center;
+		gap: var(--space-sm);
+		min-height: 44px;
+		border: 1px solid var(--border-dim);
+		border-radius: 6px;
+		padding: var(--space-xs) var(--space-sm);
+		background: rgba(0, 0, 0, 0.24);
+	}
+
+	.url-label {
+		color: var(--text-muted);
+		font-size: var(--font-size-xs);
+		text-transform: uppercase;
+	}
+
+	code {
+		display: block;
+		min-width: 0;
+		overflow-x: auto;
+		padding: 0.2rem 0.35rem;
+		color: var(--phosphor-base);
+		font-size: var(--font-size-xs);
+		text-overflow: clip;
+		white-space: nowrap;
+		user-select: all;
+	}
+
+	.url-field a {
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
+	}
+
+	.url-field a:hover,
+	.url-field a:focus-visible {
+		color: var(--phosphor-bright);
+	}
+
+	@media (max-width: 820px) {
+		.feed-row {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 560px) {
+		.terminal-panel,
+		.feed-row {
+			padding: var(--space-lg);
+		}
+
+		.url-field {
+			grid-template-columns: 1fr auto;
+		}
+
+		.url-label {
+			grid-column: 1 / -1;
+		}
+	}
+</style>

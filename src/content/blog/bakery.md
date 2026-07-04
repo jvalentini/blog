@@ -1,8 +1,8 @@
 ---
 title: 'Bakery: Stop Configuring, Start Building'
-description: 'A modular project scaffolder that eliminates hours of setup by generating production-ready projects with TypeScript, Bun, Biome, and modern tooling pre-configured.'
+description: 'A modular project scaffolder that eliminates setup time by generating production-ready TypeScript, Bun, Biome, and modern tooling projects.'
 pubDate: 'Jan 10 2026'
-heroImage: 'https://raw.githubusercontent.com/jvalentini/bakery/master/banner.png'
+heroImage: '../../assets/bakery-banner.webp'
 tags: ['typescript', 'cli', 'developer-tools', 'project-scaffolding', 'bun']
 ---
 

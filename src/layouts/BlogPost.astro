@@ -86,13 +86,13 @@ const breadcrumbData = [
 
 				{heroImage && typeof heroImage === 'string' ? (
 					<div class="hero-image">
-						<img src={heroImage} alt="" loading="eager" fetchpriority="high" />
+						<img src={heroImage} alt="" loading="eager" fetchpriority="high" width="720" height="360" />
 					</div>
 				) : heroImage && typeof heroImage !== 'string' ? (
 					<div class="hero-image">
 						<Image
-							width={1020}
-							height={510}
+							width={720}
+							height={360}
 							src={heroImage}
 							alt=""
 							loading="eager"
@@ -265,6 +265,10 @@ const breadcrumbData = [
 		border-bottom: 1px solid var(--border-dim);
 	}
 
+	.prose :global(.astro-code span[style*="#6A737D"]) {
+		color: var(--text-secondary) !important;
+	}
+
 	.prose :global(code) {
 		font-size: 0.85em;
 	}
@@ -336,8 +340,8 @@ const breadcrumbData = [
 		}
 
 		.hero-image {
-			margin-left: calc(-1 * var(--space-md));
-			margin-right: calc(-1 * var(--space-md));
+			margin-left: 0;
+			margin-right: 0;
 			border-radius: 0;
 		}
 

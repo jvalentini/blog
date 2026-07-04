@@ -1,8 +1,8 @@
 ---
-title: 'Building WorkSafe: A Profanity Filter with an Office Space Theme'
+title: 'Building WorkSafe: An Office Space Profanity Filter'
 description: 'A TPS Report Compliance System that transforms unfiltered workplace thoughts into professional communication with greenbar paper and CRT monitors.'
 pubDate: 'Jan 01 2026'
-heroImage: 'https://raw.githubusercontent.com/jvalentini/worksafe/master/banner.png'
+heroImage: '../../assets/worksafe-banner.webp'
 tags: ['vue', 'typescript', 'nlp', 'ui-design', 'web-speech-api']
 ---
 

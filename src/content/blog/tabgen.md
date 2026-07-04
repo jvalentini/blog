@@ -1,8 +1,8 @@
 ---
-title: "TabGen: Automatic Tab Completion for the Tools I Actually Use"
+title: "TabGen: Automatic Completions for My Actual Tools"
 description: "TabGen scans my PATH, parses --help and man pages, and generates Bash/Zsh completions so I don't have to hand-roll tab completion for every new CLI."
 pubDate: "Jan 04 2026"
-heroImage: "https://raw.githubusercontent.com/jvalentini/tabgen/master/banner.png"
+heroImage: "../../assets/tabgen-banner.webp"
 tags: ["golang", "cli", "shell", "developer-tools", "automation"]
 ---
 

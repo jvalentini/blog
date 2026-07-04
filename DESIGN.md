@@ -15,10 +15,11 @@ jval.dev feels like a working terminal for a technical blog: compact, dark, read
 | Surface/default | `--bg-surface` | N/A | `#12121a` | Cards and panels |
 | Surface/elevated | `--bg-elevated` | N/A | `#1a1a24` | Raised controls and embedded tools |
 | Text/primary | `--text-primary` | N/A | `#e0e0e0` | Body text |
-| Text/secondary | `--text-secondary` | N/A | `#888888` | Captions and secondary labels |
-| Text/muted | `--text-muted` | N/A | `#555555` | Disabled or quiet metadata |
+| Text/secondary | `--text-secondary` | N/A | `#a0a0a8` | Captions and secondary labels |
+| Text/muted | `--text-muted` | N/A | `#8a8a92` | Disabled or quiet metadata |
 | Text/bright | `--text-bright` | N/A | `#ffffff` | Headings and active text |
 | Accent/phosphor | `--phosphor-base` | N/A | `#33ff33` | Primary controls, active states, links |
+| Accent/phosphor-dim | `--phosphor-dim` | N/A | `#2fbf2f` | Low-emphasis terminal text that must still pass contrast |
 | Accent/phosphor-bright | `--phosphor-bright` | N/A | `#66ff66` | Hover and emphasis |
 | Accent/amber | `--amber-base` | N/A | `#ffb000` | Warnings, metadata, alternate command accent |
 | Border/default | `--border-base` | N/A | `#333340` | Panel boundaries |
@@ -43,17 +44,17 @@ jval.dev feels like a working terminal for a technical blog: compact, dark, read
 | Body/lg | `1.125rem` | 400 | 1.7 | 0 | Lead copy |
 | Body | `1rem` | 400 | 1.7 | 0 | Default text |
 | Body/sm | `0.875rem` | 400 | 1.5 | 0 | Secondary UI copy |
-| Caption | `0.75rem` | 500 | 1.4 | 0 | Labels and metadata |
+| Caption | `0.8125rem` | 500 | 1.4 | 0 | Labels and metadata |
 
 ### Font Stack
 
-- Primary: `JetBrains Mono`, `SF Mono`, `Fira Code`, `Consolas`, monospace.
+- Primary: `SF Mono`, `Fira Code`, `Consolas`, `Liberation Mono`, monospace.
 - Mono: same as primary.
 
 ### Rules
 
 - The site is mono-first. Do not introduce a second family unless the whole design direction changes.
-- Body text never goes below `0.875rem`.
+- Body text never goes below `0.875rem`; visible UI captions never go below `0.8125rem`.
 - Letter spacing stays at `0` unless matching the existing uppercase command-label pattern.
 
 ## 4. Spacing & Layout

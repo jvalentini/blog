@@ -4,16 +4,18 @@ import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import Terminal from '../../components/Terminal.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { SITE_TITLE } from '../../consts';
 import { getPublishedPosts } from '../../utils/posts';
 
 const posts = await getPublishedPosts();
+const description =
+	'Browse Justin Valentini blog posts on software engineering, AI-assisted development, developer tooling, Astro, TypeScript, and practical web workflows.';
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={`Posts | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<BaseHead title={`Posts | ${SITE_TITLE}`} description={description} />
 	</head>
 	<body>
 		<Header />
@@ -23,6 +25,7 @@ const posts = await getPublishedPosts();
 					<span class="prompt">$</span>
 					<span class="command">find ~/posts -type f -name "*.md" | sort -r</span>
 				</div>
+				<h1>Posts</h1>
 				<p class="result-count">Found {posts.length} post{posts.length !== 1 ? 's' : ''}</p>
 			</header>
 
@@ -84,6 +87,10 @@ const posts = await getPublishedPosts();
 		display: flex;
 		gap: var(--space-sm);
 		font-size: var(--font-size-lg);
+		margin-bottom: var(--space-sm);
+	}
+
+	.page-header h1 {
 		margin-bottom: var(--space-sm);
 	}
 

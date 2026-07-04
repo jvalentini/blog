@@ -24,7 +24,7 @@ const posts = (await getCollection('blog'))
 					<span class="prompt">$</span>
 					<span class="command">whoami</span>
 				</div>
-				<div class="output name">{AUTHOR_NAME}</div>
+				<h1 class="output name">{AUTHOR_NAME}</h1>
 				
 				<div class="line">
 					<span class="prompt">$</span>
@@ -155,6 +155,7 @@ Writing about modern web tech, workflows, and lessons learned.</pre>
 		font-size: var(--font-size-lg);
 		font-weight: 600;
 		text-shadow: var(--glow-sm);
+		margin: 0 0 var(--space-md);
 	}
 
 	.output.motd {

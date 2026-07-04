@@ -28,6 +28,6 @@ pre-commit:
 
 pre-push:
   commands:
-    build-test:
-      run: bun run build
+    ci:
+      run: make ci
       fail_text: "Build failed. Fix errors before pushing."

@@ -29,6 +29,9 @@ const pathDisplay = segments.length > 0 ? segments.join('/') : 'home';
 				<a href="/waves" class:list={["cmd", { active: pathname === '/waves' || pathname.startsWith('/waves/') }]}>
 					<span class="cmd-prefix">open</span> waves
 				</a>
+				<a href="/yoto" class:list={["cmd", { active: pathname === '/yoto/' || pathname.startsWith('/yoto/') }]}>
+					<span class="cmd-prefix">cat</span> yoto
+				</a>
 				<a href="/about" class:list={["cmd", { active: pathname === '/about/' }]}>
 					<span class="cmd-prefix">cat</span> about
 				</a>

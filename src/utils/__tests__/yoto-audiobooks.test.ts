@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import tracksData from '../../data/tracks.json';
+import { YOTO_AUDIOBOOK_CONFIGS } from '../../data/yoto-audiobook-configs';
 import {
 	buildYotoAudiobookPodcastFeed,
 	getYotoAudiobookChapters,
@@ -86,5 +88,39 @@ describe('Archive-backed Yoto audiobook feeds', () => {
 		expect(xml).not.toContain('<author>');
 		expect(xml).not.toContain('\\n');
 		expect(xml.match(/<enclosure /g)).toHaveLength(1);
+	});
+
+	it('keeps every playlist feed wired to its own track folder and player playlist metadata', () => {
+		for (const config of YOTO_AUDIOBOOK_CONFIGS) {
+			const chapters = getYotoAudiobookChapters(config);
+			const playlist = Object.values(tracksData.playlists).find((candidate) => candidate.id === config.id);
+			const songs = tracksData.songs.filter((song) => song.playlist === config.id);
+
+			expect(playlist?.name).toBe(config.playlistName);
+			expect(songs).toHaveLength(chapters.length);
+
+			chapters.forEach((chapter, chapterIndex) => {
+				const song = songs[chapterIndex];
+
+				expect(chapter.filePath.startsWith(`audiobooks/${config.id}/`)).toBe(true);
+				expect(song?.id).toBe(chapter.id);
+				expect(song?.title).toBe(chapter.title);
+				expect(song?.versions.audiobook).toBe(chapter.filePath);
+			});
+		}
+	});
+
+	it('uses unambiguous Dr. Seuss podcast names for Yoto card linking', () => {
+		const drSeussConfigs = YOTO_AUDIOBOOK_CONFIGS.filter((config) => config.id.startsWith('dr-seuss-'));
+		const feedTitles = drSeussConfigs.map((config) => config.feedTitle);
+		const playlistNames = drSeussConfigs.map((config) => config.playlistName);
+
+		expect(feedTitles).toEqual([
+			'Dr. Seuss - Rik Mayall Collection',
+			'Dr. Seuss - Cat in the Hat and Other Stories (Adrian Edmondson)',
+			'Dr. Seuss - Scrambled Eggs Super and Other Stories (Miranda Richardson)',
+		]);
+		expect(new Set(feedTitles).size).toBe(drSeussConfigs.length);
+		expect(new Set(playlistNames).size).toBe(drSeussConfigs.length);
 	});
 });

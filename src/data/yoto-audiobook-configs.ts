@@ -479,8 +479,8 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 	{
 		id: 'dr-seuss-rik-mayall',
 		artworkPath: '/assets/yoto-art/dr-seuss-rik-mayall.png',
-		playlistName: 'Dr. Seuss Collection - Rik Mayall',
-		feedTitle: 'The Dr. Seuss Collection (read by Rik Mayall)',
+		playlistName: 'Dr. Seuss - Rik Mayall Collection',
+		feedTitle: 'Dr. Seuss - Rik Mayall Collection',
 		authorName: 'Dr. Seuss',
 		publishedAt: '2025-09-09T00:00:00.000Z',
 		sourceUrl: 'https://archive.org/details/the-dr.-seuss-collection-read-by-rik-mayall',
@@ -516,8 +516,8 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 	{
 		id: 'dr-seuss-cat-in-the-hat',
 		artworkPath: '/assets/yoto-art/dr-seuss-cat-in-the-hat.png',
-		playlistName: 'Cat in the Hat and Other Stories',
-		feedTitle: 'The Cat in the Hat and Other Stories by Dr. Seuss',
+		playlistName: 'Dr. Seuss - Cat in the Hat (Adrian Edmondson)',
+		feedTitle: 'Dr. Seuss - Cat in the Hat and Other Stories (Adrian Edmondson)',
 		authorName: 'Dr. Seuss',
 		publishedAt: '2025-09-09T00:00:00.000Z',
 		sourceUrl: 'https://archive.org/details/the-cat-in-the-hat-and-other-stories-by-dr.-seuss-read-by-adrian-edmondson',
@@ -562,7 +562,7 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 			},
 			{
 				id: 'dr-seuss-cat-in-the-hat-green-eggs-and-ham-pt-2-1',
-				title: 'Green Eggs & Ham Pt.2/1',
+				title: 'Green Eggs & Ham Pt.1',
 				filePath: 'audiobooks/dr-seuss-cat-in-the-hat/07-green-eggs-and-ham-pt-2-1.mp3',
 				durationSeconds: 307,
 			},
@@ -577,8 +577,8 @@ export const YOTO_AUDIOBOOK_CONFIGS = [
 	{
 		id: 'dr-seuss-scrambled-eggs-super',
 		artworkPath: '/assets/yoto-art/dr-seuss-scrambled-eggs-super.png',
-		playlistName: 'Scrambled Eggs Super and Other Stories',
-		feedTitle: 'Scrambled Eggs Super! and Other Stories',
+		playlistName: 'Dr. Seuss - Scrambled Eggs Super (Miranda Richardson)',
+		feedTitle: 'Dr. Seuss - Scrambled Eggs Super and Other Stories (Miranda Richardson)',
 		authorName: 'Dr. Seuss',
 		publishedAt: '2025-09-09T00:00:00.000Z',
 		sourceUrl: 'https://archive.org/details/scrambled-eggs-super-and-other-stories-read-by-miranda-richardson',

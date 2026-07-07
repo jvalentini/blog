@@ -48,19 +48,19 @@
 		"dr-seuss-rik-mayall": {
 			"id": "dr-seuss-rik-mayall",
 			"artworkPath": "/assets/yoto-art/dr-seuss-rik-mayall.png",
-			"name": "Dr. Seuss Collection - Rik Mayall",
+			"name": "Dr. Seuss - Rik Mayall Collection",
 			"visible": true
 		},
 		"dr-seuss-cat-in-the-hat": {
 			"id": "dr-seuss-cat-in-the-hat",
 			"artworkPath": "/assets/yoto-art/dr-seuss-cat-in-the-hat.png",
-			"name": "Cat in the Hat and Other Stories",
+			"name": "Dr. Seuss - Cat in the Hat (Adrian Edmondson)",
 			"visible": true
 		},
 		"dr-seuss-scrambled-eggs-super": {
 			"id": "dr-seuss-scrambled-eggs-super",
 			"artworkPath": "/assets/yoto-art/dr-seuss-scrambled-eggs-super.png",
-			"name": "Scrambled Eggs Super and Other Stories",
+			"name": "Dr. Seuss - Scrambled Eggs Super (Miranda Richardson)",
 			"visible": true
 		},
 		"when-you-grow-up": {
@@ -1170,7 +1170,7 @@
 		},
 		{
 			"id": "dr-seuss-cat-in-the-hat-green-eggs-and-ham-pt-2-1",
-			"title": "Green Eggs & Ham Pt.2/1",
+			"title": "Green Eggs & Ham Pt.1",
 			"playlist": "dr-seuss-cat-in-the-hat",
 			"lyrics": {},
 			"versions": {

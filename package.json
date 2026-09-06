@@ -45,7 +45,7 @@
 		"front-matter": "^4.0.2",
 		"happy-dom": "^20.3.1",
 		"lefthook": "^2.0.13",
-		"linkinator": "^7.5.3",
+		"linkinator": "^8.1.0",
 		"oxlint": "^1.38.0",
 		"schema-dts": "^2.0.0",
 		"typescript": "^6.0.3",

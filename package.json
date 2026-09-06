@@ -49,6 +49,6 @@
 		"oxlint": "^1.38.0",
 		"schema-dts": "^2.0.0",
 		"typescript": "^6.0.3",
-		"vitest": "^4.0.17"
+		"vitest": "^5.0.0"
 	}
 }
